@@ -8,7 +8,7 @@ This is a **Next.js 16 App Router** project (TypeScript, Tailwind CSS v4, Turbop
 - **Framework**: Next.js 16 App Router
 - **LLM**: Vercel AI SDK + OpenRouter (all AI calls via `src/lib/ai.ts`)
 - **Database/Auth**: Supabase (PostgreSQL + Auth)
-- **Styling**: Tailwind CSS v4 + Framer Motion + Shadcn UI
+- **Styling & Animation**: Tailwind CSS v4 + GSAP + Shadcn UI
 - **Payments**: Stripe
 - **i18n**: next-intl (locale files in `src/messages/`)
 

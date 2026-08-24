@@ -7,7 +7,7 @@ A web-based Hunger Games simulator where game events are procedurally determined
 - **Framework**: Next.js (Full-stack React)
 - **Database**: PostgreSQL (e.g., Supabase/Neon) - robust for token transactions and relational game states
 - **LLM Routing**: Vercel AI SDK + OpenRouter - Best for Next.js streaming and single API access to multiple LLMs.
-- **Styling**: Tailwind CSS + Framer Motion + Shadcn UI - For a rich, animated "Game Orchestrator" aesthetic.
+- **Styling**: Tailwind CSS + GSAP + Shadcn UI - For a rich, animated "Game Orchestrator" aesthetic.
 - **Hosting**: Vercel (Optimal edge hosting for Next.js)
 - **Authentication/Authz**: Supabase Auth (Seamless integration with DB) + Stripe (Payments)
 
@@ -34,6 +34,6 @@ A web-based Hunger Games simulator where game events are procedurally determined
 - **DBMS & Backend**: Supabase (PostgreSQL + Auth + Storage).
 - **Hosting**: Vercel.
 - **LLM Routing**: Vercel AI SDK + OpenRouter.
-- **Styling**: Tailwind CSS + Framer Motion + Shadcn UI.
+- **Styling**: Tailwind CSS + GSAP + Shadcn UI.
 - **Event Management**: Data-Driven JSON Templates stored in Supabase.
 - **Generation Flow**: Day-by-Day (Phase-by-Phase) batched generation.

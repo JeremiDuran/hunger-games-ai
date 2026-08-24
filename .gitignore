@@ -46,3 +46,6 @@ ehthumbs.db
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+#unused agent folder
+agent
