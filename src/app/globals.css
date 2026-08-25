@@ -44,7 +44,7 @@
 }
 
 /* ==========================================================================
-   DEFAULT / ROOT FALLBACK
+   DEFAULT / ROOT FALLBACK (MOCKINGJAY DEFAULT)
    ========================================================================== */
 :root {
   --font-heading-current: var(--font-cinzel);
@@ -75,11 +75,12 @@
 }
 
 /* ==========================================================================
-   5 OFFICIAL HUNGER GAMES BOOK PALETTES (DARK EDITIONS)
+   5 OFFICIAL VISUAL THEMES (DARK EDITIONS)
+   1. mockingjay, 2. fire, 3. revolt, 4. serpent, 5. reaping
    ========================================================================== */
 
-[data-palette="the-hunger-games"],
-html.dark[data-palette="the-hunger-games"] {
+[data-palette="mockingjay"],
+html.dark[data-palette="mockingjay"] {
   --background: #0c0c0d;
   --foreground: #f7f7f8;
   --card: #161618;
@@ -100,8 +101,8 @@ html.dark[data-palette="the-hunger-games"] {
   --theme-glow: rgba(245, 158, 11, 0.45);
 }
 
-[data-palette="catching-fire"],
-html.dark[data-palette="catching-fire"] {
+[data-palette="fire"],
+html.dark[data-palette="fire"] {
   --background: #140707;
   --foreground: #fff5f5;
   --card: #220c0c;
@@ -122,8 +123,8 @@ html.dark[data-palette="catching-fire"] {
   --theme-glow: rgba(249, 115, 22, 0.5);
 }
 
-[data-palette="mockingjay"],
-html.dark[data-palette="mockingjay"] {
+[data-palette="revolt"],
+html.dark[data-palette="revolt"] {
   --background: #070e18;
   --foreground: #f0f8ff;
   --card: #0f1c2e;
@@ -144,8 +145,8 @@ html.dark[data-palette="mockingjay"] {
   --theme-glow: rgba(56, 189, 248, 0.45);
 }
 
-[data-palette="songbirds-snakes"],
-html.dark[data-palette="songbirds-snakes"] {
+[data-palette="serpent"],
+html.dark[data-palette="serpent"] {
   --background: #05130b;
   --foreground: #f2fcf5;
   --card: #0c2417;
@@ -166,8 +167,8 @@ html.dark[data-palette="songbirds-snakes"] {
   --theme-glow: rgba(34, 197, 94, 0.45);
 }
 
-[data-palette="sunrise-reaping"],
-html.dark[data-palette="sunrise-reaping"] {
+[data-palette="reaping"],
+html.dark[data-palette="reaping"] {
   --background: #0f071a;
   --foreground: #faf5ff;
   --card: #1c0f2e;
@@ -189,11 +190,12 @@ html.dark[data-palette="sunrise-reaping"] {
 }
 
 /* ==========================================================================
-   5 OFFICIAL HUNGER GAMES BOOK PALETTES (LIGHT EDITIONS - HIGH CONTRAST)
+   5 OFFICIAL VISUAL THEMES (LIGHT EDITIONS)
+   1. mockingjay, 2. fire, 3. revolt, 4. serpent, 5. reaping
    ========================================================================== */
 
-[data-palette="the-hunger-games"],
-html:not(.dark)[data-palette="the-hunger-games"] {
+[data-palette="mockingjay"],
+html:not(.dark)[data-palette="mockingjay"] {
   --background: #f8f9fa;
   --foreground: #09090b;
   --card: #ffffff;
@@ -214,8 +216,8 @@ html:not(.dark)[data-palette="the-hunger-games"] {
   --theme-glow: rgba(202, 138, 4, 0.3);
 }
 
-[data-palette="catching-fire"],
-html:not(.dark)[data-palette="catching-fire"] {
+[data-palette="fire"],
+html:not(.dark)[data-palette="fire"] {
   --background: #faefe8;
   --foreground: #1a0d08;
   --card: #fff9f5;
@@ -236,8 +238,8 @@ html:not(.dark)[data-palette="catching-fire"] {
   --theme-glow: rgba(194, 65, 12, 0.3);
 }
 
-[data-palette="mockingjay"],
-html:not(.dark)[data-palette="mockingjay"] {
+[data-palette="revolt"],
+html:not(.dark)[data-palette="revolt"] {
   --background: #eff6fb;
   --foreground: #081321;
   --card: #ffffff;
@@ -258,8 +260,8 @@ html:not(.dark)[data-palette="mockingjay"] {
   --theme-glow: rgba(2, 132, 199, 0.3);
 }
 
-[data-palette="songbirds-snakes"],
-html:not(.dark)[data-palette="songbirds-snakes"] {
+[data-palette="serpent"],
+html:not(.dark)[data-palette="serpent"] {
   --background: #eef7f0;
   --foreground: #06160c;
   --card: #fafefb;
@@ -280,8 +282,8 @@ html:not(.dark)[data-palette="songbirds-snakes"] {
   --theme-glow: rgba(21, 128, 61, 0.3);
 }
 
-[data-palette="sunrise-reaping"],
-html:not(.dark)[data-palette="sunrise-reaping"] {
+[data-palette="reaping"],
+html:not(.dark)[data-palette="reaping"] {
   --background: #f5eefa;
   --foreground: #140621;
   --card: #fcf9ff;
@@ -303,7 +305,7 @@ html:not(.dark)[data-palette="sunrise-reaping"] {
 }
 
 /* ==========================================================================
-   GILDED INSURGENT HUD TACTILE UTILITIES
+   TACTILE UTILITIES
    ========================================================================== */
 @layer utilities {
   .clip-chamfer-xs {
@@ -346,20 +348,11 @@ html:not(.dark)[data-palette="sunrise-reaping"] {
     text-shadow: 0 0 12px var(--primary), 0 0 24px rgba(245, 158, 11, 0.25);
   }
 
-  .text-shadow-fire {
-    text-shadow: 0 0 10px var(--accent), 0 0 20px rgba(249, 115, 22, 0.3);
-  }
-
   .pattern-hud-grid {
     background-image: 
       linear-gradient(to right, rgba(128, 128, 128, 0.08) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(128, 128, 128, 0.08) 1px, transparent 1px);
     background-size: 20px 20px;
-  }
-
-  .pattern-hud-dots {
-    background-image: radial-gradient(rgba(128, 128, 128, 0.15) 1px, transparent 1px);
-    background-size: 12px 12px;
   }
 }
 

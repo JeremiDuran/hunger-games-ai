@@ -11,12 +11,12 @@ import React, {
 
 export type ColorMode = "system" | "light" | "dark";
 
-export type BookId =
-  | "the-hunger-games"
-  | "catching-fire"
+export type VisualId =
   | "mockingjay"
-  | "songbirds-snakes"
-  | "sunrise-reaping";
+  | "fire"
+  | "revolt"
+  | "serpent"
+  | "reaping";
 
 export interface PaletteVariables {
   background: string;
@@ -44,14 +44,9 @@ export interface PaletteVariables {
 }
 
 export interface PaletteInfo {
-  id: BookId;
-  bookNumber: number;
+  id: VisualId;
   name: string;
-  bookTitle: string;
-  codename: string;
   tone: "dark" | "light";
-  tagline: string;
-  description: string;
   bgHex: string;
   cardHex: string;
   accentHex: string;
@@ -61,18 +56,14 @@ export interface PaletteInfo {
 }
 
 /* ==========================================================================
-   5 OFFICIAL BOOK PALETTES — DARK EDITIONS
+   5 OFFICIAL VISUAL PALETTES — DARK EDITIONS (IN ORDER)
+   1. mockingjay, 2. fire, 3. revolt, 4. serpent, 5. reaping
    ========================================================================== */
-export const BOOK_PALETTES_DARK: Record<BookId, PaletteInfo> = {
-  "the-hunger-games": {
-    id: "the-hunger-games",
-    bookNumber: 1,
-    bookTitle: "The Hunger Games",
-    name: "Book 1 • The Hunger Games",
-    codename: "VOL. 01 // MOCKINGJAY PIN",
+export const VISUAL_PALETTES_DARK: Record<VisualId, PaletteInfo> = {
+  mockingjay: {
+    id: "mockingjay",
+    name: "Mockingjay",
     tone: "dark",
-    tagline: "Matte Obsidian Black, Classic Mockingjay Gold & Crimson Bloodline",
-    description: "The 74th Hunger Games. Iconic deep matte carbon-black background with the shimmering golden Mockingjay arrow pin and crimson accent.",
     bgHex: "#0c0c0d",
     cardHex: "#161618",
     accentHex: "#F59E0B",
@@ -103,15 +94,10 @@ export const BOOK_PALETTES_DARK: Record<BookId, PaletteInfo> = {
       themeSurfaceBorder: "rgba(245, 158, 11, 0.65)",
     },
   },
-  "catching-fire": {
-    id: "catching-fire",
-    bookNumber: 2,
-    bookTitle: "Catching Fire",
-    name: "Book 2 • Catching Fire",
-    codename: "VOL. 02 // QUARTER QUELL",
+  fire: {
+    id: "fire",
+    name: "Fire",
     tone: "dark",
-    tagline: "Deep Smoldering Crimson, Blazing Phoenix Orange & Molten Gold",
-    description: "The 75th Hunger Games / Quarter Quell. Deep blood-ember charcoal, vivid ignite orange flares, and incendiary gold halos.",
     bgHex: "#140707",
     cardHex: "#220c0c",
     accentHex: "#F97316",
@@ -142,15 +128,10 @@ export const BOOK_PALETTES_DARK: Record<BookId, PaletteInfo> = {
       themeSurfaceBorder: "rgba(249, 115, 22, 0.65)",
     },
   },
-  "mockingjay": {
-    id: "mockingjay",
-    bookNumber: 3,
-    bookTitle: "Mockingjay",
-    name: "Book 3 • Mockingjay",
-    codename: "VOL. 03 // REBEL CARRIER",
+  revolt: {
+    id: "revolt",
+    name: "Revolt",
     tone: "dark",
-    tagline: "District 13 Slate Navy, Cerulean Wings & Rebel Sky Blue",
-    description: "The Panem Revolution. High-altitude steel navy depths with radiant cerulean blue signals and airborne mockingjay wings.",
     bgHex: "#070e18",
     cardHex: "#0f1c2e",
     accentHex: "#38BDF8",
@@ -181,15 +162,10 @@ export const BOOK_PALETTES_DARK: Record<BookId, PaletteInfo> = {
       themeSurfaceBorder: "rgba(56, 189, 248, 0.65)",
     },
   },
-  "songbirds-snakes": {
-    id: "songbirds-snakes",
-    bookNumber: 4,
-    bookTitle: "The Ballad of Songbirds & Snakes",
-    name: "Book 4 • Songbirds & Snakes",
-    codename: "VOL. 04 // CAPITOL ACADEMY",
+  serpent: {
+    id: "serpent",
+    name: "Serpent",
     tone: "dark",
-    tagline: "Capitol Academy Emerald, Imperial Gold & Coiled Serpent Green",
-    description: "The 10th Hunger Games. Opulent dark Capitol academy forest emerald paired with antique Coriolanus gold and serpentine bronze.",
     bgHex: "#05130b",
     cardHex: "#0c2417",
     accentHex: "#22C55E",
@@ -220,15 +196,10 @@ export const BOOK_PALETTES_DARK: Record<BookId, PaletteInfo> = {
       themeSurfaceBorder: "rgba(34, 197, 94, 0.65)",
     },
   },
-  "sunrise-reaping": {
-    id: "sunrise-reaping",
-    bookNumber: 5,
-    bookTitle: "Sunrise on the Reaping",
-    name: "Book 5 • Sunrise on the Reaping",
-    codename: "VOL. 05 // 50TH QUELL",
+  reaping: {
+    id: "reaping",
+    name: "Reaping",
     tone: "dark",
-    tagline: "Midnight Royal Reaping Violet & Golden Sunburst Crown",
-    description: "The 50th Hunger Games / Haymitch's Quell. Deep midnight royal amethyst velvet illuminated by radiant solar sunburst gold.",
     bgHex: "#0f071a",
     cardHex: "#1c0f2e",
     accentHex: "#A855F7",
@@ -262,18 +233,14 @@ export const BOOK_PALETTES_DARK: Record<BookId, PaletteInfo> = {
 };
 
 /* ==========================================================================
-   5 OFFICIAL BOOK PALETTES — LIGHT EDITIONS (HIGH CONTRAST CURATED)
+   5 OFFICIAL VISUAL PALETTES — LIGHT EDITIONS (IN ORDER)
+   1. mockingjay, 2. fire, 3. revolt, 4. serpent, 5. reaping
    ========================================================================== */
-export const BOOK_PALETTES_LIGHT: Record<BookId, PaletteInfo> = {
-  "the-hunger-games": {
-    id: "the-hunger-games",
-    bookNumber: 1,
-    bookTitle: "The Hunger Games",
-    name: "Book 1 • The Hunger Games",
-    codename: "VOL. 01 // PLATINUM MOCKINGJAY",
+export const VISUAL_PALETTES_LIGHT: Record<VisualId, PaletteInfo> = {
+  mockingjay: {
+    id: "mockingjay",
+    name: "Mockingjay",
     tone: "light",
-    tagline: "Stark Platinum White, Radiant Mockingjay Gold & Crimson Ink",
-    description: "Light Edition of The Hunger Games. Pure crisp white & silver canvas with stark jet-black typography, brilliant imperial Mockingjay gold, and crimson insignia.",
     bgHex: "#f8f9fa",
     cardHex: "#ffffff",
     accentHex: "#CA8A04",
@@ -304,15 +271,10 @@ export const BOOK_PALETTES_LIGHT: Record<BookId, PaletteInfo> = {
       themeSurfaceBorder: "rgba(202, 138, 4, 0.65)",
     },
   },
-  "catching-fire": {
-    id: "catching-fire",
-    bookNumber: 2,
-    bookTitle: "Catching Fire",
-    name: "Book 2 • Catching Fire",
-    codename: "VOL. 02 // SUNBAKED PHOENIX",
+  fire: {
+    id: "fire",
+    name: "Fire",
     tone: "light",
-    tagline: "Warm Sunbaked Canvas, Incendiary Flame Orange & Rose Crimson",
-    description: "Light Edition of Catching Fire. Warm peach-ivory canvas with high-contrast espresso text, bold fiery orange accents, and blazing rose-crimson trim.",
     bgHex: "#faefe8",
     cardHex: "#fff9f5",
     accentHex: "#C2410C",
@@ -343,15 +305,10 @@ export const BOOK_PALETTES_LIGHT: Record<BookId, PaletteInfo> = {
       themeSurfaceBorder: "rgba(194, 65, 12, 0.6)",
     },
   },
-  "mockingjay": {
-    id: "mockingjay",
-    bookNumber: 3,
-    bookTitle: "Mockingjay",
-    name: "Book 3 • Mockingjay",
-    codename: "VOL. 03 // SKY IN REVOLT",
+  revolt: {
+    id: "revolt",
+    name: "Revolt",
     tone: "light",
-    tagline: "Rebellion Sky Mist, Deep Cerulean Blue & High-Altitude Slate",
-    description: "Light Edition of Mockingjay. Crisp atmospheric sky-blue backing with dark navy-slate readability, vivid cerulean blue, and cobalt wings.",
     bgHex: "#eff6fb",
     cardHex: "#ffffff",
     accentHex: "#0284C7",
@@ -382,15 +339,10 @@ export const BOOK_PALETTES_LIGHT: Record<BookId, PaletteInfo> = {
       themeSurfaceBorder: "rgba(2, 132, 199, 0.6)",
     },
   },
-  "songbirds-snakes": {
-    id: "songbirds-snakes",
-    bookNumber: 4,
-    bookTitle: "The Ballad of Songbirds & Snakes",
-    name: "Book 4 • Songbirds & Snakes",
-    codename: "VOL. 04 // ACADEMY VELLUM",
+  serpent: {
+    id: "serpent",
+    name: "Serpent",
     tone: "light",
-    tagline: "Botanical Academy Vellum, Deep Forest Emerald & Serpent Gold",
-    description: "Light Edition of Songbirds & Snakes. Pale botanical mint parchment with crisp deep forest ink, rich Academy emerald, and antique Coriolanus gold.",
     bgHex: "#eef7f0",
     cardHex: "#fafefb",
     accentHex: "#15803D",
@@ -421,15 +373,10 @@ export const BOOK_PALETTES_LIGHT: Record<BookId, PaletteInfo> = {
       themeSurfaceBorder: "rgba(21, 128, 61, 0.6)",
     },
   },
-  "sunrise-reaping": {
-    id: "sunrise-reaping",
-    bookNumber: 5,
-    bookTitle: "Sunrise on the Reaping",
-    name: "Book 5 • Sunrise on the Reaping",
-    codename: "VOL. 05 // DAWN AMETHYST",
+  reaping: {
+    id: "reaping",
+    name: "Reaping",
     tone: "light",
-    tagline: "Lavender Dawn Alabaster, Imperial Royal Violet & Sunburst Gold",
-    description: "Light Edition of Sunrise on the Reaping. Luminous dawn lavender alabaster with deep royal midnight violet ink, rich imperial purple, and solar flare gold.",
     bgHex: "#f5eefa",
     cardHex: "#fcf9ff",
     accentHex: "#7E22CE",
@@ -462,29 +409,43 @@ export const BOOK_PALETTES_LIGHT: Record<BookId, PaletteInfo> = {
   },
 };
 
-export const BOOK_LIST_DARK = Object.values(BOOK_PALETTES_DARK);
-export const BOOK_LIST_LIGHT = Object.values(BOOK_PALETTES_LIGHT);
+export const VISUAL_LIST_ORDER: VisualId[] = [
+  "mockingjay",
+  "fire",
+  "revolt",
+  "serpent",
+  "reaping",
+];
+
+export const VISUAL_LIST_DARK: PaletteInfo[] = VISUAL_LIST_ORDER.map(
+  (id) => VISUAL_PALETTES_DARK[id]
+);
+export const VISUAL_LIST_LIGHT: PaletteInfo[] = VISUAL_LIST_ORDER.map(
+  (id) => VISUAL_PALETTES_LIGHT[id]
+);
 
 interface ThemeContextType {
   colorMode: ColorMode;
   resolvedMode: "light" | "dark";
   setColorMode: (mode: ColorMode) => void;
   toggleColorMode: () => void;
-  selectedBookId: BookId;
-  setSelectedBookId: (id: BookId) => void;
+  selectedVisualId: VisualId;
+  setSelectedVisualId: (id: VisualId) => void;
   activePalette: PaletteInfo;
   availablePalettes: PaletteInfo[];
-  setPalette: (id: BookId) => void;
+  setPalette: (id: VisualId) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const STORAGE_COLOR_MODE_KEY = "hg_color_mode_v8";
-const STORAGE_BOOK_ID_KEY = "hg_selected_book_v8";
+const STORAGE_COLOR_MODE_KEY = "hg_color_mode_v9";
+const STORAGE_VISUAL_ID_KEY = "hg_visual_theme_v9";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [colorMode, setColorModeState] = useState<ColorMode>("dark");
-  const [selectedBookId, setSelectedBookIdState] = useState<BookId>("the-hunger-games");
+  // Default style: system and mockingjay
+  const [colorMode, setColorModeState] = useState<ColorMode>("system");
+  const [selectedVisualId, setSelectedVisualIdState] =
+    useState<VisualId>("mockingjay");
   const [systemIsDark, setSystemIsDark] = useState<boolean>(true);
   const [mounted, setMounted] = useState(false);
 
@@ -492,12 +453,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setMounted(true);
     try {
       const storedMode = localStorage.getItem(STORAGE_COLOR_MODE_KEY) as ColorMode | null;
-      if (storedMode && (storedMode === "system" || storedMode === "light" || storedMode === "dark")) {
+      if (
+        storedMode &&
+        (storedMode === "system" || storedMode === "light" || storedMode === "dark")
+      ) {
         setColorModeState(storedMode);
       }
-      const storedBookId = localStorage.getItem(STORAGE_BOOK_ID_KEY) as BookId | null;
-      if (storedBookId && storedBookId in BOOK_PALETTES_DARK) {
-        setSelectedBookIdState(storedBookId);
+      const storedVisualId = localStorage.getItem(STORAGE_VISUAL_ID_KEY) as VisualId | null;
+      if (storedVisualId && storedVisualId in VISUAL_PALETTES_DARK) {
+        setSelectedVisualIdState(storedVisualId);
       }
     } catch {
       // Storage unavailable
@@ -517,16 +481,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const resolvedMode: "light" | "dark" =
     colorMode === "system" ? (systemIsDark ? "dark" : "light") : colorMode;
 
-  const setSelectedBookId = useCallback((id: BookId) => {
-    setSelectedBookIdState(id);
+  const setSelectedVisualId = useCallback((id: VisualId) => {
+    setSelectedVisualIdState(id);
     try {
-      localStorage.setItem(STORAGE_BOOK_ID_KEY, id);
+      localStorage.setItem(STORAGE_VISUAL_ID_KEY, id);
     } catch {
       // Storage unavailable
     }
   }, []);
 
-  const setPalette = setSelectedBookId;
+  const setPalette = setSelectedVisualId;
 
   const setColorMode = useCallback((mode: ColorMode) => {
     setColorModeState(mode);
@@ -551,16 +515,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const activePalette =
     resolvedMode === "dark"
-      ? BOOK_PALETTES_DARK[selectedBookId] || BOOK_PALETTES_DARK["the-hunger-games"]
-      : BOOK_PALETTES_LIGHT[selectedBookId] || BOOK_PALETTES_LIGHT["the-hunger-games"];
+      ? VISUAL_PALETTES_DARK[selectedVisualId] || VISUAL_PALETTES_DARK["mockingjay"]
+      : VISUAL_PALETTES_LIGHT[selectedVisualId] || VISUAL_PALETTES_LIGHT["mockingjay"];
 
   const availablePalettes =
-    resolvedMode === "dark" ? BOOK_LIST_DARK : BOOK_LIST_LIGHT;
+    resolvedMode === "dark" ? VISUAL_LIST_DARK : VISUAL_LIST_LIGHT;
 
-  // Direct, guaranteed injection of CSS custom properties into :root
+  // Direct injection of CSS custom properties into :root
   useEffect(() => {
     const root = document.documentElement;
-    root.setAttribute("data-archetype", "vanguard");
     root.setAttribute("data-palette", activePalette.id);
     root.setAttribute("data-theme-mode", resolvedMode);
 
@@ -572,7 +535,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.add("light");
     }
 
-    // Direct inline CSS variable injection on document.documentElement for 100% immediate reactivity
     const v = activePalette.vars;
     root.style.setProperty("--background", v.background);
     root.style.setProperty("--foreground", v.foreground);
@@ -605,8 +567,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         resolvedMode: mounted ? resolvedMode : "dark",
         setColorMode,
         toggleColorMode,
-        selectedBookId,
-        setSelectedBookId,
+        selectedVisualId,
+        setSelectedVisualId,
         activePalette,
         availablePalettes,
         setPalette,
