@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
@@ -441,50 +442,82 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const STORAGE_COLOR_MODE_KEY = "hg_color_mode_v9";
 const STORAGE_VISUAL_ID_KEY = "hg_visual_theme_v9";
 
+function subscribeStorage(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
+function subscribeMedia(callback: () => void) {
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getStoredColorMode(): ColorMode {
+  try {
+    const stored = localStorage.getItem(STORAGE_COLOR_MODE_KEY);
+    if (stored === "system" || stored === "light" || stored === "dark") return stored;
+  } catch {
+    // Storage unavailable
+  }
+  return "system";
+}
+
+function getStoredVisualId(): VisualId {
+  try {
+    const stored = localStorage.getItem(STORAGE_VISUAL_ID_KEY) as VisualId | null;
+    if (stored && stored in VISUAL_PALETTES_DARK) return stored;
+  } catch {
+    // Storage unavailable
+  }
+  return "mockingjay";
+}
+
+function getSystemDark(): boolean {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+const emptySubscribe = () => () => {};
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Default style: system and mockingjay
-  const [colorMode, setColorModeState] = useState<ColorMode>("system");
-  const [selectedVisualId, setSelectedVisualIdState] =
-    useState<VisualId>("mockingjay");
-  const [systemIsDark, setSystemIsDark] = useState<boolean>(true);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const storedMode = localStorage.getItem(STORAGE_COLOR_MODE_KEY) as ColorMode | null;
-      if (
-        storedMode &&
-        (storedMode === "system" || storedMode === "light" || storedMode === "dark")
-      ) {
-        setColorModeState(storedMode);
-      }
-      const storedVisualId = localStorage.getItem(STORAGE_VISUAL_ID_KEY) as VisualId | null;
-      if (storedVisualId && storedVisualId in VISUAL_PALETTES_DARK) {
-        setSelectedVisualIdState(storedVisualId);
-      }
-    } catch {
-      // Storage unavailable
-    }
+  const storedColorMode = useSyncExternalStore(
+    subscribeStorage,
+    getStoredColorMode,
+    () => "system" as ColorMode
+  );
 
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    setSystemIsDark(mediaQuery.matches);
+  const storedVisualId = useSyncExternalStore(
+    subscribeStorage,
+    getStoredVisualId,
+    () => "mockingjay" as VisualId
+  );
 
-    const handleChange = (e: MediaQueryListEvent) => {
-      setSystemIsDark(e.matches);
-    };
+  const systemIsDark = useSyncExternalStore(
+    subscribeMedia,
+    getSystemDark,
+    () => true
+  );
 
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
+  const [overrideColorMode, setOverrideColorMode] = useState<ColorMode | null>(null);
+  const [overrideVisualId, setOverrideVisualId] = useState<VisualId | null>(null);
+
+  const colorMode = overrideColorMode ?? storedColorMode;
+  const selectedVisualId = overrideVisualId ?? storedVisualId;
 
   const resolvedMode: "light" | "dark" =
     colorMode === "system" ? (systemIsDark ? "dark" : "light") : colorMode;
 
   const setSelectedVisualId = useCallback((id: VisualId) => {
-    setSelectedVisualIdState(id);
+    setOverrideVisualId(id);
     try {
       localStorage.setItem(STORAGE_VISUAL_ID_KEY, id);
+      window.dispatchEvent(new Event("storage"));
     } catch {
       // Storage unavailable
     }
@@ -493,19 +526,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setPalette = setSelectedVisualId;
 
   const setColorMode = useCallback((mode: ColorMode) => {
-    setColorModeState(mode);
+    setOverrideColorMode(mode);
     try {
       localStorage.setItem(STORAGE_COLOR_MODE_KEY, mode);
+      window.dispatchEvent(new Event("storage"));
     } catch {
       // Storage unavailable
     }
   }, []);
 
   const toggleColorMode = useCallback(() => {
-    setColorModeState((prev) => {
-      const next = prev === "dark" ? "light" : "dark";
+    setOverrideColorMode((prev) => {
+      const current = prev ?? getStoredColorMode();
+      const next = current === "dark" ? "light" : "dark";
       try {
         localStorage.setItem(STORAGE_COLOR_MODE_KEY, next);
+        window.dispatchEvent(new Event("storage"));
       } catch {
         // Storage unavailable
       }
