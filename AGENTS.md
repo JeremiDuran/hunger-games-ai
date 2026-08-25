@@ -24,6 +24,29 @@ This is a **Next.js 16 App Router** project (TypeScript, Tailwind CSS v4, Turbop
 - Use `get_errors` and `get_compilation_issues` tools before reporting issues
 - Read `node_modules/next/dist/docs/` before writing any Next.js code
 
+## Database Environments (Dev & Prod)
+
+This project operates with two isolated Supabase environments:
+
+### 1. DEV Environment (Active Development)
+- **Project Ref**: `nrnwjtwnqfxlzrgjpzaf`
+- **Project URL**: `https://nrnwjtwnqfxlzrgjpzaf.supabase.co`
+- **MCP Server**: `supabase-hunger-games-ai` (Full access: database, debugging, development, docs, functions)
+- **Role**: All active development, SQL testing, schema experimentation, test seed data, and migration authoring happen here.
+- **Local Config**: Local `.env.local` points to this project.
+
+### 2. PROD Environment (Production / Live)
+- **Project Ref**: `ngnsucskdnourzzafcfa`
+- **Project URL**: `https://ngnsucskdnourzzafcfa.supabase.co`
+- **MCP Server**: `supabase-hunger-games-ai-prod` (Strict Read-Only access: debugging, logs, advisors, docs, schema inspection)
+- **Role**: Serves live production traffic.
+
+### 3. Agent Safety & Migration Rules
+- **Active development MUST use DEV (`supabase-hunger-games-ai`)**: Always execute SQL, test queries, and create tables in DEV.
+- **Never attempt direct DDL or destructive operations on PROD**: PROD MCP is read-only.
+- **Migrations are the single source of truth**: All database schema changes must be saved as versioned SQL files under `supabase/migrations/` and committed to git.
+- **Always consult database skills**: Follow `.agents/skills/supabase/` and `.agents/skills/supabase-postgres-best-practices/` for RLS, index, and query standards.
+
 **Coding standards** (read the relevant skill before starting any UI or feature work):
 - Skill files live in `.agents/skills/` — each has a `SKILL.md` with rules and examples
 - `no-slop` — TypeScript quality, error handling, React/Next.js patterns (read at start of any task)
