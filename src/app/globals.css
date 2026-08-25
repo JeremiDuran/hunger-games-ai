@@ -7,114 +7,360 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-cinzel), Georgia, serif;
+  --font-heading: var(--font-heading-current);
+  --font-mono: var(--font-share-tech-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-cinzel: var(--font-cinzel), serif;
+  --font-rajdhani: var(--font-rajdhani), sans-serif;
+  --font-terminal: var(--font-share-tech-mono), monospace;
+
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-theme-glow: var(--theme-glow);
+  --color-theme-surface: var(--theme-surface);
+  --color-theme-surface-border: var(--theme-surface-border);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ==========================================================================
+   DEFAULT / ROOT FALLBACK
+   ========================================================================== */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --font-heading-current: var(--font-cinzel);
+  --radius: 0.35rem;
+
+  --background: #0c0c0d;
+  --foreground: #f7f7f8;
+  --card: #161618;
+  --card-foreground: #f7f7f8;
+  --popover: #1c1c20;
+  --popover-foreground: #f7f7f8;
+  --primary: #F59E0B;
+  --primary-foreground: #0c0c0d;
+  --secondary: #26262a;
+  --secondary-foreground: #f7f7f8;
+  --muted: #222226;
+  --muted-foreground: #a8a8b2;
+  --accent: #EF4444;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(245, 158, 11, 0.8);
+  --input: #26262b;
+  --ring: #F59E0B;
+  --theme-glow: rgba(245, 158, 11, 0.45);
+  --theme-surface: rgba(12, 12, 13, 0.96);
+  --theme-surface-border: rgba(245, 158, 11, 0.65);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* ==========================================================================
+   5 OFFICIAL HUNGER GAMES BOOK PALETTES (DARK EDITIONS)
+   ========================================================================== */
+
+[data-palette="the-hunger-games"],
+html.dark[data-palette="the-hunger-games"] {
+  --background: #0c0c0d;
+  --foreground: #f7f7f8;
+  --card: #161618;
+  --card-foreground: #f7f7f8;
+  --primary: #F59E0B;
+  --primary-foreground: #0c0c0d;
+  --secondary: #26262a;
+  --secondary-foreground: #f7f7f8;
+  --muted: #222226;
+  --muted-foreground: #a8a8b2;
+  --accent: #EF4444;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(245, 158, 11, 0.8);
+  --input: #26262b;
+  --ring: #F59E0B;
+  --theme-glow: rgba(245, 158, 11, 0.45);
+}
+
+[data-palette="catching-fire"],
+html.dark[data-palette="catching-fire"] {
+  --background: #140707;
+  --foreground: #fff5f5;
+  --card: #220c0c;
+  --card-foreground: #fff5f5;
+  --primary: #F97316;
+  --primary-foreground: #0f0404;
+  --secondary: #381414;
+  --secondary-foreground: #fff5f5;
+  --muted: #2e1111;
+  --muted-foreground: #d19494;
+  --accent: #E11D48;
+  --accent-foreground: #ffffff;
+  --destructive: #be123c;
+  --destructive-foreground: #ffffff;
+  --border: rgba(249, 115, 22, 0.8);
+  --input: #321212;
+  --ring: #F97316;
+  --theme-glow: rgba(249, 115, 22, 0.5);
+}
+
+[data-palette="mockingjay"],
+html.dark[data-palette="mockingjay"] {
+  --background: #070e18;
+  --foreground: #f0f8ff;
+  --card: #0f1c2e;
+  --card-foreground: #f0f8ff;
+  --primary: #38BDF8;
+  --primary-foreground: #040910;
+  --secondary: #19314e;
+  --secondary-foreground: #f0f8ff;
+  --muted: #13253b;
+  --muted-foreground: #8bb6dc;
+  --accent: #60A5FA;
+  --accent-foreground: #040910;
+  --destructive: #f43f5e;
+  --destructive-foreground: #ffffff;
+  --border: rgba(56, 189, 248, 0.8);
+  --input: #172d47;
+  --ring: #38BDF8;
+  --theme-glow: rgba(56, 189, 248, 0.45);
+}
+
+[data-palette="songbirds-snakes"],
+html.dark[data-palette="songbirds-snakes"] {
+  --background: #05130b;
+  --foreground: #f2fcf5;
+  --card: #0c2417;
+  --card-foreground: #f2fcf5;
+  --primary: #22C55E;
+  --primary-foreground: #030d07;
+  --secondary: #17412b;
+  --secondary-foreground: #f2fcf5;
+  --muted: #103322;
+  --muted-foreground: #86caa2;
+  --accent: #EAB308;
+  --accent-foreground: #030d07;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(34, 197, 94, 0.8);
+  --input: #143a26;
+  --ring: #22C55E;
+  --theme-glow: rgba(34, 197, 94, 0.45);
+}
+
+[data-palette="sunrise-reaping"],
+html.dark[data-palette="sunrise-reaping"] {
+  --background: #0f071a;
+  --foreground: #faf5ff;
+  --card: #1c0f2e;
+  --card-foreground: #faf5ff;
+  --primary: #A855F7;
+  --primary-foreground: #08030e;
+  --secondary: #321b52;
+  --secondary-foreground: #faf5ff;
+  --muted: #26153d;
+  --muted-foreground: #c3a0e6;
+  --accent: #FBBF24;
+  --accent-foreground: #08030e;
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+  --border: rgba(168, 85, 247, 0.8);
+  --input: #2b1746;
+  --ring: #A855F7;
+  --theme-glow: rgba(168, 85, 247, 0.5);
+}
+
+/* ==========================================================================
+   5 OFFICIAL HUNGER GAMES BOOK PALETTES (LIGHT EDITIONS - HIGH CONTRAST)
+   ========================================================================== */
+
+[data-palette="the-hunger-games"],
+html:not(.dark)[data-palette="the-hunger-games"] {
+  --background: #f8f9fa;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --primary: #CA8A04;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f3f5;
+  --secondary-foreground: #09090b;
+  --muted: #e9ecef;
+  --muted-foreground: #495057;
+  --accent: #DC2626;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(202, 138, 4, 0.7);
+  --input: #dee2e6;
+  --ring: #CA8A04;
+  --theme-glow: rgba(202, 138, 4, 0.3);
+}
+
+[data-palette="catching-fire"],
+html:not(.dark)[data-palette="catching-fire"] {
+  --background: #faefe8;
+  --foreground: #1a0d08;
+  --card: #fff9f5;
+  --card-foreground: #1a0d08;
+  --primary: #C2410C;
+  --primary-foreground: #ffffff;
+  --secondary: #f3ddd2;
+  --secondary-foreground: #1a0d08;
+  --muted: #f0d6c9;
+  --muted-foreground: #6b4334;
+  --accent: #BE123C;
+  --accent-foreground: #ffffff;
+  --destructive: #9f1239;
+  --destructive-foreground: #ffffff;
+  --border: rgba(194, 65, 12, 0.65);
+  --input: #eecfbf;
+  --ring: #C2410C;
+  --theme-glow: rgba(194, 65, 12, 0.3);
+}
+
+[data-palette="mockingjay"],
+html:not(.dark)[data-palette="mockingjay"] {
+  --background: #eff6fb;
+  --foreground: #081321;
+  --card: #ffffff;
+  --card-foreground: #081321;
+  --primary: #0284C7;
+  --primary-foreground: #ffffff;
+  --secondary: #daeaf5;
+  --secondary-foreground: #081321;
+  --muted: #d3e5f2;
+  --muted-foreground: #3a5775;
+  --accent: #2563EB;
+  --accent-foreground: #ffffff;
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+  --border: rgba(2, 132, 199, 0.65);
+  --input: #cde1f0;
+  --ring: #0284C7;
+  --theme-glow: rgba(2, 132, 199, 0.3);
+}
+
+[data-palette="songbirds-snakes"],
+html:not(.dark)[data-palette="songbirds-snakes"] {
+  --background: #eef7f0;
+  --foreground: #06160c;
+  --card: #fafefb;
+  --card-foreground: #06160c;
+  --primary: #15803D;
+  --primary-foreground: #ffffff;
+  --secondary: #d9eddE;
+  --secondary-foreground: #06160c;
+  --muted: #d2e9d8;
+  --muted-foreground: #355940;
+  --accent: #B45309;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(21, 128, 61, 0.65);
+  --input: #cae4d1;
+  --ring: #15803D;
+  --theme-glow: rgba(21, 128, 61, 0.3);
+}
+
+[data-palette="sunrise-reaping"],
+html:not(.dark)[data-palette="sunrise-reaping"] {
+  --background: #f5eefa;
+  --foreground: #140621;
+  --card: #fcf9ff;
+  --card-foreground: #140621;
+  --primary: #7E22CE;
+  --primary-foreground: #ffffff;
+  --secondary: #ebddf4;
+  --secondary-foreground: #140621;
+  --muted: #e4d3f0;
+  --muted-foreground: #583870;
+  --accent: #D97706;
+  --accent-foreground: #ffffff;
+  --destructive: #be123c;
+  --destructive-foreground: #ffffff;
+  --border: rgba(126, 34, 206, 0.65);
+  --input: #ddc9eb;
+  --ring: #7E22CE;
+  --theme-glow: rgba(126, 34, 206, 0.3);
+}
+
+/* ==========================================================================
+   GILDED INSURGENT HUD TACTILE UTILITIES
+   ========================================================================== */
+@layer utilities {
+  .clip-chamfer-xs {
+    clip-path: polygon(
+      4px 0%, calc(100% - 4px) 0%, 
+      100% 4px, 100% calc(100% - 4px), 
+      calc(100% - 4px) 100%, 4px 100%, 
+      0% calc(100% - 4px), 0% 4px
+    );
+  }
+
+  .clip-chamfer-sm {
+    clip-path: polygon(
+      8px 0%, calc(100% - 8px) 0%, 
+      100% 8px, 100% calc(100% - 8px), 
+      calc(100% - 8px) 100%, 8px 100%, 
+      0% calc(100% - 8px), 0% 8px
+    );
+  }
+
+  .clip-chamfer-md {
+    clip-path: polygon(
+      14px 0%, calc(100% - 14px) 0%, 
+      100% 14px, 100% calc(100% - 14px), 
+      calc(100% - 14px) 100%, 14px 100%, 
+      0% calc(100% - 14px), 0% 14px
+    );
+  }
+
+  .clip-chamfer-lg {
+    clip-path: polygon(
+      20px 0%, calc(100% - 20px) 0%, 
+      100% 20px, 100% calc(100% - 20px), 
+      calc(100% - 20px) 100%, 20px 100%, 
+      0% calc(100% - 20px), 0% 20px
+    );
+  }
+
+  .text-shadow-gold {
+    text-shadow: 0 0 12px var(--primary), 0 0 24px rgba(245, 158, 11, 0.25);
+  }
+
+  .text-shadow-fire {
+    text-shadow: 0 0 10px var(--accent), 0 0 20px rgba(249, 115, 22, 0.3);
+  }
+
+  .pattern-hud-grid {
+    background-image: 
+      linear-gradient(to right, rgba(128, 128, 128, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(128, 128, 128, 0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .pattern-hud-dots {
+    background-image: radial-gradient(rgba(128, 128, 128, 0.15) 1px, transparent 1px);
+    background-size: 12px 12px;
+  }
 }
 
 @layer base {
@@ -123,8 +369,5 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
   }
 }

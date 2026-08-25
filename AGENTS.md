@@ -24,6 +24,17 @@ This is a **Next.js 16 App Router** project (TypeScript, Tailwind CSS v4, Turbop
 - Use `get_errors` and `get_compilation_issues` tools before reporting issues
 - Read `node_modules/next/dist/docs/` before writing any Next.js code
 
+**Coding standards** (read the relevant skill before starting any UI or feature work):
+- Skill files live in `.agents/skills/` — each has a `SKILL.md` with rules and examples
+- `no-slop` — TypeScript quality, error handling, React/Next.js patterns (read at start of any task)
+- `responsive-design` — mobile-first layout, fluid type, container queries, touch targets
+- `accessibility` — WCAG 2.1 AA, ARIA, keyboard nav, focus management, reduced-motion
+- `web-performance` — Core Web Vitals, images, fonts, bundle size, caching, Suspense
+- `i18n` — next-intl setup, message files, locale routing, pluralization, RTL
+- `gsap-react` / `gsap-scrolltrigger` / `gsap-timeline` — animation (read before any GSAP work)
+- `shadcn` — component library usage and composition
+- `code-review` / `software-testing` — audit and test standards
+
 ---
 
 <!-- BEGIN:nextjs-agent-rules -->
