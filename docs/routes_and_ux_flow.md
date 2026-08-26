@@ -10,31 +10,28 @@
 
 ```mermaid
 flowchart TD
-    A["1. Disclaimer & Legal Notice (/)"] -->|"Acknowledge & Enter"| B["2. Capitol Command Hub (/lobby)"]
+    A["1. Hunger Games Ad-Infinitum Landing (/)"] -->|"Quick Play (Guest)"| B["Guest Session Initialized"]
+    A -->|"Create Account / Sign In"| C["Capitol Auth (/login)"]
     
-    B -->|"Quick Play (Guest)"| C["Guest Session Initialized"]
-    B -->|"Sign In / Register"| D["Auth Protocol (/login or Modal)"]
-    D -->|"Google / Discord / Email"| E["Authenticated Session"]
-    
-    C --> F["3. Simulation Setup Wizard (/setup)"]
-    E --> F
+    B --> D["2. Simulation Setup Wizard (/setup)"]
+    C --> D
     
     subgraph SetupWizard ["Simulation Setup (/setup)"]
-        F1["Step 1: Arena & Environment Protocol"] --> F2["Step 2: District & Tribute Customizer"]
-        F2 --> F3["Step 3: Game Parameters & Launch Protocol"]
+        D1["Step 1: Arena & Environment Protocol"] --> D2["Step 2: District & Tribute Customizer"]
+        D2 --> D3["Step 3: Game Parameters & Launch Protocol"]
     end
-    F --> SetupWizard
+    D --> SetupWizard
     
-    SetupWizard -->|"Launch Arena"| G["4. Live Arena Simulation (/game/[id])"]
+    SetupWizard -->|"Launch Arena"| E["3. Live Arena Simulation (/game/[id])"]
     
     subgraph GameLoop ["Arena Simulation Phases"]
-        G1["The Bloodbath (Cornucopia)"] --> G2["Day Phase (Exploration & Clashes)"]
-        G2 --> G3["Night Phase & Anthem for the Fallen"]
-        G3 --> G4{"Winner Standing?"}
-        G4 -- "No" --> G2
-        G4 -- "Yes" --> H["5. Victor Hall & Post-Game Analysis (/game/[id]/summary)"]
+        E1["The Bloodbath (Cornucopia)"] --> E2["Day Phase (Exploration & Clashes)"]
+        E2 --> E3["Night Phase & Anthem for the Fallen"]
+        E3 --> E4{"Winner Standing?"}
+        E4 -- "No" --> E2
+        E4 -- "Yes" --> F["4. Victor Hall & Post-Game Analysis (/game/[id]/summary)"]
     end
-    G --> GameLoop
+    E --> GameLoop
 ```
 
 ---
@@ -43,7 +40,7 @@ flowchart TD
 
 | Route Path | Type | Access Level | Description & Purpose |
 |---|---|---|---|
-| `/` | Page (Client) | Public | **Disclaimer & Legal Splash**: Disclaimer notice, theme switcher, and initial entry gateway. |
+| `/` | Page (Client) | Public | **Hunger Games Ad-Infinitum Landing**: Introductory landing page with 3 brainstorm drafts, GSAP background visuals, and Account vs. Guest onboarding cards. |
 | `/lobby` | Page (RSC + Client) | Public / Guest | **Capitol Command Hub**: Central menu to launch a new simulation, resume in-progress games, view guest vs. member perks, and access lore/archives. |
 | `/login` | Page (Client) | Public | **Dedicated Auth Portal**: Full-screen Capitol Terminal authentication with Google OAuth, Discord, and Email Magic Links. |
 | `/auth/callback` | Route Handler | Public | **OAuth PKCE Exchange**: Server-side endpoint handling OAuth redirects from Supabase Auth and setting session cookies. |
