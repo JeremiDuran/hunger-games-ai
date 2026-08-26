@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useCallback, Suspense } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import {
   Shield,
   KeyRound,
@@ -29,6 +30,7 @@ function LoginForm() {
   const nextUrl = searchParams.get("next") || "/lobby";
   const initialError = searchParams.get("error");
 
+  const t = useTranslations("auth");
 
   const {
     isAnonymous,
@@ -46,7 +48,7 @@ function LoginForm() {
   const [username, setUsername] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(
     initialError === "auth_callback_failed"
-      ? "Authentication callback failed. Please try signing in again."
+      ? t("messages.callbackFailed")
       : null
   );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -54,9 +56,9 @@ function LoginForm() {
 
   // Keyboard shortcut: Escape outside of form inputs returns to perimeter
   const handleReturnToPerimeter = useCallback(() => {
-    announcePolite("Returning to Perimeter...");
+    announcePolite(t("returnToPerimeter"));
     router.push("/");
-  }, [router, announcePolite]);
+  }, [router, announcePolite, t]);
 
   useKeyboardShortcuts({
     BACK_HOME: () => handleReturnToPerimeter(),
@@ -72,13 +74,12 @@ function LoginForm() {
       if (mode === "signin") {
         const result = await signInWithPassword({ email, password });
         if (!result.success) {
-          const err =
-            result.error || "Failed to sign in. Please verify your credentials.";
+          const err = result.error || t("messages.signinFailed");
           setErrorMessage(err);
           announceAssertive(err);
           return;
         }
-        const msg = "Access granted. Initializing Capitol session...";
+        const msg = t("messages.signinSuccess");
         setSuccessMessage(msg);
         announcePolite(msg);
         setTimeout(() => {
@@ -95,14 +96,13 @@ function LoginForm() {
           });
           if (!result.success) {
             const err = result.isConflict
-              ? "An account with this email already exists. Switch to Sign In tab to access your account."
-              : result.error || "Failed to register account.";
+              ? t("messages.emailConflict")
+              : result.error || t("messages.registerFailed");
             setErrorMessage(err);
             announceAssertive(err);
             return;
           }
-          const msg =
-            "Session upgraded! Your game progress and tributes have been permanently secured.";
+          const msg = t("messages.upgradeSuccess");
           setSuccessMessage(msg);
           announcePolite(msg);
           setTimeout(() => {
@@ -116,13 +116,12 @@ function LoginForm() {
             username,
           });
           if (!result.success) {
-            const err = result.error || "Failed to create account.";
+            const err = result.error || t("messages.registerFailed");
             setErrorMessage(err);
             announceAssertive(err);
             return;
           }
-          const msg =
-            "Gamemaker credentials registered successfully! Loading command hub...";
+          const msg = t("messages.registerSuccess");
           setSuccessMessage(msg);
           announcePolite(msg);
           setTimeout(() => {
@@ -132,7 +131,7 @@ function LoginForm() {
       }
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "An unexpected error occurred.";
+        err instanceof Error ? err.message : t("messages.unexpectedError");
       setErrorMessage(message);
       announceAssertive(message);
     } finally {
@@ -145,7 +144,7 @@ function LoginForm() {
       {/* Dynamic Panem Background Visuals */}
       <BackgroundConstellation />
 
-      {/* Floating Theme Selector */}
+      {/* Floating Theme & Language Selector */}
       <ThemeSidePanel />
 
       {/* Header Navigation */}
@@ -156,7 +155,7 @@ function LoginForm() {
           className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-primary transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>RETURN TO PERIMETER</span>
+          <span>{t("returnToPerimeter")}</span>
           <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] bg-muted text-muted-foreground border border-border rounded font-mono">
             Esc
           </kbd>
@@ -164,7 +163,7 @@ function LoginForm() {
 
         <div className="inline-flex items-center gap-1.5 px-3 py-1 clip-chamfer-xs bg-primary/10 border border-primary/40 text-primary text-xs font-mono">
           <Shield className="h-3.5 w-3.5" />
-          <span>SECURE CAPITOL TERMINAL</span>
+          <span>{t("secureTerminal")}</span>
         </div>
       </header>
 
@@ -191,14 +190,12 @@ function LoginForm() {
                 <KeyRound className="h-6 w-6" />
               </div>
               <h1 className="text-2xl font-serif font-bold tracking-wider text-foreground uppercase">
-                {mode === "signin"
-                  ? "Capitol Authorization"
-                  : "Gamemaker Commission"}
+                {mode === "signin" ? t("signinTitle") : t("registerTitle")}
               </h1>
               <p className="text-xs font-mono text-muted-foreground mt-1">
                 {mode === "signin"
-                  ? "Enter your credentials to access stored archives & live simulations"
-                  : "Register permanent Panem citizenship with cloud persistence"}
+                  ? t("signinSubtitle")
+                  : t("registerSubtitle")}
               </p>
             </div>
 
@@ -208,11 +205,9 @@ function LoginForm() {
                 <Sparkles className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
                 <div>
                   <strong className="block font-bold">
-                    Progress Preservation Active
+                    {t("progressPreservationActive")}
                   </strong>
-                  Registering now directly attaches credentials to your ongoing
-                  guest session, preserving your active games, presets, and
-                  tributes.
+                  {t("progressPreservationDescription")}
                 </div>
               </div>
             )}
@@ -240,7 +235,7 @@ function LoginForm() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Sign In
+                {t("tabSignin")}
               </button>
               <button
                 type="button"
@@ -259,7 +254,7 @@ function LoginForm() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Apply / Register
+                {t("tabRegister")}
               </button>
             </div>
 
@@ -308,7 +303,7 @@ function LoginForm() {
                     htmlFor="username"
                     className="block text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider mb-1.5"
                   >
-                    Gamemaker Call-sign / Username
+                    {t("usernameLabel")}
                   </label>
                   <div className="relative">
                     <div
@@ -322,7 +317,7 @@ function LoginForm() {
                       name="username"
                       type="text"
                       required
-                      placeholder="e.g. SenecaCrane"
+                      placeholder={t("usernamePlaceholder")}
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="w-full pl-9 pr-3 py-2.5 clip-chamfer-xs bg-background/80 border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs sm:text-sm placeholder:text-muted-foreground/50 transition-colors"
@@ -336,7 +331,7 @@ function LoginForm() {
                   htmlFor="email"
                   className="block text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider mb-1.5"
                 >
-                  Panem Email Address
+                  {t("emailLabel")}
                 </label>
                 <div className="relative">
                   <div
@@ -351,7 +346,7 @@ function LoginForm() {
                     type="email"
                     required
                     autoComplete="email"
-                    placeholder="gamemaker@capitol.panem"
+                    placeholder={t("emailPlaceholder")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     aria-invalid={Boolean(errorMessage)}
@@ -372,7 +367,7 @@ function LoginForm() {
                   htmlFor="password"
                   className="block text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider mb-1.5"
                 >
-                  Security Passphrase
+                  {t("passwordLabel")}
                 </label>
                 <div className="relative">
                   <div
@@ -390,7 +385,7 @@ function LoginForm() {
                     autoComplete={
                       mode === "signin" ? "current-password" : "new-password"
                     }
-                    placeholder="••••••••••••"
+                    placeholder={t("passwordPlaceholder")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     aria-invalid={Boolean(errorMessage)}
@@ -421,18 +416,18 @@ function LoginForm() {
                       className="h-4 w-4 animate-spin"
                       aria-hidden="true"
                     />
-                    <span>AUTHENTICATING WITH CAPITOL...</span>
+                    <span>{t("submitting")}</span>
                   </>
                 ) : mode === "signin" ? (
                   <>
                     <KeyRound className="h-4 w-4" aria-hidden="true" />
-                    <span>AUTHORIZE ACCESS</span>
+                    <span>{t("ctaSignin")}</span>
                     <ArrowRight className="h-4 w-4 ml-1" aria-hidden="true" />
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" aria-hidden="true" />
-                    <span>CONFIRM CITIZENSHIP</span>
+                    <span>{t("ctaRegister")}</span>
                     <ArrowRight className="h-4 w-4 ml-1" aria-hidden="true" />
                   </>
                 )}
@@ -445,7 +440,7 @@ function LoginForm() {
                 href="/setup"
                 className="text-xs font-mono text-muted-foreground hover:text-primary transition-colors"
               >
-                Skip authentication and play as Guest →
+                {t("guestBypass")}
               </Link>
             </div>
           </div>
@@ -454,23 +449,22 @@ function LoginForm() {
 
       {/* Footer */}
       <footer className="w-full text-center text-xs font-mono text-muted-foreground py-4 px-4 z-20 border-t border-border/40 bg-background/60 backdrop-blur-xs">
-        <p>
-          Hunger Games AI Protocol • PKCE Encrypted • Capitol Security Directive
-          14
-        </p>
+        <p>{t("footerNotice")}</p>
       </footer>
     </div>
   );
 }
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
+
   return (
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-background text-primary font-mono text-sm">
           <div className="flex items-center gap-2">
             <RefreshCw className="h-4 w-4 animate-spin" />
-            <span>CONNECTING TO CAPITOL SECURE GATEWAY...</span>
+            <span>{t("fallbackLoading")}</span>
           </div>
         </div>
       }
@@ -479,5 +473,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-
-

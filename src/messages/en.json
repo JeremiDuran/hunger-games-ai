@@ -1,0 +1,186 @@
+{
+  "common": {
+    "appName": "Hunger Games Ad-Infinitum",
+    "appTagline": "Autonomous Procedural Arena Simulator",
+    "loading": "Loading...",
+    "submitting": "Submitting...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "dismiss": "Dismiss",
+    "close": "Close",
+    "or": "or"
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "themeToggle": "Customize theme and appearance",
+    "closePanel": "Close appearance panel",
+    "shortcuts": {
+      "title": "Keyboard Directives",
+      "subtitle": "Operate the Capitol interface via direct key commands",
+      "general": "General & Terminal Controls",
+      "landing": "Landing & Perimeter",
+      "simulator": "Arena Simulator & Narratives",
+      "notice": "Shortcuts are disabled while typing in text inputs.",
+      "dismiss": "Dismiss",
+      "items": {
+        "help": "Toggle Keyboard Shortcuts Guide",
+        "escape": "Close active modal / Return to previous view",
+        "guestPlay": "Continue as Guest / Enter Local Arena",
+        "register": "Apply as Gamemaker / Create Account",
+        "backHome": "Return to Perimeter (Home)",
+        "storyForward": "Advance to next event or phase",
+        "storyBackward": "Review previous event log",
+        "storyAutoplay": "Toggle Auto-Play mode",
+        "storySkip": "Skip to summary of current phase"
+      }
+    }
+  },
+  "theme": {
+    "title": "Appearance",
+    "colorMode": "Color Mode",
+    "visualTheme": "Visual Theme",
+    "language": "Language",
+    "current": "Current: {theme} ({mode})",
+    "modes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "palettes": {
+      "mockingjay": "Mockingjay Gold",
+      "fire": "Girl on Fire",
+      "revolt": "District Revolt",
+      "serpent": "Songbirds & Serpents",
+      "reaping": "Sunrise Reaping"
+    },
+    "languages": {
+      "en": "English",
+      "es": "Español"
+    }
+  },
+  "landing": {
+    "heroBadge": "Autonomous Procedural Arena",
+    "heroTitle": "HUNGER GAMES AD-INFINITUM",
+    "heroSubtitle": "May the odds be ever in your favor. Enter an infinite procedural battleground of autonomous tributes, deterministic combat mechanics, and real-time AI storytelling.",
+    "footer": "Hunger Games Ad-Infinitum • Autonomous Procedural Arena Simulator",
+    "directives": "Directives",
+    "cards": {
+      "accountBadge": "Full Capitol Access",
+      "accountTier": "Free Tier • Cloud Sync",
+      "accountTitle": "Create Your Account",
+      "accountDescription": "Secure persistent Capitol citizenship. Save game chronicles, build bespoke tribute rosters, and unlock permanent archives.",
+      "accountCta": "APPLY AS GAMEMAKER",
+      "guestBadge": "Instant Simulation",
+      "guestTier": "Zero Login Required",
+      "guestTitle": "Continue as Guest",
+      "guestDescription": "Jump directly into the arena without registering. Configure your first Hunger Games and experience autonomous procedural combat.",
+      "guestCta": "EXPLORE LOCAL REGISTRIES",
+      "guestLoading": "INITIALIZING GUEST SESSION..."
+    },
+    "announcements": {
+      "enteringGuest": "Entering local arena as guest...",
+      "navigatingRegister": "Navigating to Gamemaker registration..."
+    }
+  },
+  "auth": {
+    "returnToPerimeter": "RETURN TO PERIMETER",
+    "secureTerminal": "SECURE CAPITOL TERMINAL",
+    "signinTitle": "Capitol Authorization",
+    "signinSubtitle": "Enter your credentials to access stored archives & live simulations",
+    "registerTitle": "Gamemaker Commission",
+    "registerSubtitle": "Register permanent Panem citizenship with cloud persistence",
+    "progressPreservationActive": "Progress Preservation Active",
+    "progressPreservationDescription": "Registering now directly attaches credentials to your ongoing guest session, preserving your active games, presets, and tributes.",
+    "tabSignin": "Sign In",
+    "tabRegister": "Apply / Register",
+    "usernameLabel": "Gamemaker Call-sign / Username",
+    "usernamePlaceholder": "e.g. SenecaCrane",
+    "emailLabel": "Panem Email Address",
+    "emailPlaceholder": "gamemaker@capitol.panem",
+    "passwordLabel": "Security Passphrase",
+    "passwordPlaceholder": "••••••••••••",
+    "submitting": "AUTHENTICATING WITH CAPITOL...",
+    "ctaSignin": "AUTHORIZE ACCESS",
+    "ctaRegister": "CONFIRM CITIZENSHIP",
+    "guestBypass": "Skip authentication and play as Guest →",
+    "footerNotice": "Hunger Games AI Protocol • PKCE Encrypted • Capitol Security Directive 14",
+    "fallbackLoading": "CONNECTING TO CAPITOL SECURE GATEWAY...",
+    "messages": {
+      "callbackFailed": "Authentication callback failed. Please try signing in again.",
+      "signinSuccess": "Access granted. Initializing Capitol session...",
+      "upgradeSuccess": "Session upgraded! Your game progress and tributes have been permanently secured.",
+      "registerSuccess": "Gamemaker credentials registered successfully! Loading command hub...",
+      "emailConflict": "An account with this email already exists. Switch to Sign In tab to access your account.",
+      "signinFailed": "Failed to sign in. Please verify your credentials.",
+      "registerFailed": "Failed to create account.",
+      "unexpectedError": "An unexpected error occurred."
+    },
+    "badge": {
+      "guestUser": "Guest Gamemaker",
+      "saveProgress": "Save Progress / Sign In",
+      "roleAdmin": "Head Gamemaker",
+      "roleCitizen": "Capitol Citizen",
+      "tokens": "{count} Tokens",
+      "dossier": "Gamemaker Dossier",
+      "archives": "Capitol Archives",
+      "logout": "Log Out"
+    }
+  },
+  "disclaimer": {
+    "badge": "Legal Notice & Disclaimer",
+    "title": "DISCLAIMER & NOTICE",
+    "fanProjectTitle": "Non-Commercial Fan Project:",
+    "fanProjectText": "This application is an independent, non-commercial fan-created interactive simulator. It is not affiliated with, endorsed, sponsored, or specifically approved by Suzanne Collins, Scholastic Inc., Lionsgate Entertainment Inc., or any of their subsidiaries or affiliates.",
+    "ipTitle": "Fiction & Intellectual Property:",
+    "ipText": "The Hunger Games, Catching Fire, Mockingjay, The Ballad of Songbirds and Snakes, Sunrise on the Reaping, Panem, the Capitol, the Districts, and associated names, settings, lore, and trademarks are the exclusive property of their respective copyright and trademark owners. All events depicted within this simulator are original works of creative fiction.",
+    "checkbox": "I understand and acknowledge that this is an unofficial fan simulation and work of fiction.",
+    "cta": "ENTER THE SIMULATION",
+    "ctaLoading": "INITIALIZING SIMULATION...",
+    "welcomeAlert": "Welcome to the Hunger Games AI Simulator."
+  },
+  "setup": {
+    "tabs": {
+      "arena": "Arena Protocol",
+      "tributes": "Tribute Roster",
+      "rules": "Rules & Pacing"
+    },
+    "header": {
+      "badge": "Capitol Gamemaker Staging",
+      "title": "CAPITOL STAGING PROTOCOL",
+      "subtitle": "Gamemaker War Room • Configure the 74th Annual Hunger Games",
+      "readyStatus": "Arena Configured",
+      "upcomingNotice": "Upcoming Subsystem",
+      "nextStep": "PROCEED TO TRIBUTES"
+    },
+    "arena": {
+      "presetDropdownLabel": "Arena Inspiration Preset",
+      "presetDropdownHelp": "Load canon Panem battlegrounds or custom themes",
+      "presetHeading": "Arena Inspiration Preset",
+      "presetSubheading": "Load canon Panem battlegrounds or custom themes",
+      "randomizePreset": "Randomize Inspiration",
+      "customPresetOption": "-- Custom Arena Configuration --",
+      "customTag": "Custom Config",
+      "identityHeading": "Simulation & Arena Identity",
+      "customTitle": "Simulation Title",
+      "customTitlePlaceholder": "e.g. The 74th Annual Hunger Games",
+      "customTitleHelp": "The official broadcast title displayed across all Panem districts.",
+      "arenaNameLabel": "Custom Arena Codename",
+      "arenaNamePlaceholder": "e.g. Verdant Woodlands & Golden Cornucopia",
+      "descLabel": "Environmental Lore & Atmospheric Details",
+      "descPlaceholder": "Describe terrain, weather patterns, forcefield hazards, hidden rivers, or dangerous flora (e.g. zero-g airlocks, acid lakes, radioactive dust)...",
+      "descHelp": "This description is injected directly into real-time LLM storytelling prompts to steer tribute combat, survival tactics, and lethal encounters.",
+      "hazardsHeading": "Environmental Hazard Matrix",
+      "hazardsSubheading": "Toggle Capitol-engineered perils and survival mechanisms active in this arena.",
+      "hazards": {
+        "bloodbath": "Cornucopia Bloodbath (Day 0)",
+        "bloodbathDesc": "Lethal opening clash at the horn where tributes contest central weapons.",
+        "muttations": "Gamemaker Muttations",
+        "muttationsDesc": "Genetically modified beasts unleashed dynamically by Capitol Gamemakers.",
+        "disasters": "Arena Disasters & Extreme Weather",
+        "disastersDesc": "Acid rain, poisonous fog, blizzards, floods, and wall-of-fire traps.",
+        "sponsorDrops": "Sponsor Parachute Drops",
+        "sponsorDropsDesc": "Medical kits, weapons, and food delivered by wealthy Capitol patrons."
+      }
+    }
+  }
+}

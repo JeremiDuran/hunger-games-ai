@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { User, Shield, Sparkles, LogOut, ChevronDown, Coins, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useThemeEngine } from "@/lib/theme-context";
@@ -15,32 +16,27 @@ export function AuthStatusBadge({ className = "" }: AuthStatusBadgeProps) {
     useAuth();
   const { activePalette } = useThemeEngine();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const t = useTranslations("auth.badge");
 
   if (isLoading) {
     return (
-      <div className={`h-8 w-28 bg-muted/30 animate-pulse clip-chamfer-xs ${className}`} />
+      <div className={`h-7 w-24 bg-muted/30 animate-pulse clip-chamfer-xs ${className}`} />
     );
   }
 
-  // Not logged in or anonymous guest
+  // Not logged in or anonymous guest: Show only the direct Save Progress / Sign In CTA
   if (!isAuthenticated || isAnonymous) {
     return (
-      <div className={`inline-flex items-center gap-2 ${className}`}>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 clip-chamfer-xs bg-muted/60 border border-border text-muted-foreground text-xs font-mono">
-          <User className="h-3.5 w-3.5 text-muted-foreground" />
-          <span>Guest Gamemaker</span>
-        </div>
-        <Link
-          href="/login"
-          style={{
-            background: `linear-gradient(to right, ${activePalette.accentHex}, ${activePalette.highlightHex})`,
-          }}
-          className="inline-flex items-center gap-1.5 px-3 py-1 clip-chamfer-xs text-black text-xs font-mono font-bold uppercase tracking-wider shadow-[0_0_12px_var(--theme-glow)] hover:brightness-110 active:translate-y-0.5 transition-all"
-        >
-          <UserPlus className="h-3.5 w-3.5" />
-          <span>Save Progress / Sign In</span>
-        </Link>
-      </div>
+      <Link
+        href="/login"
+        style={{
+          background: `linear-gradient(to right, ${activePalette.accentHex}, ${activePalette.highlightHex})`,
+        }}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 clip-chamfer-xs text-black text-xs font-mono font-bold uppercase tracking-wider shadow-[0_0_12px_var(--theme-glow)] hover:brightness-110 active:translate-y-0.5 transition-all ${className}`}
+      >
+        <UserPlus className="h-3.5 w-3.5" />
+        <span>{t("saveProgress")}</span>
+      </Link>
     );
   }
 
@@ -82,8 +78,8 @@ export function AuthStatusBadge({ className = "" }: AuthStatusBadgeProps) {
             <div className="px-3 py-2 border-b border-border/60">
               <div className="font-bold text-primary truncate">{username}</div>
               <div className="text-[10px] text-muted-foreground uppercase flex items-center justify-between mt-0.5">
-                <span>{role === "admin" ? "Head Gamemaker" : "Capitol Citizen"}</span>
-                <span className="text-amber-400 font-mono">{tokensBalance} Tokens</span>
+                <span>{role === "admin" ? t("roleAdmin") : t("roleCitizen")}</span>
+                <span className="text-amber-400 font-mono">{t("tokens", { count: tokensBalance })}</span>
               </div>
             </div>
 
@@ -93,7 +89,7 @@ export function AuthStatusBadge({ className = "" }: AuthStatusBadgeProps) {
               className="w-full text-left px-3 py-2 hover:bg-primary/20 flex items-center gap-2 text-foreground transition-colors"
             >
               <User className="h-3.5 w-3.5 text-primary" />
-              <span>Gamemaker Dossier</span>
+              <span>{t("dossier")}</span>
             </Link>
 
             <Link
@@ -102,7 +98,7 @@ export function AuthStatusBadge({ className = "" }: AuthStatusBadgeProps) {
               className="w-full text-left px-3 py-2 hover:bg-primary/20 flex items-center gap-2 text-foreground transition-colors"
             >
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span>Capitol Archives</span>
+              <span>{t("archives")}</span>
             </Link>
 
             <button
@@ -114,7 +110,7 @@ export function AuthStatusBadge({ className = "" }: AuthStatusBadgeProps) {
               className="w-full text-left px-3 py-2 text-red-400 hover:bg-red-500/10 flex items-center gap-2 border-t border-border/60 transition-colors cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
-              <span>Log Out</span>
+              <span>{t("logout")}</span>
             </button>
           </div>
         </>

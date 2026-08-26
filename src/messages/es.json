@@ -1,0 +1,186 @@
+{
+  "common": {
+    "appName": "Hunger Games Ad-Infinitum",
+    "appTagline": "Simulador de Arena Procesal Autónomo",
+    "loading": "Cargando...",
+    "submitting": "Enviando...",
+    "error": "Algo salió mal",
+    "retry": "Reintentar",
+    "dismiss": "Cerrar",
+    "close": "Cerrar",
+    "or": "o"
+  },
+  "a11y": {
+    "skipToContent": "Saltar al contenido principal",
+    "themeToggle": "Personalizar tema y apariencia",
+    "closePanel": "Cerrar panel de apariencia",
+    "shortcuts": {
+      "title": "Directivas de Teclado",
+      "subtitle": "Controla la interfaz del Capitolio mediante comandos de teclado",
+      "general": "Controles Generales y de Terminal",
+      "landing": "Inicio y Perímetro",
+      "simulator": "Simulador de Arena y Narrativas",
+      "notice": "Los atajos se desactivan al escribir en campos de texto.",
+      "dismiss": "Entendido",
+      "items": {
+        "help": "Mostrar u ocultar guía de atajos de teclado",
+        "escape": "Cerrar modal activo / Volver a la vista anterior",
+        "guestPlay": "Continuar como invitado / Entrar a la arena local",
+        "register": "Postularse como Creador de Juegos / Crear cuenta",
+        "backHome": "Volver al Perímetro (Inicio)",
+        "storyForward": "Avanzar al siguiente evento o fase",
+        "storyBackward": "Revisar registro de eventos anterior",
+        "storyAutoplay": "Alternar modo de reproducción automática",
+        "storySkip": "Saltar al resumen de la fase actual"
+      }
+    }
+  },
+  "theme": {
+    "title": "Apariencia",
+    "colorMode": "Modo de Color",
+    "visualTheme": "Tema Visual",
+    "language": "Idioma",
+    "current": "Actual: {theme} ({mode})",
+    "modes": {
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "palettes": {
+      "mockingjay": "Oro Sinsajo",
+      "fire": "Chica en Llamas",
+      "revolt": "Rebelión de Distritos",
+      "serpent": "Balada de Pájaros y Serpientes",
+      "reaping": "Amanecer de la Cosecha"
+    },
+    "languages": {
+      "en": "English",
+      "es": "Español"
+    }
+  },
+  "landing": {
+    "heroBadge": "Arena Procesal Autónoma",
+    "heroTitle": "HUNGER GAMES AD-INFINITUM",
+    "heroSubtitle": "Que la suerte esté siempre de su lado. Adéntrate en un campo de batalla procesal infinito con tributos autónomos, mecánicas de combate deterministas y narrativa de IA en tiempo real.",
+    "footer": "Hunger Games Ad-Infinitum • Simulador de Arena Procesal Autónomo",
+    "directives": "Directivas",
+    "cards": {
+      "accountBadge": "Acceso Total al Capitolio",
+      "accountTier": "Nivel Gratuito • Sincronización en la Nube",
+      "accountTitle": "Crea Tu Cuenta",
+      "accountDescription": "Asegura una ciudadanía permanente en el Capitolio. Guarda crónicas de juegos, crea listas personalizadas de tributos y desbloquea archivos permanentes.",
+      "accountCta": "POSTULARSE COMO CREADOR DE JUEGOS",
+      "guestBadge": "Simulación Instantánea",
+      "guestTier": "Sin Registro Requerido",
+      "guestTitle": "Continuar como Invitado",
+      "guestDescription": "Ingresa directamente a la arena sin registrarte. Configura tus primeros Juegos del Hambre y experimenta el combate procesal autónomo.",
+      "guestCta": "EXPLORAR REGISTROS LOCALES",
+      "guestLoading": "INICIALIZANDO SESIÓN DE INVITADO..."
+    },
+    "announcements": {
+      "enteringGuest": "Entrando a la arena local como invitado...",
+      "navigatingRegister": "Navegando al registro de Creadores de Juegos..."
+    }
+  },
+  "auth": {
+    "returnToPerimeter": "VOLVER AL PERÍMETRO",
+    "secureTerminal": "TERMINAL SEGURA DEL CAPITOLIO",
+    "signinTitle": "Autorización del Capitolio",
+    "signinSubtitle": "Ingresa tus credenciales para acceder a los archivos guardados y simulaciones activas",
+    "registerTitle": "Comisión de Creador de Juegos",
+    "registerSubtitle": "Registra ciudadanía permanente en Panem con persistencia en la nube",
+    "progressPreservationActive": "Preservación de Progreso Activa",
+    "progressPreservationDescription": "Registrarte ahora vinculará directamente tus credenciales a tu sesión de invitado actual, preservando tus juegos activos, configuraciones y tributos.",
+    "tabSignin": "Iniciar Sesión",
+    "tabRegister": "Postularse / Registrarse",
+    "usernameLabel": "Identificativo / Nombre de Usuario",
+    "usernamePlaceholder": "ej. SenecaCrane",
+    "emailLabel": "Correo Electrónico de Panem",
+    "emailPlaceholder": "creadordejuegos@capitol.panem",
+    "passwordLabel": "Frase de Seguridad",
+    "passwordPlaceholder": "••••••••••••",
+    "submitting": "AUTENTICANDO CON EL CAPITOLIO...",
+    "ctaSignin": "AUTORIZAR ACCESO",
+    "ctaRegister": "CONFIRMAR CIUDADANÍA",
+    "guestBypass": "Omitir autenticación y jugar como Invitado →",
+    "footerNotice": "Protocolo IA de Los Juegos del Hambre • Cifrado PKCE • Directiva de Seguridad 14 del Capitolio",
+    "fallbackLoading": "CONECTANDO CON LA PASARELA SEGURA DEL CAPITOLIO...",
+    "messages": {
+      "callbackFailed": "Falló la respuesta de autenticación. Por favor intenta iniciar sesión de nuevo.",
+      "signinSuccess": "Acceso concedido. Inicializando sesión del Capitolio...",
+      "upgradeSuccess": "¡Sesión actualizada! El progreso de tu juego y tributos han sido asegurados de forma permanente.",
+      "registerSuccess": "¡Credenciales registradas exitosamente! Cargando centro de comando...",
+      "emailConflict": "Ya existe una cuenta con este correo. Cambia a la pestaña de Iniciar Sesión para acceder.",
+      "signinFailed": "Error al iniciar sesión. Por favor verifica tus credenciales.",
+      "registerFailed": "Error al crear la cuenta.",
+      "unexpectedError": "Ocurrió un error inesperado."
+    },
+    "badge": {
+      "guestUser": "Creador Invitado",
+      "saveProgress": "Guardar Progreso / Iniciar Sesión",
+      "roleAdmin": "Jefe de Creadores",
+      "roleCitizen": "Ciudadano del Capitolio",
+      "tokens": "{count} Fichas",
+      "dossier": "Expediente de Creador",
+      "archives": "Archivos del Capitolio",
+      "logout": "Cerrar Sesión"
+    }
+  },
+  "disclaimer": {
+    "badge": "Aviso Legal y Descargo de Responsabilidad",
+    "title": "AVISO Y DESCARGO DE RESPONSABILIDAD",
+    "fanProjectTitle": "Proyecto de Fans No Comercial:",
+    "fanProjectText": "Esta aplicación es un simulador interactivo independiente y no comercial creado por fans. No está afiliada, respaldada, patrocinada ni específicamente aprobada por Suzanne Collins, Scholastic Inc., Lionsgate Entertainment Inc., ni ninguna de sus subsidiarias o filiales.",
+    "ipTitle": "Ficción y Propiedad Intelectual:",
+    "ipText": "Los Juegos del Hambre, En Llamas, Sinsajo, Balada de Pájaros Cantores y Serpientes, Amanecer en la Cosecha, Panem, el Capitolio, los Distritos y los nombres, escenarios, historias y marcas comerciales asociadas son propiedad exclusiva de sus respectivos titulares de derechos de autor y marcas registradas. Todos los eventos representados en este simulador son obras originales de ficción creativa.",
+    "checkbox": "Entiendo y reconozco que esta es una simulación de fans no oficial y una obra de ficción.",
+    "cta": "ENTRAR A LA SIMULACIÓN",
+    "ctaLoading": "INICIALIZANDO SIMULACIÓN...",
+    "welcomeAlert": "Bienvenido al Simulador IA de Los Juegos del Hambre."
+  },
+  "setup": {
+    "tabs": {
+      "arena": "Protocolo de Arena",
+      "tributes": "Lista de Tributos",
+      "rules": "Reglas y Ritmo"
+    },
+    "header": {
+      "badge": "Preparación del Creador del Capitolio",
+      "title": "PROTOCOLO DE PREPARACIÓN DEL CAPITOLIO",
+      "subtitle": "Sala de Guerra del Creador • Configura los 74° Juegos del Hambre Anuales",
+      "readyStatus": "Arena Configurada",
+      "upcomingNotice": "Subsistema Próximo",
+      "nextStep": "CONTINUAR A TRIBUTOS"
+    },
+    "arena": {
+      "presetDropdownLabel": "Preajuste de Inspiración de Arena",
+      "presetDropdownHelp": "Carga campos de batalla canónicos de Panem o temas personalizados",
+      "presetHeading": "Preajuste de Inspiración de Arena",
+      "presetSubheading": "Carga campos de batalla canónicos de Panem o temas personalizados",
+      "randomizePreset": "Aleatorizar Inspiración",
+      "customPresetOption": "-- Configuración de Arena Personalizada --",
+      "customTag": "Config. Personalizada",
+      "identityHeading": "Identidad de la Simulación y de la Arena",
+      "customTitle": "Título de la Simulación",
+      "customTitlePlaceholder": "ej. Los 74° Juegos del Hambre Anuales",
+      "customTitleHelp": "El título oficial transmitido a todos los distritos de Panem.",
+      "arenaNameLabel": "Nombre Clave de la Arena Personalizada",
+      "arenaNamePlaceholder": "ej. Bosque Frondoso y Cornucopia Dorada",
+      "descLabel": "Historia Ambiental y Detalles Atmosféricos",
+      "descPlaceholder": "Describe el terreno, clima, peligros del campo de fuerza, ríos ocultos o flora peligrosa (ej. esclusas de gravedad cero, lagos de ácido, polvo radiactivo)...",
+      "descHelp": "Esta descripción se inyecta directamente en las instrucciones de narración de la IA en tiempo real para guiar combates y supervivencia.",
+      "hazardsHeading": "Matriz de Peligros Ambientales",
+      "hazardsSubheading": "Activa los peligros diseñados por el Capitolio y mecánicas de supervivencia activas en esta arena.",
+      "hazards": {
+        "bloodbath": "Baño de Sangre en la Cornucopia (Día 0)",
+        "bloodbathDesc": "Enfrentamiento letal de apertura al sonar el cuerno donde los tributos disputan armas centrales.",
+        "muttations": "Mutaciones del Creador",
+        "muttationsDesc": "Bestias modificadas genéticamente liberadas dinámicamente por el Capitolio.",
+        "disasters": "Desastres de la Arena y Clima Extremo",
+        "disastersDesc": "Lluvia ácida, niebla venenosa, ventiscas, inundaciones y trampas de muros de fuego.",
+        "sponsorDrops": "Entregas en Paracaídas de Patrocinadores",
+        "sponsorDropsDesc": "Botiquines, armas y comida entregados por acaudalados patrocinadores del Capitolio."
+      }
+    }
+  }
+}

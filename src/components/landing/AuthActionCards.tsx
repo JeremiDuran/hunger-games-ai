@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { UserPlus, Play, Sparkles, Flame, ArrowRight, RefreshCw } from "lucide-react";
 import { useThemeEngine } from "@/lib/theme-context";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -19,10 +19,11 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
   const { isAuthenticated, signInAnonymously } = useAuth();
   const { announcePolite } = useA11y();
   const [isStartingGuest, setIsStartingGuest] = useState(false);
+  const t = useTranslations("landing");
 
   const handleGuestEntry = useCallback(async () => {
     if (isStartingGuest) return;
-    announcePolite("Entering local arena as guest...");
+    announcePolite(t("announcements.enteringGuest"));
 
     if (isAuthenticated) {
       router.push("/setup");
@@ -38,12 +39,12 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
     } finally {
       setIsStartingGuest(false);
     }
-  }, [isAuthenticated, isStartingGuest, router, signInAnonymously, announcePolite]);
+  }, [isAuthenticated, isStartingGuest, router, signInAnonymously, announcePolite, t]);
 
   const handleRegisterEntry = useCallback(() => {
-    announcePolite("Navigating to Gamemaker registration...");
+    announcePolite(t("announcements.navigatingRegister"));
     router.push("/login");
-  }, [router, announcePolite]);
+  }, [router, announcePolite, t]);
 
   // Bind Landing shortcuts [G] and [R]
   useKeyboardShortcuts({
@@ -72,20 +73,19 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
           <div className="flex items-center justify-between gap-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 clip-chamfer-xs bg-primary/15 border border-primary/50 text-primary text-xs font-mono font-bold uppercase tracking-wider">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span>Full Capitol Access</span>
+              <span>{t("cards.accountBadge")}</span>
             </div>
             <span className="text-[11px] font-mono text-muted-foreground uppercase">
-              Free Tier • Cloud Sync
+              {t("cards.accountTier")}
             </span>
           </div>
 
           {/* Title & Description */}
           <h2 className="text-xl sm:text-2xl font-serif font-bold text-foreground tracking-wide">
-            Create Your Account
+            {t("cards.accountTitle")}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            Secure persistent Capitol citizenship. Save game chronicles, build
-            bespoke tribute rosters, and unlock permanent archives.
+            {t("cards.accountDescription")}
           </p>
         </div>
 
@@ -99,7 +99,7 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
           className="w-full flex items-center justify-center gap-2 py-3.5 px-6 clip-chamfer-sm text-black font-mono font-bold text-xs sm:text-sm tracking-wider uppercase border border-yellow-300 shadow-[0_0_20px_var(--theme-glow),0_4px_0_rgba(0,0,0,0.3)] hover:brightness-110 active:translate-y-0.5 active:shadow-none transition-all duration-200 cursor-pointer"
         >
           <UserPlus className="h-4 w-4" />
-          <span>APPLY AS GAMEMAKER</span>
+          <span>{t("cards.accountCta")}</span>
           <kbd className="hidden sm:inline-block ml-1 px-1.5 py-0.5 text-[10px] bg-black/20 text-black/90 border border-black/30 rounded font-mono font-semibold">
             R
           </kbd>
@@ -119,20 +119,19 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
           <div className="flex items-center justify-between gap-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 clip-chamfer-xs bg-muted/60 border border-border text-muted-foreground text-xs font-mono font-bold uppercase tracking-wider">
               <Flame className="h-3.5 w-3.5 text-primary" />
-              <span>Instant Simulation</span>
+              <span>{t("cards.guestBadge")}</span>
             </div>
             <span className="text-[11px] font-mono text-muted-foreground uppercase">
-              Zero Login Required
+              {t("cards.guestTier")}
             </span>
           </div>
 
           {/* Title & Description */}
           <h2 className="text-xl sm:text-2xl font-serif font-bold text-foreground tracking-wide">
-            Continue as Guest
+            {t("cards.guestTitle")}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            Jump directly into the arena without registering. Configure your
-            first Hunger Games and experience autonomous procedural combat.
+            {t("cards.guestDescription")}
           </p>
         </div>
 
@@ -147,12 +146,12 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
           {isStartingGuest ? (
             <>
               <RefreshCw className="h-4 w-4 animate-spin text-primary" />
-              <span>INITIALIZING GUEST SESSION...</span>
+              <span>{t("cards.guestLoading")}</span>
             </>
           ) : (
             <>
               <Play className="h-4 w-4 text-primary" />
-              <span>EXPLORE LOCAL REGISTRIES</span>
+              <span>{t("cards.guestCta")}</span>
               <kbd className="hidden sm:inline-block ml-1 px-1.5 py-0.5 text-[10px] bg-background/80 text-muted-foreground border border-border rounded font-mono font-semibold">
                 G
               </kbd>
@@ -164,4 +163,3 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
     </div>
   );
 }
-

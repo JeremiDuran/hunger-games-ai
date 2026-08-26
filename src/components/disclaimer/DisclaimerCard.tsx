@@ -2,18 +2,20 @@
 
 import React, { useState } from "react";
 import { ShieldAlert, ArrowRight, BookOpen } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useThemeEngine } from "@/lib/theme-context";
 
 export function DisclaimerCard() {
   const { activePalette } = useThemeEngine();
   const [acknowledged, setAcknowledged] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
+  const t = useTranslations("disclaimer");
 
   const handleEnter = () => {
     if (!acknowledged) return;
     setIsEntering(true);
     setTimeout(() => {
-      alert("Welcome to the Hunger Games AI Simulator.");
+      alert(t("welcomeAlert"));
       setIsEntering(false);
     }, 500);
   };
@@ -34,7 +36,7 @@ export function DisclaimerCard() {
         <header className="flex flex-col items-center text-center gap-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 clip-chamfer-xs bg-primary/15 text-primary border border-primary/50 text-xs font-mono font-bold tracking-widest uppercase shadow-[0_0_12px_var(--theme-glow)]">
             <ShieldAlert className="h-3.5 w-3.5 text-primary" />
-            <span>Legal Notice & Disclaimer</span>
+            <span>{t("badge")}</span>
           </div>
 
           <h1
@@ -43,7 +45,7 @@ export function DisclaimerCard() {
               backgroundImage: `linear-gradient(to right, ${activePalette.accentHex}, ${activePalette.highlightHex})`,
             }}
           >
-            DISCLAIMER & NOTICE
+            {t("title")}
           </h1>
         </header>
 
@@ -54,25 +56,15 @@ export function DisclaimerCard() {
             <div className="space-y-3">
               <p>
                 <strong className="text-foreground font-semibold">
-                  Non-Commercial Fan Project:
+                  {t("fanProjectTitle")}
                 </strong>{" "}
-                This application is an independent, non-commercial fan-created
-                interactive simulator. It is not affiliated with, endorsed,
-                sponsored, or specifically approved by Suzanne Collins, Scholastic
-                Inc., Lionsgate Entertainment Inc., or any of their subsidiaries
-                or affiliates.
+                {t("fanProjectText")}
               </p>
               <p>
                 <strong className="text-foreground font-semibold">
-                  Fiction & Intellectual Property:
+                  {t("ipTitle")}
                 </strong>{" "}
-                <em>The Hunger Games</em>, <em>Catching Fire</em>,{" "}
-                <em>Mockingjay</em>, <em>The Ballad of Songbirds and Snakes</em>,{" "}
-                <em>Sunrise on the Reaping</em>, Panem, the Capitol, the
-                Districts, and associated names, settings, lore, and trademarks
-                are the exclusive property of their respective copyright and
-                trademark owners. All events depicted within this simulator are
-                original works of creative fiction.
+                {t("ipText")}
               </p>
             </div>
           </div>
@@ -91,8 +83,7 @@ export function DisclaimerCard() {
             className="h-4 w-4 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer"
           />
           <span className="text-xs sm:text-sm font-medium text-foreground">
-            I understand and acknowledge that this is an unofficial fan
-            simulation and work of fiction.
+            {t("checkbox")}
           </span>
         </label>
 
@@ -111,7 +102,7 @@ export function DisclaimerCard() {
                 : "cursor-pointer hover:brightness-110 hover:shadow-[0_0_35px_var(--theme-glow)]"
             }`}
           >
-            <span>{isEntering ? "INITIALIZING SIMULATION..." : "ENTER THE SIMULATION"}</span>
+            <span>{isEntering ? t("ctaLoading") : t("cta")}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

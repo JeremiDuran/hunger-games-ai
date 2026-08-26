@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Sword, Keyboard } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useThemeEngine } from "@/lib/theme-context";
 import { useA11y } from "@/lib/a11y/a11y-context";
 import { ThemeSidePanel } from "@/components/disclaimer/ThemeSidePanel";
@@ -18,6 +19,7 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { activePalette } = useThemeEngine();
   const { openShortcutsModal } = useA11y();
+  const t = useTranslations("landing");
 
   // Entrance animations using GSAP with prefers-reduced-motion safety
   useGSAP(
@@ -83,7 +85,7 @@ export default function Home() {
       {/* GSAP Panem District Constellation Background */}
       <BackgroundConstellation />
 
-      {/* Floating Theme & Visual Palette Selector */}
+      {/* Floating Theme, Visual Palette & Language Selector */}
       <ThemeSidePanel />
 
       {/* Main Hero Container */}
@@ -96,7 +98,7 @@ export default function Home() {
           {/* Thematic Hero Badge */}
           <div className="hero-badge inline-flex items-center gap-2 px-4 py-1.5 clip-chamfer-xs bg-primary/15 border border-primary/50 text-primary text-xs font-mono font-bold tracking-widest uppercase mb-4 shadow-[0_0_15px_var(--theme-glow)]">
             <Sword className="h-3.5 w-3.5 text-primary" />
-            <span>Autonomous Procedural Arena</span>
+            <span>{t("heroBadge")}</span>
           </div>
 
           {/* Monumental Hero Title */}
@@ -108,14 +110,12 @@ export default function Home() {
               WebkitTextFillColor: "transparent",
             }}
           >
-            HUNGER GAMES AD-INFINITUM
+            {t("heroTitle")}
           </h1>
 
           {/* Punchy Lore Subtitle */}
           <p className="hero-subtitle max-w-2xl text-xs sm:text-sm md:text-base text-muted-foreground font-light leading-relaxed mb-8 sm:mb-10">
-            May the odds be ever in your favor. Enter an infinite procedural
-            battleground of autonomous tributes, deterministic combat mechanics,
-            and real-time AI storytelling.
+            {t("heroSubtitle")}
           </p>
 
           {/* Streamlined Dual Onboarding Cards */}
@@ -127,14 +127,14 @@ export default function Home() {
 
       {/* Clean Capitol Footer with A11y Shortcut Trigger */}
       <footer className="hero-footer w-full flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono text-muted-foreground py-4 px-6 z-20 border-t border-border/40 bg-background/60 backdrop-blur-xs">
-        <p>Hunger Games Ad-Infinitum • Autonomous Procedural Arena Simulator</p>
+        <p>{t("footer")}</p>
         <button
           type="button"
           onClick={openShortcutsModal}
           className="inline-flex items-center gap-1.5 px-2.5 py-1 clip-chamfer-xs bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 hover:border-primary/50 transition-colors cursor-pointer text-[11px]"
         >
           <Keyboard className="h-3.5 w-3.5 text-primary" />
-          <span>Directives</span>
+          <span>{t("directives")}</span>
           <kbd className="px-1 py-0.2 rounded bg-background border border-border text-[10px] font-bold">
             ?
           </kbd>
@@ -143,4 +143,3 @@ export default function Home() {
     </div>
   );
 }
-

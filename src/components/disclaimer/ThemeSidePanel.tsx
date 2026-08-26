@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useTransition } from "react";
 import {
   Palette,
   X,
@@ -13,8 +13,11 @@ import {
   Crown,
   Shield,
   Sparkles,
+  Globe,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { useThemeEngine, type VisualId, type ColorMode } from "@/lib/theme-context";
 
 const VISUAL_ICONS: Record<VisualId, LucideIcon> = {
@@ -26,6 +29,12 @@ const VISUAL_ICONS: Record<VisualId, LucideIcon> = {
 };
 
 export function ThemeSidePanel() {
+  const t = useTranslations("theme");
+  const currentLocale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [, startTransition] = useTransition();
+
   const {
     colorMode,
     resolvedMode,
@@ -39,6 +48,13 @@ export function ThemeSidePanel() {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const handleLanguageChange = (newLocale: "en" | "es") => {
+    if (newLocale === currentLocale) return;
+    startTransition(() => {
+      router.replace(pathname, { locale: newLocale });
+    });
+  };
 
   // Close on Escape key
   useEffect(() => {
@@ -69,6 +85,14 @@ export function ThemeSidePanel() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
+  const translatedPaletteName = (id: string, defaultName: string) => {
+    try {
+      return t(`palettes.${id}` as never);
+    } catch {
+      return defaultName;
+    }
+  };
+
   return (
     <>
       {/* Palette Toggle Trigger Button — Icon Only with tooltip */}
@@ -76,8 +100,8 @@ export function ThemeSidePanel() {
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        title="Theme & Appearance"
-        aria-label="Customize theme and appearance"
+        title={t("title")}
+        aria-label={t("title")}
         aria-expanded={isOpen}
         aria-controls="theme-side-panel"
         className="fixed top-4 right-4 z-40 flex items-center justify-center h-10 w-10 clip-chamfer-xs bg-card/90 border border-primary/60 text-foreground backdrop-blur-md shadow-[0_0_20px_var(--theme-glow),0_4px_12px_rgba(0,0,0,0.4)] hover:bg-muted/80 hover:border-primary transition-all duration-200 cursor-pointer active:scale-95"
@@ -94,16 +118,16 @@ export function ThemeSidePanel() {
         />
       )}
 
-      {/* Side Panel Drawer: Compact icon dock on Desktop, Full panel on Mobile/Tablet */}
+      {/* Side Panel Drawer */}
       <aside
         id="theme-side-panel"
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Theme and Appearance Settings"
+        aria-label={t("title")}
         className={`fixed top-0 right-0 h-full bg-card/95 border-l-2 border-primary/50 text-card-foreground shadow-[0_0_40px_var(--theme-glow),-10px_0_30px_rgba(0,0,0,0.5)] z-50 flex flex-col backdrop-blur-md transition-transform duration-300 ease-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
-        } w-72 sm:w-80 md:w-16`}
+        } w-72 sm:w-80 md:w-20`}
       >
         {/* ===================================================================
             DESKTOP COMPACT VIEW (Icon-only with hover titles)
@@ -123,15 +147,36 @@ export function ThemeSidePanel() {
             <div className="w-8 h-px bg-border/80" />
           </div>
 
-          {/* Middle: Visual Themes + Color Modes */}
-          <div className="flex flex-col items-center gap-5 my-auto">
+          {/* Middle: Language + Visual Themes + Color Modes */}
+          <div className="flex flex-col items-center gap-4 my-auto">
+            {/* Language Switcher Icons */}
+            <div className="flex flex-col items-center gap-1 p-1 clip-chamfer-xs bg-muted/60 border border-border">
+              {(["en", "es"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  title={t(`languages.${lang}` as never)}
+                  onClick={() => handleLanguageChange(lang)}
+                  className={`h-7 w-7 flex items-center justify-center clip-chamfer-xs text-[10px] font-mono uppercase font-bold transition-all duration-150 cursor-pointer ${
+                    currentLocale === lang
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+
+            <div className="w-8 h-px bg-border/80" />
+
             {/* Color Mode Icons */}
             <div className="flex flex-col items-center gap-1.5 p-1 clip-chamfer-xs bg-muted/60 border border-border">
               {(
                 [
-                  { id: "system", label: "System Mode", icon: Monitor },
-                  { id: "light", label: "Light Mode", icon: Sun },
-                  { id: "dark", label: "Dark Mode", icon: Moon },
+                  { id: "system", labelKey: "modes.system", icon: Monitor },
+                  { id: "light", labelKey: "modes.light", icon: Sun },
+                  { id: "dark", labelKey: "modes.dark", icon: Moon },
                 ] as const
               ).map((mode) => {
                 const Icon = mode.icon;
@@ -140,7 +185,7 @@ export function ThemeSidePanel() {
                   <button
                     key={mode.id}
                     type="button"
-                    title={mode.label}
+                    title={t(mode.labelKey as never)}
                     onClick={() => setColorMode(mode.id as ColorMode)}
                     className={`h-7 w-7 flex items-center justify-center clip-chamfer-xs transition-all duration-150 cursor-pointer ${
                       isActive
@@ -156,17 +201,18 @@ export function ThemeSidePanel() {
 
             <div className="w-8 h-px bg-border/80" />
 
-            {/* Visual Themes Swatches (Order: mockingjay, fire, revolt, serpent, reaping) */}
+            {/* Visual Themes Swatches */}
             <div className="flex flex-col items-center gap-2">
               {availablePalettes.map((palette) => {
                 const isSelected = palette.id === selectedVisualId;
                 const Icon = VISUAL_ICONS[palette.id] || Crown;
+                const palName = translatedPaletteName(palette.id, palette.name);
 
                 return (
                   <button
                     key={palette.id}
                     type="button"
-                    title={palette.name}
+                    title={palName}
                     onClick={() => setSelectedVisualId(palette.id)}
                     className={`relative group h-9 w-9 flex items-center justify-center clip-chamfer-xs border transition-all duration-150 cursor-pointer ${
                       isSelected
@@ -174,7 +220,6 @@ export function ThemeSidePanel() {
                         : "border-border/60 bg-muted/40 hover:border-border hover:bg-muted/80"
                     }`}
                   >
-                    {/* Swatch indicator circle */}
                     <div
                       className="h-5 w-5 rounded-full border border-white/20 flex items-center justify-center transition-transform group-hover:scale-110"
                       style={{ backgroundColor: palette.accentHex }}
@@ -187,10 +232,13 @@ export function ThemeSidePanel() {
             </div>
           </div>
 
-          {/* Bottom: Active Theme Indicator */}
+          {/* Bottom: Active Indicator */}
           <div
             className="h-8 w-8 flex items-center justify-center clip-chamfer-xs border border-primary/40 bg-muted/40"
-            title={`Active: ${activePalette.name} (${resolvedMode})`}
+            title={t("current", {
+              theme: translatedPaletteName(activePalette.id, activePalette.name),
+              mode: t(`modes.${resolvedMode}` as never),
+            })}
           >
             <Palette className="h-3.5 w-3.5 text-primary" />
           </div>
@@ -205,7 +253,7 @@ export function ThemeSidePanel() {
             <div className="flex items-center gap-2">
               <Palette className="h-4 w-4 text-primary" />
               <h2 className="text-sm font-serif font-bold tracking-widest uppercase text-foreground">
-                Appearance
+                {t("title")}
               </h2>
             </div>
             <button
@@ -220,17 +268,44 @@ export function ThemeSidePanel() {
 
           {/* Panel Body */}
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            {/* Language Selector */}
+            <section className="space-y-2.5">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                <Globe className="h-3.5 w-3.5 text-primary" />
+                <span>{t("language")}</span>
+              </span>
+              <div className="grid grid-cols-2 gap-2 p-1 clip-chamfer-xs bg-muted/60 border border-border">
+                {(["en", "es"] as const).map((lang) => {
+                  const isActive = currentLocale === lang;
+                  return (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => handleLanguageChange(lang)}
+                      className={`py-2 px-3 clip-chamfer-xs text-xs font-mono font-bold uppercase transition-all duration-150 cursor-pointer ${
+                        isActive
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      {t(`languages.${lang}` as never)}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
             {/* Mode Selector */}
             <section className="space-y-2.5">
               <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-muted-foreground block">
-                Color Mode
+                {t("colorMode")}
               </span>
               <div className="grid grid-cols-3 gap-1.5 p-1 clip-chamfer-xs bg-muted/60 border border-border">
                 {(
                   [
-                    { id: "system", label: "System", icon: Monitor },
-                    { id: "light", label: "Light", icon: Sun },
-                    { id: "dark", label: "Dark", icon: Moon },
+                    { id: "system", labelKey: "modes.system", icon: Monitor },
+                    { id: "light", labelKey: "modes.light", icon: Sun },
+                    { id: "dark", labelKey: "modes.dark", icon: Moon },
                   ] as const
                 ).map((mode) => {
                   const Icon = mode.icon;
@@ -247,7 +322,9 @@ export function ThemeSidePanel() {
                       }`}
                     >
                       <Icon className="h-3.5 w-3.5" />
-                      <span className="text-[10px]">{mode.label}</span>
+                      <span className="text-[10px]">
+                        {t(mode.labelKey as never)}
+                      </span>
                     </button>
                   );
                 })}
@@ -257,12 +334,16 @@ export function ThemeSidePanel() {
             {/* Visual Theme Selector */}
             <section className="space-y-2.5">
               <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-muted-foreground block">
-                Visual Theme
+                {t("visualTheme")}
               </span>
               <div className="space-y-2">
                 {availablePalettes.map((palette) => {
                   const isSelected = palette.id === selectedVisualId;
                   const Icon = VISUAL_ICONS[palette.id] || Crown;
+                  const palName = translatedPaletteName(
+                    palette.id,
+                    palette.name
+                  );
 
                   return (
                     <button
@@ -288,7 +369,7 @@ export function ThemeSidePanel() {
                             isSelected ? "text-primary" : "text-foreground"
                           }`}
                         >
-                          {palette.name}
+                          {palName}
                         </span>
                       </div>
 
@@ -305,7 +386,13 @@ export function ThemeSidePanel() {
           {/* Panel Footer */}
           <div className="p-3 border-t border-border bg-muted/30 text-center">
             <p className="text-[10px] font-mono text-muted-foreground">
-              Current: <span className="text-primary font-bold">{activePalette.name}</span> ({resolvedMode})
+              {t("current", {
+                theme: translatedPaletteName(
+                  activePalette.id,
+                  activePalette.name
+                ),
+                mode: t(`modes.${resolvedMode}` as never),
+              })}
             </p>
           </div>
         </div>
