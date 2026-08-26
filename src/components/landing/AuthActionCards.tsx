@@ -1,16 +1,55 @@
 "use client";
 
-import React from "react";
+import React, { useState, useCallback } from "react";
 import Link from "next/link";
-import { UserPlus, Play, Sparkles, Flame, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { UserPlus, Play, Sparkles, Flame, ArrowRight, RefreshCw } from "lucide-react";
 import { useThemeEngine } from "@/lib/theme-context";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { useA11y } from "@/lib/a11y/a11y-context";
 
 interface AuthActionCardsProps {
   className?: string;
 }
 
 export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
+  const router = useRouter();
   const { activePalette } = useThemeEngine();
+  const { isAuthenticated, signInAnonymously } = useAuth();
+  const { announcePolite } = useA11y();
+  const [isStartingGuest, setIsStartingGuest] = useState(false);
+
+  const handleGuestEntry = useCallback(async () => {
+    if (isStartingGuest) return;
+    announcePolite("Entering local arena as guest...");
+
+    if (isAuthenticated) {
+      router.push("/setup");
+      return;
+    }
+
+    try {
+      setIsStartingGuest(true);
+      await signInAnonymously();
+      router.push("/setup");
+    } catch {
+      router.push("/setup");
+    } finally {
+      setIsStartingGuest(false);
+    }
+  }, [isAuthenticated, isStartingGuest, router, signInAnonymously, announcePolite]);
+
+  const handleRegisterEntry = useCallback(() => {
+    announcePolite("Navigating to Gamemaker registration...");
+    router.push("/login");
+  }, [router, announcePolite]);
+
+  // Bind Landing shortcuts [G] and [R]
+  useKeyboardShortcuts({
+    GUEST_PLAY: () => handleGuestEntry(),
+    REGISTER: () => handleRegisterEntry(),
+  });
 
   return (
     <div
@@ -53,6 +92,7 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
         {/* CTA Button */}
         <Link
           href="/login"
+          aria-keyshortcuts="KeyR"
           style={{
             background: `linear-gradient(to right, ${activePalette.accentHex}, ${activePalette.highlightHex})`,
           }}
@@ -60,6 +100,9 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
         >
           <UserPlus className="h-4 w-4" />
           <span>APPLY AS GAMEMAKER</span>
+          <kbd className="hidden sm:inline-block ml-1 px-1.5 py-0.5 text-[10px] bg-black/20 text-black/90 border border-black/30 rounded font-mono font-semibold">
+            R
+          </kbd>
           <ArrowRight className="h-4 w-4 ml-1" />
         </Link>
       </div>
@@ -94,15 +137,31 @@ export function AuthActionCards({ className = "" }: AuthActionCardsProps) {
         </div>
 
         {/* CTA Button */}
-        <Link
-          href="/setup"
-          className="w-full flex items-center justify-center gap-2 py-3.5 px-6 clip-chamfer-sm bg-muted/80 hover:bg-primary/20 text-foreground font-mono font-bold text-xs sm:text-sm tracking-wider uppercase border border-border hover:border-primary shadow-sm hover:shadow-[0_0_20px_var(--theme-glow)] active:translate-y-0.5 transition-all duration-200 cursor-pointer"
+        <button
+          type="button"
+          onClick={handleGuestEntry}
+          disabled={isStartingGuest}
+          aria-keyshortcuts="KeyG"
+          className="w-full flex items-center justify-center gap-2 py-3.5 px-6 clip-chamfer-sm bg-muted/80 hover:bg-primary/20 text-foreground font-mono font-bold text-xs sm:text-sm tracking-wider uppercase border border-border hover:border-primary shadow-sm hover:shadow-[0_0_20px_var(--theme-glow)] active:translate-y-0.5 disabled:opacity-50 transition-all duration-200 cursor-pointer"
         >
-          <Play className="h-4 w-4 text-primary" />
-          <span>EXPLORE LOCAL REGISTRIES</span>
-          <ArrowRight className="h-4 w-4 ml-1" />
-        </Link>
+          {isStartingGuest ? (
+            <>
+              <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+              <span>INITIALIZING GUEST SESSION...</span>
+            </>
+          ) : (
+            <>
+              <Play className="h-4 w-4 text-primary" />
+              <span>EXPLORE LOCAL REGISTRIES</span>
+              <kbd className="hidden sm:inline-block ml-1 px-1.5 py-0.5 text-[10px] bg-background/80 text-muted-foreground border border-border rounded font-mono font-semibold">
+                G
+              </kbd>
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
 }
+

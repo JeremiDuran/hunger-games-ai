@@ -3,8 +3,9 @@
 import React, { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Sword } from "lucide-react";
-import { ThemeProvider, useThemeEngine } from "@/lib/theme-context";
+import { Sword, Keyboard } from "lucide-react";
+import { useThemeEngine } from "@/lib/theme-context";
+import { useA11y } from "@/lib/a11y/a11y-context";
 import { ThemeSidePanel } from "@/components/disclaimer/ThemeSidePanel";
 import { BackgroundConstellation } from "@/components/landing/backgrounds/BackgroundConstellation";
 import { AuthActionCards } from "@/components/landing/AuthActionCards";
@@ -13,13 +14,32 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(useGSAP);
 }
 
-function LandingPageContent() {
+export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { activePalette } = useThemeEngine();
+  const { openShortcutsModal } = useA11y();
 
-  // Entrance animations using GSAP
+  // Entrance animations using GSAP with prefers-reduced-motion safety
   useGSAP(
     () => {
+      const prefersReducedMotion =
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (prefersReducedMotion) {
+        gsap.set(
+          [
+            ".hero-badge",
+            ".hero-title",
+            ".hero-subtitle",
+            ".hero-cards",
+            ".hero-footer",
+          ],
+          { opacity: 1, y: 0, scale: 1 }
+        );
+        return;
+      }
+
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
       tl.fromTo(
@@ -67,7 +87,11 @@ function LandingPageContent() {
       <ThemeSidePanel />
 
       {/* Main Hero Container */}
-      <main className="flex-1 w-full flex flex-col items-center justify-center px-4 sm:px-6 py-12 lg:py-16 z-20">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex-1 w-full flex flex-col items-center justify-center px-4 sm:px-6 py-12 lg:py-16 z-20 outline-none"
+      >
         <div className="w-full max-w-5xl mx-auto flex flex-col items-center text-center">
           {/* Thematic Hero Badge */}
           <div className="hero-badge inline-flex items-center gap-2 px-4 py-1.5 clip-chamfer-xs bg-primary/15 border border-primary/50 text-primary text-xs font-mono font-bold tracking-widest uppercase mb-4 shadow-[0_0_15px_var(--theme-glow)]">
@@ -101,20 +125,22 @@ function LandingPageContent() {
         </div>
       </main>
 
-      {/* Clean Capitol Footer */}
-      <footer className="hero-footer w-full text-center text-xs font-mono text-muted-foreground py-5 px-4 z-20 border-t border-border/40 bg-background/60 backdrop-blur-xs">
-        <p>
-          Hunger Games Ad-Infinitum • Autonomous Procedural Arena Simulator
-        </p>
+      {/* Clean Capitol Footer with A11y Shortcut Trigger */}
+      <footer className="hero-footer w-full flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono text-muted-foreground py-4 px-6 z-20 border-t border-border/40 bg-background/60 backdrop-blur-xs">
+        <p>Hunger Games Ad-Infinitum • Autonomous Procedural Arena Simulator</p>
+        <button
+          type="button"
+          onClick={openShortcutsModal}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 clip-chamfer-xs bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 hover:border-primary/50 transition-colors cursor-pointer text-[11px]"
+        >
+          <Keyboard className="h-3.5 w-3.5 text-primary" />
+          <span>Directives</span>
+          <kbd className="px-1 py-0.2 rounded bg-background border border-border text-[10px] font-bold">
+            ?
+          </kbd>
+        </button>
       </footer>
     </div>
   );
 }
 
-export default function Home() {
-  return (
-    <ThemeProvider>
-      <LandingPageContent />
-    </ThemeProvider>
-  );
-}

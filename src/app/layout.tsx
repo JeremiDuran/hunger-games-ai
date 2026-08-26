@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Cinzel, Rajdhani, Share_Tech_Mono, Inter } from "next/font/google";
+import { AppProviders } from "@/components/providers";
+import { SkipLink } from "@/components/a11y/SkipLink";
 import "./globals.css";
 
 const cinzel = Cinzel({
@@ -42,7 +44,8 @@ export default function RootLayout({
       className={`${inter.variable} ${cinzel.variable} ${rajdhani.variable} ${shareTechMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans transition-colors duration-500">
-        {children}
+        <SkipLink targetId="main-content" />
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );
