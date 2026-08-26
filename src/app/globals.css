@@ -348,6 +348,10 @@ html:not(.dark)[data-palette="reaping"] {
     text-shadow: 0 0 12px var(--primary), 0 0 24px rgba(245, 158, 11, 0.25);
   }
 
+  html:not(.dark) .text-shadow-gold {
+    text-shadow: none;
+  }
+
   .pattern-hud-grid {
     background-image: 
       linear-gradient(to right, rgba(128, 128, 128, 0.08) 1px, transparent 1px),
@@ -356,12 +360,39 @@ html:not(.dark)[data-palette="reaping"] {
   }
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
 @layer base {
   * {
     @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--background);
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* WebKit (Chrome, Edge, Safari) theme-aware scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
   }
 
   /* Accessible focus indicators for keyboard navigation */

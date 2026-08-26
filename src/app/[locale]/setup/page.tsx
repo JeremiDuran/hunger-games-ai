@@ -70,7 +70,7 @@ function SetupStagingContent() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen relative flex flex-col justify-between overflow-x-hidden bg-background text-foreground transition-colors duration-500 selection:bg-primary selection:text-primary-foreground"
+      className="min-h-screen relative flex flex-col justify-between overflow-x-clip bg-background text-foreground transition-colors duration-500 selection:bg-primary selection:text-primary-foreground"
     >
       {/* Background Ambience */}
       <BackgroundConstellation />

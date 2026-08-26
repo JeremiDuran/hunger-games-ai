@@ -9,21 +9,21 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(useGSAP);
 }
 
-// 12 Panem District Nodes distributed in an aesthetic constellation
+// 12 Panem District Nodes distributed across full widescreen 1600x900 viewport
 const DISTRICT_NODES = [
-  { id: "D1", x: 220, y: 140, label: "01 Luxury" },
-  { id: "D2", x: 380, y: 110, label: "02 Masonry" },
-  { id: "D3", x: 550, y: 160, label: "03 Technology" },
-  { id: "D4", x: 670, y: 250, label: "04 Fishing" },
-  { id: "D5", x: 610, y: 390, label: "05 Power" },
-  { id: "D6", x: 490, y: 480, label: "06 Transport" },
-  { id: "D7", x: 340, y: 520, label: "07 Lumber" },
-  { id: "D8", x: 200, y: 440, label: "08 Textiles" },
-  { id: "D9", x: 140, y: 310, label: "09 Grain" },
-  { id: "D10", x: 270, y: 260, label: "10 Livestock" },
-  { id: "D11", x: 430, y: 290, label: "11 Agriculture" },
-  { id: "D12", x: 360, y: 380, label: "12 Mining" },
-  { id: "CAP", x: 400, y: 220, label: "THE CAPITOL" },
+  { id: "D1", x: 440, y: 180, label: "01 Luxury" },
+  { id: "D2", x: 760, y: 120, label: "02 Masonry" },
+  { id: "D3", x: 1120, y: 190, label: "03 Technology" },
+  { id: "D4", x: 1420, y: 360, label: "04 Fishing" },
+  { id: "D5", x: 1280, y: 640, label: "05 Power" },
+  { id: "D6", x: 1040, y: 780, label: "06 Transport" },
+  { id: "D7", x: 680, y: 820, label: "07 Lumber" },
+  { id: "D8", x: 340, y: 720, label: "08 Textiles" },
+  { id: "D9", x: 180, y: 480, label: "09 Grain" },
+  { id: "D10", x: 480, y: 420, label: "10 Livestock" },
+  { id: "D11", x: 920, y: 460, label: "11 Agriculture" },
+  { id: "D12", x: 720, y: 600, label: "12 Mining" },
+  { id: "CAP", x: 800, y: 340, label: "THE CAPITOL" },
 ];
 
 // Constellation connecting line definitions between nodes
@@ -57,9 +57,9 @@ export function BackgroundConstellation() {
     () => {
       // 1. Constellation star node pulsing
       gsap.to(".constellation-node", {
-        scale: 1.3,
-        opacity: 0.9,
-        duration: 2.5,
+        scale: 1.2,
+        opacity: 0.6,
+        duration: 2.8,
         ease: "sine.inOut",
         yoyo: true,
         repeat: -1,
@@ -72,8 +72,8 @@ export function BackgroundConstellation() {
 
       // 2. Constellation connecting energy lines pulse
       gsap.to(".constellation-edge", {
-        strokeOpacity: 0.45,
-        duration: 3,
+        strokeOpacity: 0.38,
+        duration: 3.2,
         ease: "power1.inOut",
         yoyo: true,
         repeat: -1,
@@ -84,11 +84,11 @@ export function BackgroundConstellation() {
       gsap.to(".orbital-mote", {
         y: "-=30",
         x: "+=15",
-        duration: 4,
+        duration: 4.5,
         ease: "sine.inOut",
         yoyo: true,
         repeat: -1,
-        stagger: 0.3,
+        stagger: 0.25,
       });
     },
     { scope: containerRef, dependencies: [activePalette.id] }
@@ -97,19 +97,31 @@ export function BackgroundConstellation() {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 pointer-events-none -z-10 overflow-hidden select-none"
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none w-full h-full"
     >
-      {/* Deep atmospheric backdrop glow */}
+      {/* Deep atmospheric backdrop glow spanning full width */}
       <div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-30 transition-all duration-700"
         style={{
-          background: `radial-gradient(circle at 50% 40%, ${activePalette.accentHex}30 0%, ${activePalette.highlightHex}10 40%, transparent 80%)`,
+          background: `radial-gradient(circle at 50% 40%, ${activePalette.accentHex}30 0%, ${activePalette.highlightHex}15 50%, transparent 80%)`,
         }}
       />
 
-      {/* Center Panem Constellation Graphic */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[650px] sm:w-[950px] sm:h-[750px] opacity-35">
-        <svg viewBox="0 0 800 650" className="w-full h-full">
+      {/* Full Viewport Panem Constellation Graphic with central readability mask */}
+      <div
+        className="absolute inset-0 w-full h-full opacity-70 transition-opacity duration-500"
+        style={{
+          maskImage:
+            "radial-gradient(ellipse 70% 50% at 50% 38%, transparent 15%, black 75%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 70% 50% at 50% 38%, transparent 15%, black 75%)",
+        }}
+      >
+        <svg
+          viewBox="0 0 1600 900"
+          preserveAspectRatio="xMidYMid slice"
+          className="w-full h-full"
+        >
           {/* Constellation Connecting Lines */}
           {CONSTELLATION_EDGES.map(([fromId, toId], idx) => {
             const fromNode = DISTRICT_NODES.find((n) => n.id === fromId);
@@ -124,22 +136,28 @@ export function BackgroundConstellation() {
                 x2={toNode.x}
                 y2={toNode.y}
                 stroke={activePalette.accentHex}
-                strokeWidth={fromId === "CAP" ? "1.5" : "0.75"}
-                strokeOpacity="0.15"
-                strokeDasharray={fromId === "CAP" ? "none" : "3 3"}
+                strokeWidth={fromId === "CAP" ? "1.8" : "1"}
+                strokeOpacity="0.22"
+                strokeDasharray={fromId === "CAP" ? "none" : "4 4"}
                 className="constellation-edge"
               />
             );
           })}
 
-          {/* Orbiting particles around the constellation */}
+          {/* Orbiting particles distributed around the full viewport */}
           {[
-            { cx: 310, cy: 190, r: 2 },
-            { cx: 480, cy: 210, r: 1.5 },
-            { cx: 520, cy: 330, r: 2.2 },
-            { cx: 230, cy: 370, r: 1.8 },
-            { cx: 410, cy: 450, r: 2.5 },
-            { cx: 590, cy: 180, r: 1.5 },
+            { cx: 200, cy: 220, r: 2.5 },
+            { cx: 380, cy: 350, r: 2 },
+            { cx: 600, cy: 250, r: 2.5 },
+            { cx: 880, cy: 180, r: 2 },
+            { cx: 1250, cy: 220, r: 2.5 },
+            { cx: 1480, cy: 520, r: 2.5 },
+            { cx: 1350, cy: 750, r: 2 },
+            { cx: 850, cy: 750, r: 2.5 },
+            { cx: 520, cy: 620, r: 2 },
+            { cx: 250, cy: 680, r: 2.5 },
+            { cx: 1150, cy: 450, r: 2 },
+            { cx: 650, cy: 450, r: 2 },
           ].map((mote, i) => (
             <circle
               key={`mote-${i}`}
@@ -147,7 +165,7 @@ export function BackgroundConstellation() {
               cy={mote.cy}
               r={mote.r}
               fill={activePalette.highlightHex}
-              className="orbital-mote opacity-60"
+              className="orbital-mote opacity-45"
             />
           ))}
 
@@ -160,27 +178,28 @@ export function BackgroundConstellation() {
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r={isCapitol ? 12 : 7}
+                  r={isCapitol ? 15 : 9}
                   fill={isCapitol ? activePalette.highlightHex : activePalette.accentHex}
-                  className="constellation-node opacity-30"
+                  className="constellation-node opacity-40"
                 />
                 {/* Core Star Point */}
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r={isCapitol ? 4.5 : 2.5}
+                  r={isCapitol ? 5 : 3.5}
                   fill={isCapitol ? "#ffffff" : activePalette.accentHex}
                 />
                 {/* Label text */}
                 <text
                   x={node.x}
-                  y={node.y + (isCapitol ? -14 : 14)}
+                  y={node.y + (isCapitol ? -18 : 18)}
                   textAnchor="middle"
-                  fill={activePalette.vars.mutedForeground}
-                  fontSize={isCapitol ? "9" : "7.5"}
+                  fill={activePalette.accentHex}
+                  fontSize={isCapitol ? "11" : "9.5"}
+                  fontWeight={isCapitol ? "bold" : "600"}
                   fontFamily="monospace"
-                  letterSpacing="1px"
-                  className="opacity-70"
+                  letterSpacing="1.5px"
+                  className="opacity-60"
                 >
                   {node.id}
                 </text>

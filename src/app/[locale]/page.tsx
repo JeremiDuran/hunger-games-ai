@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Sword, Keyboard } from "lucide-react";
+import { Keyboard } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useThemeEngine } from "@/lib/theme-context";
 import { useA11y } from "@/lib/a11y/a11y-context";
@@ -17,7 +17,7 @@ if (typeof window !== "undefined") {
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { activePalette } = useThemeEngine();
+  const { activePalette, resolvedMode } = useThemeEngine();
   const { openShortcutsModal } = useA11y();
   const t = useTranslations("landing");
 
@@ -31,7 +31,6 @@ export default function Home() {
       if (prefersReducedMotion) {
         gsap.set(
           [
-            ".hero-badge",
             ".hero-title",
             ".hero-subtitle",
             ".hero-cards",
@@ -45,16 +44,10 @@ export default function Home() {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
       tl.fromTo(
-        ".hero-badge",
-        { opacity: 0, y: -15 },
-        { opacity: 1, y: 0, duration: 0.5 }
+        ".hero-title",
+        { opacity: 0, y: 25, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.7 }
       )
-        .fromTo(
-          ".hero-title",
-          { opacity: 0, y: 25, scale: 0.96 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.7 },
-          "-=0.2"
-        )
         .fromTo(
           ".hero-subtitle",
           { opacity: 0, y: 15 },
@@ -80,7 +73,7 @@ export default function Home() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen relative flex flex-col justify-between overflow-x-hidden bg-background text-foreground transition-colors duration-500 selection:bg-primary selection:text-primary-foreground"
+      className="min-h-screen relative flex flex-col justify-between overflow-x-clip bg-background text-foreground transition-colors duration-500 selection:bg-primary selection:text-primary-foreground"
     >
       {/* GSAP Panem District Constellation Background */}
       <BackgroundConstellation />
@@ -95,17 +88,14 @@ export default function Home() {
         className="flex-1 w-full flex flex-col items-center justify-center px-4 sm:px-6 py-12 lg:py-16 z-20 outline-none"
       >
         <div className="w-full max-w-5xl mx-auto flex flex-col items-center text-center">
-          {/* Thematic Hero Badge */}
-          <div className="hero-badge inline-flex items-center gap-2 px-4 py-1.5 clip-chamfer-xs bg-primary/15 border border-primary/50 text-primary text-xs font-mono font-bold tracking-widest uppercase mb-4 shadow-[0_0_15px_var(--theme-glow)]">
-            <Sword className="h-3.5 w-3.5 text-primary" />
-            <span>{t("heroBadge")}</span>
-          </div>
-
           {/* Monumental Hero Title */}
           <h1
-            className="hero-title text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-black tracking-wider uppercase text-transparent bg-clip-text text-shadow-gold mb-3 transition-all duration-300"
+            className="hero-title text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-black tracking-wider uppercase text-transparent bg-clip-text text-shadow-gold mb-3 sm:mb-4 transition-all duration-300 text-balance leading-tight"
             style={{
-              backgroundImage: `linear-gradient(to right, ${activePalette.accentHex}, #ffffff, ${activePalette.highlightHex})`,
+              backgroundImage:
+                resolvedMode === "dark"
+                  ? `linear-gradient(to right, ${activePalette.accentHex}, #ffffff, ${activePalette.highlightHex})`
+                  : `linear-gradient(to right, ${activePalette.accentHex}, ${activePalette.highlightHex})`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
@@ -113,8 +103,8 @@ export default function Home() {
             {t("heroTitle")}
           </h1>
 
-          {/* Punchy Lore Subtitle */}
-          <p className="hero-subtitle max-w-2xl text-xs sm:text-sm md:text-base text-muted-foreground font-light leading-relaxed mb-8 sm:mb-10">
+          {/* Punchy Lore Subtitle with enhanced contrast against background */}
+          <p className="hero-subtitle max-w-xl text-xs sm:text-sm md:text-base text-foreground/85 font-medium leading-relaxed mb-6 sm:mb-8 text-balance drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
             {t("heroSubtitle")}
           </p>
 
