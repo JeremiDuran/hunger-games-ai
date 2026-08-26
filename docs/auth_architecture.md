@@ -45,17 +45,18 @@ export const dynamic = 'force-dynamic'
 
 ## 3. Proxy & Route Protection
 
-The Next.js Proxy (`src/proxy.ts`, formerly `middleware.ts` prior to Next.js 16) has two responsibilities:
-1.  **Session Refresh**: It initializes a Supabase Server Client (`src/lib/supabase/proxy.ts`) and calls `getUser()`. If the refresh token is nearing expiration, `@supabase/ssr` automatically refreshes the session and attaches the new tokens to both the incoming request headers (for downstream Server Components) and the outgoing response cookies (for the browser).
-2.  **Route Protection**: It enforces access control based on the JWT claims.
+The Next.js Proxy (`src/proxy.ts`, formerly `middleware.ts` prior to Next.js 16) has three responsibilities:
+1.  **First-Time Visitor Gate**: Direct visits to `/setup`, `/lobby`, or `/game/*` without an `hg_entered` cookie are redirected to `/` so the user is properly onboarded through the landing page.
+2.  **Session Refresh**: Initializes a Supabase Server Client (`src/lib/supabase/proxy.ts`) and calls `getUser()`. If the refresh token is nearing expiration, `@supabase/ssr` automatically refreshes the session and attaches the new tokens to both request headers and response cookies.
+3.  **Access Control**: Enforces guest vs. permanent route authorization based on JWT claims.
 
 ### Route Protection Matrix
 
 | Route Level | Paths | Proxy Logic |
 | :--- | :--- | :--- |
-| **Public** | `/`, `/login`, `/auth/callback` | Accessible to all. (If already logged in as a permanent user, `/login` redirects to `/lobby`). |
-| **Guest/Active** | `/lobby`, `/setup`, `/game/[id]` | Requires **any** valid session (Anonymous or Permanent). If no session exists when hitting `/setup` or `/lobby`, the client silently initiates `signInAnonymously()`. |
-| **Protected** | `/archives`, `/profile` | Requires a Permanent session. Proxy checks if `user.is_anonymous === true`. If true, redirects to `/login` with a `?next=/archives` parameter. |
+| **Public / Intro** | `/`, `/login`, `/auth/callback` | Accessible to all. (If already logged in as a permanent user, `/login` redirects to `/lobby`). |
+| **Guest / Active Game** | `/lobby`, `/setup`, `/game/[id]` | Requires the `hg_entered` cookie (otherwise redirects to `/`). If no active session exists, the client/server seamlessly initializes an anonymous session via `signInAnonymously()`. |
+| **Permanent Only** | `/archives`, `/profile` | Requires a permanent user session (`is_anonymous === false`). If anonymous or unauthenticated, redirects to `/login?next=...`. |
 
 ---
 

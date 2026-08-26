@@ -1,106 +1,68 @@
 # Database Schema Design (Supabase / PostgreSQL)
 
-This document outlines the initial database architecture for the Hunger Games AI Simulator based on the requirements. Since we are using Supabase (PostgreSQL), we will leverage relational data for robust querying (like game stats) alongside `JSONB` columns for flexible data-driven configurations.
+This document outlines the database architecture for the Hunger Games AI Simulator. Built on Supabase (PostgreSQL), we leverage relational tables with strict Row-Level Security (RLS) and optimized subquery evaluation.
 
-## 1. Core Entities & Relationships
+---
 
-### `users` (Extending Supabase Auth)
-Stores user data, specifically related to the token economy and persistent state.
-- `id` (UUID, PK, matches `auth.users.id`)
-- `username` (String)
-- `tokens_balance` (Integer, default: 0) - *Used to limit/track LLM generations*
-- `created_at` (Timestamp)
+## 1. Core Foundational Tables (Game Setup & Ownership)
+
+### `profiles` (Extends Supabase `auth.users`)
+Stores user citizenship, token quota for AI generation, and display metadata for both Guest (anonymous) and Registered accounts.
+- `id` (`UUID`, PK, `REFERENCES auth.users(id) ON DELETE CASCADE`)
+- `username` (`TEXT`, e.g., `"Gamemaker-9a4f21"`)
+- `avatar_url` (`TEXT`, nullable)
+- `tokens_balance` (`INTEGER`, default: `50`, `CHECK >= 0`)
+- `created_at` (`TIMESTAMPTZ`, default: `now()`)
+- `updated_at` (`TIMESTAMPTZ`, default: `now()`)
 
 ### `games`
-Represents a single instance of a Hunger Games simulation.
-- `id` (UUID, PK)
-- `user_id` (UUID, FK -> `users.id`, nullable for guest sessions)
-- `name` (String) - *E.g., "The 74th Hunger Games"*
-- `status` (Enum: `setup`, `in_progress`, `finished`)
-- `arena_type` (Enum: `swamp`, `city`, `desert`, `mixed`) - *The environment flavor*
-- `settings` (JSONB) - *Toggleable options*
-  - `enable_bloodbath` (Boolean)
-  - `enable_arena_events` (Boolean)
-  - `enable_items` (Boolean)
-  - `enable_creatures` (Boolean)
-- `tribute_count` (Integer) - *Limit: max 48*
-- `winner_id` (UUID, FK -> `tributes.id`, nullable)
-- `created_at` (Timestamp)
-- `ended_at` (Timestamp)
+Represents an instance of a Hunger Games simulation configured by a user.
+- `id` (`UUID`, PK, default: `gen_random_uuid()`)
+- `user_id` (`UUID`, FK `-> auth.users.id ON DELETE CASCADE`)
+- `title` (`TEXT`, default: `'The 74th Annual Hunger Games'`)
+- `status` (`game_status` ENUM: `'setup'`, `'in_progress'`, `'finished'`, `'archived'`)
+- **Arena Biome & Storytelling Lore**:
+  - `arena_biome` (`TEXT`, `CHECK IN ('tropical_jungle', 'ruined_cityscape', 'frozen_tundra', 'scorched_desert', 'swamp_quagmire', 'clockwork_arena')`)
+  - `arena_name` (`TEXT`, default: `'Verdant Tropics'`)
+  - `arena_description` (`TEXT`, rich environmental lore injected into LLM storytelling prompts)
+- **Settings Matrix** (`JSONB`):
+  - `enable_bloodbath` (`BOOLEAN`, default: `true`)
+  - `enable_muttations` (`BOOLEAN`, default: `true`)
+  - `enable_disasters` (`BOOLEAN`, default: `true`)
+  - `enable_sponsor_drops` (`BOOLEAN`, default: `true`)
+  - `pacing` (`TEXT`, `'instant'` | `'normal'` | `'cinematic'`)
+- `tribute_count` (`INTEGER`, default: `24`, `CHECK >= 2 AND <= 48`)
+- `current_day` (`INTEGER`, default: `0`)
+- `current_phase_type` (`TEXT`, default: `'bloodbath'`)
+- `winner_id` (`UUID`, FK `-> tributes.id ON DELETE SET NULL`, nullable)
+- `created_at` (`TIMESTAMPTZ`, default: `now()`)
+- `updated_at` (`TIMESTAMPTZ`, default: `now()`)
+- `ended_at` (`TIMESTAMPTZ`, nullable)
 
 ### `tributes`
-The participants of the game. Configured by the user before the game starts.
-- `id` (UUID, PK)
-- `game_id` (UUID, FK -> `games.id`)
-- `name` (String)
-- `district` (Integer) - *Between 1 and 24. Validation will ensure 2-4 tributes per district.*
-- `description` (String) - *Limited length text (enforced by UI) for backstory/personality.*
-- `physical_aspect` (String, nullable) - *Optional physical appearance description.*
-- `status` (Enum: `alive`, `dead`)
-- `kill_count` (Integer, default: 0) - *Tracked for final statistics*
-- `death_phase_id` (UUID, FK -> `phases.id`, nullable) - *Used to show the Fallen at the end of a day*
-- `created_at` (Timestamp)
+The participants of a game configured during setup.
+- `id` (`UUID`, PK, default: `gen_random_uuid()`)
+- `game_id` (`UUID`, FK `-> games.id ON DELETE CASCADE`)
+- `name` (`TEXT`)
+- `district` (`INTEGER`, `CHECK >= 1 AND <= 24`)
+- `gender` (`tribute_gender` ENUM: `'male'`, `'female'`, `'non_binary'`, `'unspecified'`)
+- `personality` (`VARCHAR(280)`, backstory/temperament steer for LLM actions)
+- `physical_aspect` (`VARCHAR(280)`, visual appearance steer)
+- `avatar_url` (`TEXT`, nullable)
+- `status` (`tribute_status` ENUM: `'alive'`, `'dead'`)
+- `kill_count` (`INTEGER`, default: `0`, `CHECK >= 0`)
+- `stats` (`JSONB`, default: `{"health": 100, "strength": 50, "agility": 50, "intelligence": 50}`)
+- `inventory` (`JSONB`, default: `[]`)
+- `death_phase_id` (`UUID`, nullable)
+- `placement` (`INTEGER`, nullable)
+- `created_at` (`TIMESTAMPTZ`, default: `now()`)
 
-### `items`
-Dynamic objects within a game that can be discovered, stolen, dropped, or destroyed. Used heavily for LLM flavor during narrative generation.
-- `id` (UUID, PK)
-- `game_id` (UUID, FK -> `games.id`)
-- `name` (String) - *E.g., "Silver Bow", "Medical Kit"*
-- `owner_id` (UUID, FK -> `tributes.id`, nullable) - *Null if ownerless/dropped in the arena*
-- `status` (Enum: `held`, `dropped`, `destroyed`)
-- `created_at` (Timestamp)
+---
 
+## 2. Row-Level Security (RLS) & Performance Standards
 
-### `phases`
-The simulation is broken down chronologically into phases.
-- `id` (UUID, PK)
-- `game_id` (UUID, FK -> `games.id`)
-- `day_number` (Integer) - *Which day of the games this phase belongs to (1, 2, 3...)*
-- `phase_number` (Integer) - *Used for sequential ordering of all phases (1, 2, 3...)*
-- `type` (Enum: `bloodbath`, `day`, `night`, `arena_event`)
-- `status` (Enum: `pending`, `generating`, `completed`) - *Tracks LLM generation status*
-- `created_at` (Timestamp)
-
-### `events`
-Individual occurrences within a phase. **Rule**: Every living tribute must be accounted for in the event log of a phase.
-- `id` (UUID, PK)
-- `phase_id` (UUID, FK -> `phases.id`)
-- `template_id` (UUID, FK -> `event_templates.id`, nullable) - *Which template drove this logic*
-- `involved_tributes` (UUID Array) - *Array of tribute IDs involved in this specific event*
-- `outcome_data` (JSONB) - *The deterministic logic outcome (e.g., `{"dead": [id1], "injured": [id2], "item_found": "sword"}`)*
-- `narrative_text` (Text, nullable) - *The rich flavor text generated by the LLM*
-- `display_order` (Integer) - *Order in which events are shown on the UI to the user*
-- `created_at` (Timestamp)
-
-### `event_templates` (Global Master Data)
-The data-driven templates that the game engine pulls from to determine what happens. These are static and pre-defined in the database.
-- `id` (UUID, PK)
-- `category` (Enum: `bloodbath`, `day`, `night`, `arena_event`, `feast`)
-- `required_tributes` (Integer) - *How many tributes are needed for this template (e.g., 2 for a duel)*
-- `lethality` (Integer) - *0 to 10 scale of how likely someone dies*
-- `requires_items` (Boolean) - *Only draw if settings allow items*
-- `requires_creatures` (Boolean) - *Only draw if settings allow creatures*
-- `template_data` (JSONB) - *The logic structure detailing outcomes*
-
-## 2. Key System Flows
-
-1. **Setup & Initialization**: 
-   - User names the game, picks the arena type, toggles items/creatures/events, and inputs 12 to 48 tributes (assigning them to districts 1-24, 2-4 per district).
-   - Records are created in `games` and `tributes`.
-2. **Phase Progression**:
-   - The engine creates a `phases` record (e.g., Bloodbath or Day 1).
-   - The engine selects all `tributes` where `status == 'alive'`.
-   - The engine shuffles and groups tributes, pulling matching `event_templates` until all alive tributes are assigned an event.
-   - The engine calculates deterministic outcomes and writes `events` rows. It updates the `tributes` table (setting `status` to dead, updating `inventory` and `kill_count`).
-   - The UI polls/streams as the backend sends these event contexts to the LLM to generate `narrative_text`.
-3. **End of Day / Fallen**:
-   - At the end of a Day phase (or Night phase, depending on film logic), the UI queries for all tributes where `death_phase_id == current_phase.id` (or the phases that occurred that day) to show the fallen portraits.
-4. **Game Over & Statistics**:
-   - When only 1 tribute remains with `status == 'alive'`, the system sets `games.winner_id` and changes the game status to `finished`.
-   - The final report page aggregates `kill_count` from `tributes`, maps out the deadliest `phases`, and can reconstruct the entire timeline by querying the `events` table ordered by `phase_number` and `display_order`.
-
-## 3. Resolved Decisions (From DB Planning)
-
-1. **Guest State Management**: We will rely on a Supabase feature (e.g., anonymous users or temporary session records) to handle guest users cleanly. This will be fully investigated during the Supabase integration phase.
-2. **Items/Inventory System**: Items exist primarily for narrative flavor, but they have state. They can be found, stolen by other tributes, dropped (becoming ownerless), or destroyed during events. We track this via the dedicated `items` table.
-3. **LLM Context Limits**: Instead of a massive free-text box, the UI will enforce a limited `description` box and an optional `physical_aspect` box for each tribute. This keeps token usage manageable while ensuring consistent character representation.
+All tables enforce Row-Level Security:
+1. **Profiles**: Users can SELECT and UPDATE only their own profile (`(select auth.uid()) = id`).
+2. **Games**: Users can manage only games where `user_id = (select auth.uid())`.
+3. **Tributes**: Access is granted if the user owns the parent game via `EXISTS (SELECT 1 FROM games WHERE games.id = tributes.game_id AND games.user_id = (select auth.uid()))`.
+4. **Performance**: All `auth.uid()` calls use subquery caching `(select auth.uid())` per Supabase best practices. Foreign keys (`user_id`, `game_id`, `winner_id`) are indexed.

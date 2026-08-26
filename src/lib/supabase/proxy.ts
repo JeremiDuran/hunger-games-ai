@@ -33,7 +33,36 @@ export async function updateSession(request: NextRequest) {
   });
 
   // IMPORTANT: Calling getUser refreshes expired auth tokens
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+
+  // 1. Permanent-Only Routes: /profile, /archives, /presets
+  const isPermanentOnlyRoute =
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/archives") ||
+    pathname.startsWith("/presets");
+
+  if (isPermanentOnlyRoute) {
+    const isPermanent = Boolean(user && !user.is_anonymous);
+    if (!isPermanent) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // 2. If already logged in as a permanent user, visiting /login can redirect to /lobby
+  if (pathname === "/login") {
+    const isPermanent = Boolean(user && !user.is_anonymous);
+    if (isPermanent) {
+      const nextParam = request.nextUrl.searchParams.get("next") || "/lobby";
+      const safeNext = nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/lobby";
+      return NextResponse.redirect(new URL(safeNext, request.url));
+    }
+  }
 
   return supabaseResponse;
 }

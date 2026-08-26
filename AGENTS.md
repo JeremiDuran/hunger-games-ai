@@ -47,6 +47,10 @@ This project operates with two isolated Supabase environments:
 - **Migrations are the single source of truth**: All database schema changes must be saved as versioned SQL files under `supabase/migrations/` and committed to git.
 - **Always consult database skills**: Follow `.agents/skills/supabase/` and `.agents/skills/supabase-postgres-best-practices/` for RLS, index, and query standards.
 
+### 4. Incremental Execution Rule (One Task at a Time)
+- **Strictly one step at a time**: Focus exclusively on the immediate task at hand. Do NOT bundle unrelated tasks, over-engineer future features prematurely, or extrapolate beyond the immediate scope.
+- **Verify and checkpoint**: Complete the single task, test/verify it against skills/tools, update docs, and pause for review before proceeding to the next step.
+
 **Coding standards** (read the relevant skill before starting any UI or feature work):
 - Skill files live in `.agents/skills/` — each has a `SKILL.md` with rules and examples
 - `no-slop` — TypeScript quality, error handling, React/Next.js patterns (read at start of any task)
