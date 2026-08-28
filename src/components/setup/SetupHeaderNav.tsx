@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Trees, Users, Sliders, ArrowLeft } from "lucide-react";
+import { Trees, Users, Sliders, ArrowLeft, Check, AlertCircle } from "lucide-react";
 import { useSetup } from "@/lib/setup/setup-context";
 import { SetupTab } from "@/types/setup";
 import { useThemeEngine } from "@/lib/theme-context";
@@ -12,16 +12,41 @@ import { AuthStatusBadge } from "@/components/auth/AuthStatusBadge";
 
 export function SetupHeaderNav() {
   const t = useTranslations("setup");
-  const { activeTab, setActiveTab, arenaState } = useSetup();
+  const { activeTab, setActiveTab, isArenaValid, draftStatus, validateArenaStep } = useSetup();
   const { activePalette } = useThemeEngine();
   const { isPermanent } = useAuth();
+
+  const handleTabClick = useCallback(
+    (tabId: SetupTab) => {
+      if (tabId === "arena") {
+        setActiveTab("arena");
+        return;
+      }
+
+      // Validating Step 1 before allowing forward progression
+      const isValid = validateArenaStep();
+      if (!isValid) {
+        // Focus the first invalid field
+        const firstErrorEl = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+        if (firstErrorEl) {
+          firstErrorEl.focus();
+          firstErrorEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return;
+      }
+
+      // If valid, switch tab (for upcoming step implementation)
+      setActiveTab(tabId);
+    },
+    [setActiveTab, validateArenaStep]
+  );
 
   const tabs: { id: SetupTab; label: string; icon: React.ElementType; isReady: boolean }[] = [
     {
       id: "arena",
       label: t("tabs.arena"),
       icon: Trees,
-      isReady: Boolean(arenaState.arenaName && arenaState.arenaDescription),
+      isReady: isArenaValid,
     },
     {
       id: "tributes",
@@ -68,11 +93,7 @@ export function SetupHeaderNav() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => {
-                  if (tab.id === "arena") {
-                    setActiveTab(tab.id);
-                  }
-                }}
+                onClick={() => handleTabClick(tab.id)}
                 className={`relative inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 clip-chamfer-xs text-xs font-mono font-bold uppercase transition-all duration-200 cursor-pointer ${
                   isActive
                     ? "text-black shadow-[0_0_15px_var(--theme-glow)]"
@@ -96,12 +117,19 @@ export function SetupHeaderNav() {
           })}
         </nav>
 
-        {/* Right: Status Pill & Auth Action Button */}
+        {/* Right: Live Capitol Draft Sync Status & Auth Action */}
         <div className="flex items-center gap-2.5">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 clip-chamfer-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>STATUS: SETUP</span>
-          </div>
+          {draftStatus === "synced" ? (
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 clip-chamfer-xs transition-colors">
+              <Check className="h-3 w-3 text-emerald-400" />
+              <span>{t("status.draftSynced")}</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 clip-chamfer-xs transition-colors">
+              <AlertCircle className="h-3 w-3 text-amber-400 animate-pulse" />
+              <span>{t("status.validationError")}</span>
+            </div>
+          )}
 
           <AuthStatusBadge />
         </div>

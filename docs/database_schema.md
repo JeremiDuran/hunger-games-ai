@@ -21,8 +21,7 @@ Represents an instance of a Hunger Games simulation configured by a user.
 - `user_id` (`UUID`, FK `-> auth.users.id ON DELETE CASCADE`)
 - `title` (`TEXT`, default: `'The 74th Annual Hunger Games'`)
 - `status` (`game_status` ENUM: `'setup'`, `'in_progress'`, `'finished'`, `'archived'`)
-- **Arena Biome & Storytelling Lore**:
-  - `arena_biome` (`TEXT`, `CHECK IN ('tropical_jungle', 'ruined_cityscape', 'frozen_tundra', 'scorched_desert', 'swamp_quagmire', 'clockwork_arena')`)
+- **Arena Environment & Storytelling Lore**:
   - `arena_name` (`TEXT`, default: `'Verdant Tropics'`)
   - `arena_description` (`TEXT`, rich environmental lore injected into LLM storytelling prompts)
 - **Settings Matrix** (`JSONB`):

@@ -20,6 +20,7 @@ Updated automatically after each review session.
 | `src/app/login/page.tsx` | 2 | 2026-08-26 | 🔍 Reviewed | Responsive chamfer UI, strings pending next-intl pass |
 | `src/components/auth/AuthStatusBadge.tsx` | 2 | 2026-08-26 | 🔍 Reviewed | Dropdown aria support; needs keyboard Escape listener |
 | `src/components/landing/AuthActionCards.tsx` | 1 | 2026-08-26 | 🔍 Reviewed | Clean anonymous session entry card |
+| `src/lib/setup/setup-context.tsx` | 1 | 2026-08-28 | ✅ Refactored | Replaced useEffect race conditions with useSyncExternalStore draft persistence & direct handler sync |
 
 ---
 

@@ -181,6 +181,23 @@
         "sponsorDrops": "Entregas en Paracaídas de Patrocinadores",
         "sponsorDropsDesc": "Botiquines, armas y comida entregados por acaudalados patrocinadores del Capitolio."
       }
+    },
+    "validation": {
+      "titleRequired": "El título de la simulación es obligatorio",
+      "titleMin": "El título de la simulación debe tener al menos 3 caracteres",
+      "titleMax": "El título de la simulación no puede superar los 80 caracteres",
+      "arenaNameRequired": "El nombre clave de la arena es obligatorio",
+      "arenaNameMin": "El nombre clave de la arena debe tener al menos 3 caracteres",
+      "arenaNameMax": "El nombre clave de la arena no puede superar los 80 caracteres",
+      "descRequired": "La descripción ambiental es obligatoria",
+      "descMin": "La descripción ambiental debe proporcionar al menos 10 caracteres de contexto para la IA",
+      "descMax": "La descripción ambiental no puede superar los 1,200 caracteres",
+      "stepIncomplete": "Por favor resuelve los errores de validación antes de avanzar"
+    },
+    "status": {
+      "draftSynced": "BORRADOR SINCRONIZADO",
+      "validationError": "PROTOCOLO INCOMPLETO",
+      "ready": "LISTO"
     }
   }
 }

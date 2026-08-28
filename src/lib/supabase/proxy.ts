@@ -78,5 +78,23 @@ export async function updateSession(
     }
   }
 
+  // 3. Landing page root "/": route active sessions directly to their respective hubs
+  if (pathnameWithoutLocale === "/") {
+    if (user) {
+      if (user.is_anonymous) {
+        // Guest user with active session: direct to single-game arena setup
+        return NextResponse.redirect(
+          new URL(`${localePrefix}/setup`, request.url)
+        );
+      } else {
+        // Permanent user: direct to Capitol lobby
+        return NextResponse.redirect(
+          new URL(`${localePrefix}/lobby`, request.url)
+        );
+      }
+    }
+  }
+
   return response;
 }
+

@@ -16,7 +16,6 @@ export type Database = {
     Tables: {
       games: {
         Row: {
-          arena_biome: string
           arena_description: string
           arena_name: string
           created_at: string
@@ -33,7 +32,6 @@ export type Database = {
           winner_id: string | null
         }
         Insert: {
-          arena_biome?: string
           arena_description?: string
           arena_name?: string
           created_at?: string
@@ -50,7 +48,6 @@ export type Database = {
           winner_id?: string | null
         }
         Update: {
-          arena_biome?: string
           arena_description?: string
           arena_name?: string
           created_at?: string

@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useTranslations } from "next-intl";
-import { Shield, Sparkles, ArrowRight, Check } from "lucide-react";
+import { Sparkles, ArrowRight, Check, AlertCircle } from "lucide-react";
 import { SetupProvider, useSetup } from "@/lib/setup/setup-context";
 import { SetupHeaderNav } from "@/components/setup/SetupHeaderNav";
 import { ArenaPresetSelector } from "@/components/setup/ArenaPresetSelector";
 import { ArenaForm } from "@/components/setup/ArenaForm";
 import { BackgroundConstellation } from "@/components/landing/backgrounds/BackgroundConstellation";
 import { ThemeSidePanel } from "@/components/disclaimer/ThemeSidePanel";
-import { AuthStatusBadge } from "@/components/auth/AuthStatusBadge";
 import { useThemeEngine } from "@/lib/theme-context";
 
 if (typeof window !== "undefined") {
@@ -21,7 +20,7 @@ if (typeof window !== "undefined") {
 function SetupStagingContent() {
   const t = useTranslations("setup");
   const containerRef = useRef<HTMLDivElement>(null);
-  const { activeTab, arenaState } = useSetup();
+  const { setActiveTab, arenaState, isArenaValid, validateArenaStep } = useSetup();
   const { activePalette } = useThemeEngine();
 
   useGSAP(
@@ -67,6 +66,34 @@ function SetupStagingContent() {
     { scope: containerRef, dependencies: [] }
   );
 
+  const handleProceed = useCallback(() => {
+    const isValid = validateArenaStep();
+    if (!isValid) {
+      const firstInvalidInput = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+      if (firstInvalidInput) {
+        firstInvalidInput.focus();
+        firstInvalidInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
+    // Advance to tributes step
+    setActiveTab("tributes");
+  }, [validateArenaStep, setActiveTab]);
+
+  // Keyboard shortcut Ctrl+Enter / Cmd+Enter to proceed
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleProceed();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleProceed]);
+
   return (
     <div
       ref={containerRef}
@@ -104,7 +131,7 @@ function SetupStagingContent() {
           <ArenaPresetSelector />
         </div>
 
-        {/* Section 2: Interactive Arena & Biome Form */}
+        {/* Section 2: Interactive Arena & Lore Form */}
         <div className="setup-form">
           <ArenaForm />
         </div>
@@ -120,10 +147,17 @@ function SetupStagingContent() {
                 <span className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">
                   {arenaState.simulationTitle || "The 74th Annual Hunger Games"}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 clip-chamfer-xs border border-emerald-500/30">
-                  <Check className="h-3 w-3" />
-                  Ready
-                </span>
+                {isArenaValid ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 clip-chamfer-xs border border-emerald-500/30">
+                    <Check className="h-3 w-3" />
+                    {t("status.ready")}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 clip-chamfer-xs border border-amber-500/30">
+                    <AlertCircle className="h-3 w-3" />
+                    {t("status.validationError")}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-muted-foreground font-mono mt-0.5">
                 Arena Codename: <strong className="text-primary">{arenaState.arenaName || "Custom Arena"}</strong>
@@ -133,6 +167,7 @@ function SetupStagingContent() {
 
           <button
             type="button"
+            onClick={handleProceed}
             style={{
               background: `linear-gradient(to right, ${activePalette.accentHex}, ${activePalette.highlightHex})`,
             }}

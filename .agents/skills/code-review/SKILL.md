@@ -67,7 +67,7 @@ Score each criterion from 1 (excellent) to 5 (critical issues):
 ### D. React / Next.js Patterns (if applicable)
 - Is the server/client boundary correct and intentional?
 - Is data fetching done server-side where possible?
-- Are `useEffect` anti-patterns present?
+- Are `useEffect` anti-patterns present? Check against `.agents/skills/react-no-unnecessary-effects/SKILL.md` (You Might Not Need an Effect).
 - Are Suspense boundaries used for async components?
 
 ### E. Modularity & Coupling

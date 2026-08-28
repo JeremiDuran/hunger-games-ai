@@ -44,7 +44,7 @@ flowchart TD
 | `/lobby` | Page (RSC + Client) | Public / Guest | **Capitol Command Hub**: Central menu to launch a new simulation, resume in-progress games, view guest vs. member perks, and access lore/archives. |
 | `/login` | Page (Client) | Public | **Dedicated Auth Portal**: Full-screen Capitol Terminal authentication with Google OAuth, Discord, and Email Magic Links. |
 | `/auth/callback` | Route Handler | Public | **OAuth PKCE Exchange**: Server-side endpoint handling OAuth redirects from Supabase Auth and setting session cookies. |
-| `/setup` | Page (Client) | Public / Guest | **3-Step Game Setup Wizard**: Arena biome selector, rules/hazard toggles, and interactive District tribute roster editor with randomizers. |
+| `/setup` | Page (Client) | Public / Guest | **3-Step Game Setup Wizard**: Arena and lore configurator, rules/hazard toggles, and interactive District tribute roster editor with randomizers. |
 | `/game/[id]` | Page (Client + Streaming) | Public / Guest | **Live Arena Orchestrator**: The main game interface displaying real-time events, health/status monitors, LLM-streamed flavor narratives, and phase transitions. |
 | `/game/[id]/summary` | Page (RSC + Client) | Public / Guest | **Victor's Hall & Statistics**: Post-game report detailing the winner, kill counts, lethal events timeline, and full narrative chronicle. |
 | `/archives` | Page (RSC) | Registered | **Capitol Archives**: Saved simulations history, past victors, and exportable game chronicles (members only). |
@@ -99,7 +99,7 @@ sequenceDiagram
     participant Step3 as Step 3: Review & Launch
     participant Engine as Supabase & Game Engine
 
-    User->>Step1: Select Biome (Swamp/City/Desert) & Hazards
+    User->>Step1: Configure Arena Lore, Name & Hazards
     Step1->>Step2: Proceed to Roster
     User->>Step2: Configure 12-24 Districts (Names, Traits, Presets)
     Step2->>Step3: Proceed to Review
@@ -110,18 +110,30 @@ sequenceDiagram
 
 ### Step 1: Arena & Environment Protocol
 - **Simulation Title**: Default generated (e.g., *"The 74th Annual Hunger Games"*), editable by user.
-- **Arena Biome Selection**:
-  - `Tropical Jungle` (High humidity, poisonous fauna, torrential rain)
-  - `Ruined Cityscape` (Urban ruins, collapsing skyscrapers, booby traps)
-  - `Frozen Tundra` (Sub-zero survival, hypothermia, blizzards)
-  - `Scorched Desert` (Extreme dehydration, heatwaves, sandstorms)
-  - `Swamp / Quagmire` (Murky water, venomous snakes, fog)
-  - `Clockwork Arena` (Dynamic rotating hazard zones)
-- **Environmental Hazard Toggles**:
+- **Arena Identity & Lore Configuration**:
+  - `Arena Codename / Custom Name`: User-specified or preset-derived arena title.
+  - `Environmental Lore & Atmospheric Details`: Rich textarea (up to 1,200 chars) injected directly into real-time LLM storytelling prompts to steer tribute combat, survival tactics, and lethal encounters.
+  - `Arena Presets`: Quick-load buttons for iconic arenas (e.g., *74th Forest & Cornucopia*, *75th Clockwork Quell*, *70th Frozen Tundra*, *Ruined Cityscape*).
+- **Environmental Hazard Matrix**:
   - `Enable Bloodbath`: Opening Cornucopia clash (High lethality on Day 0).
-  - `Enable Muttations`: Genetically engineered beasts released by Gamemakers.
-  - `Enable Arena Disasters`: Acid rain, poison fog, floods, forest fires.
-  - `Enable Sponsor Drops`: Health kits, weapons, survival items dropped dynamically.
+  - `Enable Muttations`: Genetically engineered beasts released dynamically by Gamemakers.
+  - `Enable Arena Disasters`: Acid rain, poison fog, floods, wall-of-fire traps.
+  - `Enable Sponsor Drops`: Health kits, weapons, survival items dropped dynamically by Capitol patrons.
+
+#### UI/UX & Persistence Specifications:
+- **Continuous Draft Auto-Save (Zero-Friction)**:
+  - No standalone "Save Arena Data" button for step progression; input changes and toggles automatically sync in real-time to `sessionStorage` (and local context).
+  - A subtle Capitol status indicator (`● DRAFT SYNCED` / `READY`) gives live feedback so Gamemakers never worry about losing draft lore on accidental refresh.
+  - *Explicit Save Distinction*: A dedicated save action is reserved solely for **"Save as Custom Preset"** (to reuse arena layouts in future games), keeping the step progression clean.
+- **Primary Forward CTA ("Proceed to Tributes")**:
+  - Validates minimum required fields (simulation title, arena name).
+  - Locks in draft data and advances the active tab to `tributes`.
+  - Supports keyboard accelerator (`Ctrl+Enter` / `Cmd+Enter`) for rapid workflow.
+- **Top Bar Navigation Rules (`SetupHeaderNav`)**:
+  - **Free Backward Navigation**: Gamemakers can click back to `Arena` at any point without losing tribute or rules data.
+  - **Forward Navigation with Validation**: Clicking forward tabs (e.g., clicking *Tributes* while on *Arena*) executes the same validation and auto-save as the primary "Proceed" button. If validation fails, focus smoothly shifts to the missing input.
+  - **Visual Readiness Status**: Top navigation tabs display visual readiness markers (`✓ Ready` dot) when step requirements are satisfied.
+
 
 ---
 
@@ -145,7 +157,7 @@ sequenceDiagram
 ### Step 3: Protocol Confirmation & Launch
 - **Pre-Flight Summary**:
   - Total Tributes ready (e.g., 24 Alive).
-  - Selected Arena Biome & Active Hazard Matrix.
+  - Arena Codename & Active Hazard Matrix.
   - Game Speed / Narrative Pacing selector (Instant, Normal, Cinematic Dramatic).
 - **CTA**: **`[ SOUND THE CANNON & ENTER ARENA ]`** → Creates DB entities and redirects to `/game/[id]`.
 

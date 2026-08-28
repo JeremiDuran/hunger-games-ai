@@ -181,6 +181,23 @@
         "sponsorDrops": "Sponsor Parachute Drops",
         "sponsorDropsDesc": "Medical kits, weapons, and food delivered by wealthy Capitol patrons."
       }
+    },
+    "validation": {
+      "titleRequired": "Simulation title is required",
+      "titleMin": "Simulation title must be at least 3 characters",
+      "titleMax": "Simulation title cannot exceed 80 characters",
+      "arenaNameRequired": "Arena codename is required",
+      "arenaNameMin": "Arena codename must be at least 3 characters",
+      "arenaNameMax": "Arena codename cannot exceed 80 characters",
+      "descRequired": "Environmental lore description is required",
+      "descMin": "Environmental lore must provide at least 10 characters of context for the AI",
+      "descMax": "Environmental lore cannot exceed 1,200 characters",
+      "stepIncomplete": "Please resolve validation errors before advancing"
+    },
+    "status": {
+      "draftSynced": "DRAFT SYNCED",
+      "validationError": "PROTOCOL INCOMPLETE",
+      "ready": "READY"
     }
   }
 }
