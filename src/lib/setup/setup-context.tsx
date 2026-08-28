@@ -13,6 +13,7 @@ import {
   ArenaSetupState,
   SetupTab,
   ArenaPreset,
+  GameStatus,
 } from "@/types/setup";
 import { ARENA_PRESETS } from "@/config/arena-presets";
 import {
@@ -89,6 +90,7 @@ interface SetupContextValue {
   isArenaValid: boolean;
   isHydrated: boolean;
   draftStatus: DraftStatus;
+  gameStatus: GameStatus;
   updateArena: (updates: Partial<ArenaSetupState>) => void;
   setFieldTouched: (field: keyof ArenaSetupState) => void;
   applyPreset: (preset: ArenaPreset) => void;
@@ -198,6 +200,8 @@ export function SetupProvider({ children }: { children: ReactNode }) {
     return isArenaValid;
   }, [isArenaValid]);
 
+  const gameStatus: GameStatus = "setup";
+
   const value = useMemo(
     () => ({
       activeTab,
@@ -209,6 +213,7 @@ export function SetupProvider({ children }: { children: ReactNode }) {
       isArenaValid,
       isHydrated,
       draftStatus,
+      gameStatus,
       updateArena,
       setFieldTouched,
       applyPreset,
@@ -225,6 +230,7 @@ export function SetupProvider({ children }: { children: ReactNode }) {
       isArenaValid,
       isHydrated,
       draftStatus,
+      gameStatus,
       updateArena,
       setFieldTouched,
       applyPreset,

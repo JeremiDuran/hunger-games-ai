@@ -197,7 +197,14 @@
     "status": {
       "draftSynced": "BORRADOR SINCRONIZADO",
       "validationError": "PROTOCOLO INCOMPLETO",
-      "ready": "LISTO"
+      "ready": "LISTO",
+      "gameStatusLabel": "ESTADO",
+      "gameStatus": {
+        "setup": "PREPARACIÓN",
+        "in_progress": "EN PROGRESO",
+        "finished": "FINALIZADO",
+        "archived": "ARCHIVADO"
+      }
     }
   }
 }

@@ -3,7 +3,7 @@
 import React, { useCallback } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Trees, Users, Sliders, ArrowLeft, Check, AlertCircle } from "lucide-react";
+import { Trees, Users, Sliders, ArrowLeft } from "lucide-react";
 import { useSetup } from "@/lib/setup/setup-context";
 import { SetupTab } from "@/types/setup";
 import { useThemeEngine } from "@/lib/theme-context";
@@ -12,7 +12,7 @@ import { AuthStatusBadge } from "@/components/auth/AuthStatusBadge";
 
 export function SetupHeaderNav() {
   const t = useTranslations("setup");
-  const { activeTab, setActiveTab, isArenaValid, draftStatus, validateArenaStep } = useSetup();
+  const { activeTab, setActiveTab, isArenaValid, gameStatus, validateArenaStep } = useSetup();
   const { activePalette } = useThemeEngine();
   const { isPermanent } = useAuth();
 
@@ -117,19 +117,24 @@ export function SetupHeaderNav() {
           })}
         </nav>
 
-        {/* Right: Live Capitol Draft Sync Status & Auth Action */}
+        {/* Right: Live Capitol Game Status & Auth Action */}
         <div className="flex items-center gap-2.5">
-          {draftStatus === "synced" ? (
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 clip-chamfer-xs transition-colors">
-              <Check className="h-3 w-3 text-emerald-400" />
-              <span>{t("status.draftSynced")}</span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 clip-chamfer-xs transition-colors">
-              <AlertCircle className="h-3 w-3 text-amber-400 animate-pulse" />
-              <span>{t("status.validationError")}</span>
-            </div>
-          )}
+          <div
+            className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase px-2.5 py-1 bg-primary/10 border border-primary/30 text-primary clip-chamfer-xs transition-colors"
+            role="status"
+            aria-label={`${t("status.gameStatusLabel")}: ${t(`status.gameStatus.${gameStatus}`)}`}
+          >
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"
+              aria-hidden="true"
+            />
+            <span className="text-muted-foreground text-[10px] hidden sm:inline">
+              {t("status.gameStatusLabel")}:
+            </span>
+            <span className="tracking-wider">
+              {t(`status.gameStatus.${gameStatus}`)}
+            </span>
+          </div>
 
           <AuthStatusBadge />
         </div>

@@ -1,3 +1,7 @@
+import { Database } from "@/types/database";
+
+export type GameStatus = Database["public"]["Enums"]["game_status"];
+
 export type GamePacing = "instant" | "normal" | "cinematic";
 
 export type SetupTab = "arena" | "tributes" | "rules";

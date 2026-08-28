@@ -9,7 +9,7 @@ import { SetupProvider, useSetup } from "@/lib/setup/setup-context";
 import { SetupHeaderNav } from "@/components/setup/SetupHeaderNav";
 import { ArenaPresetSelector } from "@/components/setup/ArenaPresetSelector";
 import { ArenaForm } from "@/components/setup/ArenaForm";
-import { BackgroundConstellation } from "@/components/landing/backgrounds/BackgroundConstellation";
+import { BackgroundArenaHolo } from "@/components/setup/backgrounds/BackgroundArenaHolo";
 import { ThemeSidePanel } from "@/components/disclaimer/ThemeSidePanel";
 import { useThemeEngine } from "@/lib/theme-context";
 
@@ -99,8 +99,8 @@ function SetupStagingContent() {
       ref={containerRef}
       className="min-h-screen relative flex flex-col justify-between overflow-x-clip bg-background text-foreground transition-colors duration-500 selection:bg-primary selection:text-primary-foreground"
     >
-      {/* Background Ambience */}
-      <BackgroundConstellation />
+      {/* Flavorful Holographic Arena Background */}
+      <BackgroundArenaHolo />
 
       {/* Floating Theme & Language Selector */}
       <ThemeSidePanel />
@@ -115,15 +115,10 @@ function SetupStagingContent() {
         className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 z-20 outline-none space-y-10"
       >
         {/* Hero Header */}
-        <div className="setup-hero pb-4 border-b border-border/60">
-          <div className="space-y-1.5">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black tracking-wider uppercase text-foreground">
-              {t("header.title")}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground font-light max-w-2xl">
-              {t("header.subtitle")}
-            </p>
-          </div>
+        <div className="setup-hero pb-2 border-b border-border/60">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black tracking-wider uppercase text-foreground">
+            {t("header.title")}
+          </h1>
         </div>
 
         {/* Section 1: Presets Loader */}
