@@ -31,3 +31,25 @@ export interface ArenaPreset {
   tag: string;
   canonSeason?: number;
 }
+
+export type TributeGender = Database["public"]["Enums"]["tribute_gender"];
+
+export type TributesPerDistrict = 2 | 3 | 4;
+
+export interface TributeData {
+  id: string;
+  name: string;
+  district: number;
+  gender: TributeGender;
+  personality: string;
+  physicalAspect: string;
+  avatarUrl: string | null;
+}
+
+export interface TributesSetupState {
+  totalTributes: number;
+  tributesPerDistrict: TributesPerDistrict;
+  districtCount: number;
+  tributes: TributeData[];
+}
+

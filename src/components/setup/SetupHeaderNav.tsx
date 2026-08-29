@@ -12,7 +12,15 @@ import { AuthStatusBadge } from "@/components/auth/AuthStatusBadge";
 
 export function SetupHeaderNav() {
   const t = useTranslations("setup");
-  const { activeTab, setActiveTab, isArenaValid, gameStatus, validateArenaStep } = useSetup();
+  const {
+    activeTab,
+    setActiveTab,
+    isArenaValid,
+    isTributesValid,
+    gameStatus,
+    validateArenaStep,
+    validateTributesStep,
+  } = useSetup();
   const { activePalette } = useThemeEngine();
   const { isPermanent } = useAuth();
 
@@ -24,9 +32,9 @@ export function SetupHeaderNav() {
       }
 
       // Validating Step 1 before allowing forward progression
-      const isValid = validateArenaStep();
-      if (!isValid) {
-        // Focus the first invalid field
+      const isArenaOk = validateArenaStep();
+      if (!isArenaOk) {
+        setActiveTab("arena");
         const firstErrorEl = document.querySelector<HTMLElement>('[aria-invalid="true"]');
         if (firstErrorEl) {
           firstErrorEl.focus();
@@ -35,10 +43,26 @@ export function SetupHeaderNav() {
         return;
       }
 
-      // If valid, switch tab (for upcoming step implementation)
-      setActiveTab(tabId);
+      if (tabId === "tributes") {
+        setActiveTab("tributes");
+        return;
+      }
+
+      if (tabId === "rules") {
+        const isTributesOk = validateTributesStep();
+        if (!isTributesOk) {
+          setActiveTab("tributes");
+          const firstErrorEl = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+          if (firstErrorEl) {
+            firstErrorEl.focus();
+            firstErrorEl.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+          return;
+        }
+        setActiveTab("rules");
+      }
     },
-    [setActiveTab, validateArenaStep]
+    [setActiveTab, validateArenaStep, validateTributesStep]
   );
 
   const tabs: { id: SetupTab; label: string; icon: React.ElementType; isReady: boolean }[] = [
@@ -52,7 +76,7 @@ export function SetupHeaderNav() {
       id: "tributes",
       label: t("tabs.tributes"),
       icon: Users,
-      isReady: false,
+      isReady: isTributesValid,
     },
     {
       id: "rules",
