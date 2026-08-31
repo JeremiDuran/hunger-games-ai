@@ -2,7 +2,7 @@
 
 > **Document Status**: Approved Technical & Gameplay Reference  
 > **Last Updated**: 2026-08-31  
-> **Related Documents**: [`routes_and_ux_flow.md`](./routes_and_ux_flow.md), [`database_schema.md`](./database_schema.md), [`architecture_analysis.md`](./architecture_analysis.md)
+> **Related Documents**: [`routes_and_ux_flow.md`](./routes_and_ux_flow.md), [`database_schema.md`](./database_schema.md), [`technical_stack.md`](./technical_stack.md)
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **Document Status**: Approved Architecture Draft  
 > **Last Updated**: 2026-08-25  
-> **Related Documents**: [`architecture_analysis.md`](./architecture_analysis.md), [`database_schema.md`](./database_schema.md), [`nextjs_setup.md`](./nextjs_setup.md)
+> **Related Documents**: [`technical_stack.md`](./technical_stack.md), [`database_schema.md`](./database_schema.md), [`live_arena_design.md`](./live_arena_design.md)
 
 ---
 

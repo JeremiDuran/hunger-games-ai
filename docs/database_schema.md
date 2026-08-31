@@ -58,10 +58,52 @@ The participants of a game configured during setup.
 
 ---
 
-## 2. Row-Level Security (RLS) & Performance Standards
+## 2. Live Arena Simulation & Event Tracking Tables
+
+### `game_phases`
+Represents an individual chronological round/phase within a match timeline.
+- `id` (`UUID`, PK, default: `gen_random_uuid()`)
+- `game_id` (`UUID`, FK `-> games.id ON DELETE CASCADE`)
+- `day_number` (`INTEGER`, e.g., `0` for Bloodbath, `1`, `2`, `3`...)
+- `phase_type` (`TEXT`, check in `'bloodbath'`, `'day'`, `'night'`, `'feast'`)
+- `phase_order` (`INTEGER`, sequential index: 0, 1, 2, 3...)
+- `fallen_tribute_ids` (`UUID[]`, default: `'{}'`)
+- `status` (`TEXT`, default: `'completed'`, check in `'pending'`, `'simulating'`, `'completed'`)
+- `created_at` (`TIMESTAMPTZ`, default: `now()`)
+
+### `game_phase_events`
+Stores each deterministic event outcome and its generated AI narrative prose.
+- `id` (`UUID`, PK, default: `gen_random_uuid()`)
+- `phase_id` (`UUID`, FK `-> game_phases.id ON DELETE CASCADE`)
+- `game_id` (`UUID`, FK `-> games.id ON DELETE CASCADE`)
+- `event_order` (`INTEGER`, sequential index within the phase: 0, 1, 2...)
+- `event_category` (`TEXT`, e.g., `'combat'`, `'forage'`, `'hazard'`, `'sponsor'`, `'mutt'`, `'social'`)
+- `outcome_type` (`TEXT`, `'death'`, `'wound'`, `'loot'`, `'flee'`, `'alliance'`, `'idle'`)
+- `tribute_ids` (`UUID[]`, participating tributes)
+- `killer_ids` (`UUID[]`, nullable)
+- `victim_ids` (`UUID[]`, nullable)
+- `narrative_text` (`TEXT`, rich sensory flavor prose)
+- `state_delta` (`JSONB`, health modifications, item transfers, and condition tags)
+- `created_at` (`TIMESTAMPTZ`, default: `now()`)
+
+### `game_events` (Template Bank Catalog)
+The master procedural template catalog used by the engine to sample valid events.
+- `id` (`TEXT`, PK, e.g. `'combat_1v1_spear_kill'`, `'forage_toxic_berries'`)
+- `category` (`TEXT`, `'combat'`, `'forage'`, `'hazard'`, `'sponsor'`, `'mutt'`)
+- `phase_compatibility` (`TEXT[]`, array of compatible phases: `['bloodbath', 'day', 'night', 'feast']`)
+- `tributes_required` (`INTEGER`, default: `1`)
+- `is_lethal` (`BOOLEAN`, default: `false`)
+- `template_prose` (`TEXT`, deterministic fallback description)
+- `outcome_rule` (`JSONB`, mathematical modifiers and weights)
+
+---
+
+## 3. Row-Level Security (RLS) & Performance Standards
 
 All tables enforce Row-Level Security:
 1. **Profiles**: Users can SELECT and UPDATE only their own profile (`(select auth.uid()) = id`).
 2. **Games**: Users can manage only games where `user_id = (select auth.uid())`.
 3. **Tributes**: Access is granted if the user owns the parent game via `EXISTS (SELECT 1 FROM games WHERE games.id = tributes.game_id AND games.user_id = (select auth.uid()))`.
-4. **Performance**: All `auth.uid()` calls use subquery caching `(select auth.uid())` per Supabase best practices. Foreign keys (`user_id`, `game_id`, `winner_id`) are indexed.
+4. **Game Phases & Events**: Access is granted if the user owns the parent game via `EXISTS (SELECT 1 FROM games WHERE games.id = game_phases.game_id AND games.user_id = (select auth.uid()))`.
+5. **Game Events (Template Catalog)**: Read-only access for all authenticated and anonymous sessions.
+6. **Performance**: All `auth.uid()` calls use subquery caching `(select auth.uid())` per Supabase best practices. Foreign keys (`user_id`, `game_id`, `phase_id`, `winner_id`) are indexed.
