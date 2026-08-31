@@ -50,8 +50,8 @@ The participants of a game configured during setup.
 - `avatar_url` (`TEXT`, nullable)
 - `status` (`tribute_status` ENUM: `'alive'`, `'dead'`)
 - `kill_count` (`INTEGER`, default: `0`, `CHECK >= 0`)
-- `stats` (`JSONB`, default: `{"health": 100, "strength": 50, "agility": 50, "intelligence": 50}`)
-- `inventory` (`JSONB`, default: `[]`)
+- `stats` (`JSONB`, default: `{"survival": 50, "sanity": 50, "physical_tag": "unscathed", "mental_tag": "composed"}`)
+- `inventory` (`JSONB`, default: `[]`, e.g., `["knife", "iodine_drops"]`)
 - `death_phase_id` (`UUID`, nullable)
 - `placement` (`INTEGER`, nullable)
 - `created_at` (`TIMESTAMPTZ`, default: `now()`)
@@ -86,15 +86,16 @@ Stores each deterministic event outcome and its generated AI narrative prose.
 - `state_delta` (`JSONB`, health modifications, item transfers, and condition tags)
 - `created_at` (`TIMESTAMPTZ`, default: `now()`)
 
-### `game_events` (Template Bank Catalog)
-The master procedural template catalog used by the engine to sample valid events.
-- `id` (`TEXT`, PK, e.g. `'combat_1v1_spear_kill'`, `'forage_toxic_berries'`)
-- `category` (`TEXT`, `'combat'`, `'forage'`, `'hazard'`, `'sponsor'`, `'mutt'`)
-- `phase_compatibility` (`TEXT[]`, array of compatible phases: `['bloodbath', 'day', 'night', 'feast']`)
-- `tributes_required` (`INTEGER`, default: `1`)
-- `is_lethal` (`BOOLEAN`, default: `false`)
-- `template_prose` (`TEXT`, deterministic fallback description)
-- `outcome_rule` (`JSONB`, mathematical modifiers and weights)
+### `game_alliances`
+Tracks dynamic pacts and hunting packs across the match timeline.
+- `id` (`UUID`, PK, default: `gen_random_uuid()`)
+- `game_id` (`UUID`, FK `-> games.id ON DELETE CASCADE`)
+- `tribute_ids` (`UUID[]`, array of allied tribute UUIDs, e.g. 2 to 6 tributes)
+- `status` (`TEXT`, default: `'active'`, check in `'active'`, `'dissolved'`, `'betrayed'`)
+- `formed_phase_id` (`UUID`, FK `-> game_phases.id ON DELETE SET NULL`, nullable)
+- `dissolved_phase_id` (`UUID`, FK `-> game_phases.id ON DELETE SET NULL`, nullable)
+- `betrayed_by_tribute_id` (`UUID`, FK `-> tributes.id ON DELETE SET NULL`, nullable)
+- `created_at` (`TIMESTAMPTZ`, default: `now()`)
 
 ---
 
@@ -104,6 +105,5 @@ All tables enforce Row-Level Security:
 1. **Profiles**: Users can SELECT and UPDATE only their own profile (`(select auth.uid()) = id`).
 2. **Games**: Users can manage only games where `user_id = (select auth.uid())`.
 3. **Tributes**: Access is granted if the user owns the parent game via `EXISTS (SELECT 1 FROM games WHERE games.id = tributes.game_id AND games.user_id = (select auth.uid()))`.
-4. **Game Phases & Events**: Access is granted if the user owns the parent game via `EXISTS (SELECT 1 FROM games WHERE games.id = game_phases.game_id AND games.user_id = (select auth.uid()))`.
-5. **Game Events (Template Catalog)**: Read-only access for all authenticated and anonymous sessions.
-6. **Performance**: All `auth.uid()` calls use subquery caching `(select auth.uid())` per Supabase best practices. Foreign keys (`user_id`, `game_id`, `phase_id`, `winner_id`) are indexed.
+4. **Game Phases, Events & Alliances**: Access is granted if the user owns the parent game via `EXISTS (SELECT 1 FROM games WHERE games.id = <table_name>.game_id AND games.user_id = (select auth.uid()))`.
+5. **Performance**: All `auth.uid()` calls use subquery caching `(select auth.uid())` per Supabase best practices. Foreign keys (`user_id`, `game_id`, `phase_id`, `winner_id`) are indexed with GIN indexing on `UUID[]` arrays (`tribute_ids`).

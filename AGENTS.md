@@ -14,7 +14,7 @@ This is a **Next.js 16 App Router** project (TypeScript, Tailwind CSS v4, Turbop
 
 **Core architecture rules**:
 - The LLM **never decides game outcomes** — only generates narrative text for pre-determined events
-- Events are JSON templates stored in Supabase table `game_events`
+- Events are procedurally computed in Next.js (TypeScript) and persisted directly to `game_phase_events`
 - Guest state → `sessionStorage`; Registered user state → Supabase DB
 - All user-facing strings must go through next-intl, not hardcoded
 - Route handlers for LLM streaming live under `src/app/api/`

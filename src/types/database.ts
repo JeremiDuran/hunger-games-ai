@@ -10,10 +10,173 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
+      game_alliances: {
+        Row: {
+          betrayed_by_tribute_id: string | null
+          created_at: string
+          dissolved_phase_id: string | null
+          formed_phase_id: string | null
+          game_id: string
+          id: string
+          status: string
+          tribute_ids: string[]
+        }
+        Insert: {
+          betrayed_by_tribute_id?: string | null
+          created_at?: string
+          dissolved_phase_id?: string | null
+          formed_phase_id?: string | null
+          game_id: string
+          id?: string
+          status?: string
+          tribute_ids: string[]
+        }
+        Update: {
+          betrayed_by_tribute_id?: string | null
+          created_at?: string
+          dissolved_phase_id?: string | null
+          formed_phase_id?: string | null
+          game_id?: string
+          id?: string
+          status?: string
+          tribute_ids?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_alliances_betrayed_by_tribute_id_fkey"
+            columns: ["betrayed_by_tribute_id"]
+            isOneToOne: false
+            referencedRelation: "tributes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_alliances_dissolved_phase_id_fkey"
+            columns: ["dissolved_phase_id"]
+            isOneToOne: false
+            referencedRelation: "game_phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_alliances_formed_phase_id_fkey"
+            columns: ["formed_phase_id"]
+            isOneToOne: false
+            referencedRelation: "game_phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_alliances_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_phase_events: {
+        Row: {
+          created_at: string
+          event_category: string
+          event_order: number
+          game_id: string
+          id: string
+          killer_ids: string[] | null
+          narrative_text: string
+          outcome_type: string
+          phase_id: string
+          state_delta: Json
+          tribute_ids: string[]
+          victim_ids: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          event_category: string
+          event_order: number
+          game_id: string
+          id?: string
+          killer_ids?: string[] | null
+          narrative_text?: string
+          outcome_type: string
+          phase_id: string
+          state_delta?: Json
+          tribute_ids?: string[]
+          victim_ids?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          event_category?: string
+          event_order?: number
+          game_id?: string
+          id?: string
+          killer_ids?: string[] | null
+          narrative_text?: string
+          outcome_type?: string
+          phase_id?: string
+          state_delta?: Json
+          tribute_ids?: string[]
+          victim_ids?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_phase_events_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_phase_events_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "game_phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_phases: {
+        Row: {
+          created_at: string
+          day_number: number
+          fallen_tribute_ids: string[]
+          game_id: string
+          id: string
+          phase_order: number
+          phase_type: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          day_number?: number
+          fallen_tribute_ids?: string[]
+          game_id: string
+          id?: string
+          phase_order: number
+          phase_type: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          fallen_tribute_ids?: string[]
+          game_id?: string
+          id?: string
+          phase_order?: number
+          phase_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_phases_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           arena_description: string
@@ -156,6 +319,13 @@ export type Database = {
           status?: Database["public"]["Enums"]["tribute_status"]
         }
         Relationships: [
+          {
+            foreignKeyName: "tributes_death_phase_id_fkey"
+            columns: ["death_phase_id"]
+            isOneToOne: false
+            referencedRelation: "game_phases"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tributes_game_id_fkey"
             columns: ["game_id"]

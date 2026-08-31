@@ -2,13 +2,13 @@
 
 > **Document Status**: Approved Technical & Gameplay Reference  
 > **Last Updated**: 2026-08-31  
-> **Related Documents**: [`routes_and_ux_flow.md`](./routes_and_ux_flow.md), [`database_schema.md`](./database_schema.md), [`technical_stack.md`](./technical_stack.md)
+> **Related Documents**: [`event_system_and_simulation_engine.md`](./event_system_and_simulation_engine.md), [`live_arena_design.md`](./live_arena_design.md), [`routes_and_ux_flow.md`](./routes_and_ux_flow.md), [`database_schema.md`](./database_schema.md), [`technical_stack.md`](./technical_stack.md)
 
 ---
 
 ## 1. Architectural Philosophy
 
-In Hunger Games AI, all game outcomes (attacks, injuries, item acquisitions, casualties, alliances) are **100% deterministic** and computed by the procedural simulation engine based on mathematical RNG, tribute stats, and Gamemaker rules.  
+In Hunger Games AI, all game outcomes (attacks, injuries, item acquisitions, casualties, alliances, betrayals) are **100% deterministic** and computed by the procedural simulation engine based on mathematical RNG, tribute Survival & Sanity biometrics, active inventory, and Gamemaker rules.  
 The **Large Language Model (LLM)** never determines outcomes—it acts strictly as the **Storyteller & Broadcaster**, transforming raw state transitions into immersive, sensory narratives.
 
 The customization suite configured in the setup wizard (`/setup`) calibrates both the **deterministic simulation engine** and the **AI narrative style**.

@@ -90,7 +90,7 @@ Each **Event Card** features:
    - The rich LLM-generated flavor text capturing the encounter.
    - Supports real-time typewriter token streaming for live events, or instant display for reviewed past phases.
 3. **Outcome Micro-Badges**:
-   - Status deltas: `💀 KILLED`, `🩸 WOUNDED (-25 HP)`, `🎁 SPONSOR DROP`, `⚔️ ESCAPED`, `🤝 ALLIANCE FORMED`.
+   - Status deltas: `💀 KILLED`, `🩸 WOUNDED (-20 Survival)`, `⚡ PANIC (-25 Sanity)`, `🎁 SPONSOR DROP`, `⚔️ ESCAPED`, `🤝 ALLIANCE FORMED`, `🗡️ BETRAYAL`.
 4. **Cannon Chime Banner** (for lethal events):
    - Dramatic Capitol cannon fire visual treatment when a death occurs.
 
@@ -99,9 +99,9 @@ Each **Event Card** features:
 ### D. Right Action Zone: "Go to Gamehub"
 - **Primary CTA**: **`[ Go to Gamehub ]`** button.
 - **Function**: Transitions the user to the comprehensive **Game Hub** dashboard containing:
-  - Full living tribute roster (health bars, strength/agility stats, inventory items, kill counts).
+  - Full living tribute roster (Survival & Sanity telemetry meters, condition tags, active inventory items, kill counts).
   - Fallen tributes graveyard & death chronicle.
-  - District standings and alliance network map.
+  - District standings and active alliance graph.
   - Arena environmental hazard status.
 - *(Note: Game Hub is a separate view designed to keep the live event stream clean).*
 
@@ -132,8 +132,10 @@ To persist procedural phases and event narratives cleanly in Supabase, we introd
 erDiagram
     GAMES ||--o{ GAME_PHASES : "has chronological"
     GAMES ||--o{ TRIBUTES : "participates in"
+    GAMES ||--o{ GAME_ALLIANCES : "tracks active"
     GAME_PHASES ||--o{ GAME_PHASE_EVENTS : "contains"
     GAME_PHASE_EVENTS }o--o{ TRIBUTES : "involves"
+    GAME_ALLIANCES }o--o{ TRIBUTES : "groups"
 
     GAMES {
         uuid id PK
@@ -172,6 +174,17 @@ erDiagram
         jsonb state_delta
         timestamptz created_at
     }
+
+    GAME_ALLIANCES {
+        uuid id PK
+        uuid game_id FK
+        uuid_array tribute_ids
+        text status
+        uuid formed_phase_id
+        uuid dissolved_phase_id
+        uuid betrayed_by_tribute_id
+        timestamptz created_at
+    }
 ```
 
 #### 1. `game_phases` Table
@@ -200,15 +213,16 @@ Represents each deterministic event within a phase:
 - `state_delta` (`JSONB`, e.g. `{ "health_changes": { "<id>": -30 }, "item_loot": [...] }`)
 - `created_at` (`TIMESTAMPTZ`, default: `now()`)
 
-#### 3. `game_events` Table (Template Catalog Bank)
-Master catalog of procedural JSON event templates seeded in Postgres:
-- `id` (`TEXT`, PK, e.g., `'combat_1v1_spear_kill'`, `'forage_toxic_berries'`)
-- `category` (`TEXT`, `'combat'`, `'forage'`, `'hazard'`, `'sponsor'`, `'mutt'`)
-- `phase_compatibility` (`TEXT[]`, `['bloodbath', 'day', 'night', 'feast']`)
-- `tributes_required` (`INTEGER`, default: `1`)
-- `is_lethal` (`BOOLEAN`, default: `false`)
-- `template_prose` (`TEXT`, default fallback narrative)
-- `outcome_rule` (`JSONB`, mathematical stat modifiers and probability weights)
+#### 3. `game_alliances` Table
+Tracks dynamic alliance pacts and hunting packs:
+- `id` (`UUID`, PK, default: `gen_random_uuid()`)
+- `game_id` (`UUID`, FK `-> games.id ON DELETE CASCADE`)
+- `tribute_ids` (`UUID[]`, array of allied tribute IDs)
+- `status` (`TEXT`, `'active'`, `'dissolved'`, `'betrayed'`)
+- `formed_phase_id` (`UUID`, FK `-> game_phases.id ON DELETE SET NULL`, nullable)
+- `dissolved_phase_id` (`UUID`, FK `-> game_phases.id ON DELETE SET NULL`, nullable)
+- `betrayed_by_tribute_id` (`UUID`, FK `-> tributes.id ON DELETE SET NULL`, nullable)
+- `created_at` (`TIMESTAMPTZ`, default: `now()`)
 
 ---
 
@@ -222,7 +236,7 @@ sequenceDiagram
     participant AI as Narrative AI (/api/narrative)
 
     User->>Engine: POST /api/game/[id]/phase (Advance Phase)
-    Note over Engine: 1. Fetch alive tributes & game settings<br/>2. Procedurally pair tributes & select templates<br/>3. Compute deterministic outcomes (deaths, loot, HP)
+    Note over Engine: 1. Fetch alive tributes & game settings<br/>2. Procedural engine (in TypeScript) pairs tributes & resolves encounters<br/>3. Compute deterministic outcomes (deaths, loot, HP/Sanity deltas)
     Engine->>DB: Insert `game_phases` & `game_phase_events`<br/>Update `tributes` status & `games.current_day`
     DB-->>Engine: Phase & Events Created
     Engine-->>User: Return structured Phase & Event list
