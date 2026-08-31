@@ -205,6 +205,7 @@
       "allDistrictsOption": "All Districts",
       "districtHeading": "District {number}",
       "districtSlot": "District {district} • Slot #{slot}",
+      "slotNumber": "Slot #{slot}",
       "tributesCountBadge": "{count} Tributes",
       "toggleAvatarInput": "Custom Avatar URL",
       "noPortrait": "No Portrait",
@@ -262,6 +263,8 @@
       "nameMax": "Name cannot exceed 60 characters",
       "personalityMax": "Personality cannot exceed 280 characters",
       "physicalMax": "Physical description cannot exceed 280 characters",
+      "totalTributesEven": "The total number of tributes must be a multiple of two",
+      "tributesCountEven": "The tribute roster capacity must be a multiple of two",
       "stepIncomplete": "Please resolve validation errors before advancing"
     },
     "status": {

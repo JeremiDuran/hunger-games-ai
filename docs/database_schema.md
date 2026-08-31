@@ -30,7 +30,7 @@ Represents an instance of a Hunger Games simulation configured by a user.
   - `enable_disasters` (`BOOLEAN`, default: `true`)
   - `enable_sponsor_drops` (`BOOLEAN`, default: `true`)
   - `pacing` (`TEXT`, `'instant'` | `'normal'` | `'cinematic'`)
-- `tribute_count` (`INTEGER`, default: `24`, `CHECK >= 2 AND <= 48`)
+- `tribute_count` (`INTEGER`, default: `24`, `CHECK >= 2 AND <= 48 AND tribute_count % 2 = 0`)
 - `current_day` (`INTEGER`, default: `0`)
 - `current_phase_type` (`TEXT`, default: `'bloodbath'`)
 - `winner_id` (`UUID`, FK `-> tributes.id ON DELETE SET NULL`, nullable)

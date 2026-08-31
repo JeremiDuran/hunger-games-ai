@@ -23,6 +23,7 @@ import {
   getDefaultTributesState,
   getValidTributesPerDistrict,
   reconcileTributesRoster,
+  clampToEvenTributes,
   DEFAULT_TOTAL_TRIBUTES,
   DEFAULT_TRIBUTES_PER_DISTRICT,
 } from "@/config/tribute-presets";
@@ -326,7 +327,7 @@ export function SetupProvider({ children }: { children: ReactNode }) {
 
   const setTotalTributes = useCallback(
     (newTotal: number) => {
-      const clampedTotal = Math.max(12, Math.min(48, newTotal));
+      const clampedTotal = clampToEvenTributes(newTotal);
       const validDivisors = getValidTributesPerDistrict(clampedTotal);
       if (validDivisors.length === 0) return;
 

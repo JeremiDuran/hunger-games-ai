@@ -76,6 +76,13 @@ export function toGameDbPayload(
   tributeCount: number = 24
 ) {
   const validated = arenaSetupSchema.parse(arenaState);
+  const validatedTributeCount = z
+    .number()
+    .int()
+    .min(2)
+    .max(48)
+    .refine((val) => val % 2 === 0, { message: "tribute_count must be a multiple of two" })
+    .parse(tributeCount);
 
   return {
     user_id: userId,
@@ -89,7 +96,7 @@ export function toGameDbPayload(
       enable_sponsor_drops: validated.hazards.enableSponsorDrops,
       pacing: validated.pacing,
     },
-    tribute_count: tributeCount,
+    tribute_count: validatedTributeCount,
     status: "setup" as const,
   };
 }
@@ -135,10 +142,21 @@ export const tributeSchema = z.object({
 });
 
 export const tributesSetupSchema = z.object({
-  totalTributes: z.number().int().min(12).max(48),
+  totalTributes: z
+    .number()
+    .int()
+    .min(12, { message: "totalTributesMin" })
+    .max(48, { message: "totalTributesMax" })
+    .refine((val) => val % 2 === 0, {
+      message: "totalTributesEven",
+    }),
   tributesPerDistrict: z.union([z.literal(2), z.literal(3), z.literal(4)]),
   districtCount: z.number().int().min(1).max(24),
-  tributes: z.array(tributeSchema),
+  tributes: z
+    .array(tributeSchema)
+    .refine((arr) => arr.length % 2 === 0, {
+      message: "tributesCountEven",
+    }),
 });
 
 export type TributeFieldErrorMap = Record<
@@ -159,7 +177,11 @@ export function validateTributesFields(
   const errors: TributeFieldErrorMap = {};
   let isValid = true;
 
-  if (expectedCount !== undefined && tributes.length !== expectedCount) {
+  if (tributes.length % 2 !== 0) {
+    isValid = false;
+  }
+
+  if (expectedCount !== undefined && (expectedCount % 2 !== 0 || tributes.length !== expectedCount)) {
     isValid = false;
   }
 
@@ -225,7 +247,7 @@ export function safeParseTributesDraft(raw: unknown): TributesSetupState | null 
       })
       .filter((t): t is TributeData => t !== null);
 
-    if (validTributes.length >= 12 && validTributes.length <= 48) {
+    if (validTributes.length >= 12 && validTributes.length <= 48 && validTributes.length % 2 === 0) {
       const perDistrict = (legacyDraft.tributesPerDistrict === 3 || legacyDraft.tributesPerDistrict === 4)
         ? (legacyDraft.tributesPerDistrict as 3 | 4)
         : 2;

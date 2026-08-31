@@ -205,6 +205,7 @@
       "allDistrictsOption": "Todos los Distritos",
       "districtHeading": "Distrito {number}",
       "districtSlot": "Distrito {district} • Espacio #{slot}",
+      "slotNumber": "Espacio #{slot}",
       "tributesCountBadge": "{count} Tributos",
       "toggleAvatarInput": "URL de Retrato Personalizado",
       "noPortrait": "Sin Retrato",
@@ -262,6 +263,8 @@
       "nameMax": "El nombre no puede superar los 60 caracteres",
       "personalityMax": "La personalidad no puede superar los 280 caracteres",
       "physicalMax": "La descripción física no puede superar los 280 caracteres",
+      "totalTributesEven": "El número total de tributos debe ser un múltiplo de dos",
+      "tributesCountEven": "La capacidad de la lista de tributos debe ser un múltiplo de dos",
       "stepIncomplete": "Por favor resuelve los errores de validación antes de avanzar"
     },
     "status": {

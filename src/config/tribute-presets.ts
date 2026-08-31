@@ -35,7 +35,7 @@ export const CANON_74TH_TRIBUTES: readonly TributeData[] = [
     gender: "female",
     personality: "Vicious, pinpoint knife thrower who takes sadistic delight in terrorizing prey.",
     physicalAspect: "Petite yet muscular frame, dark hair tied back, bandolier of throwing blades.",
-    avatarUrl: "https://static.wikia.nocookie.net/thehungergames/images/9/9d/CloveNormal.png",
+    avatarUrl: "https://static.wikia.nocookie.net/thehungergames/images/b/b7/Tribute_D2_female.jpg",
   },
   {
     id: "tribute_74_d2_m",
@@ -246,6 +246,15 @@ export function getValidTributesPerDistrict(totalTributes: number): TributesPerD
 }
 
 /**
+ * Clamps and rounds a tribute count to an even integer between MIN_TOTAL_TRIBUTES and MAX_TOTAL_TRIBUTES.
+ */
+export function clampToEvenTributes(count: number): number {
+  const bounded = Math.max(MIN_TOTAL_TRIBUTES, Math.min(MAX_TOTAL_TRIBUTES, Math.round(count)));
+  if (bounded % 2 === 0) return bounded;
+  return bounded + 1 <= MAX_TOTAL_TRIBUTES ? bounded + 1 : bounded - 1;
+}
+
+/**
  * Generates an agnostic blank tribute slot with a guaranteed unique ID.
  */
 export function createBlankTribute(
@@ -275,8 +284,9 @@ export function createInitialRoster(
   totalTributes: number = DEFAULT_TOTAL_TRIBUTES,
   tributesPerDistrict: TributesPerDistrict = DEFAULT_TRIBUTES_PER_DISTRICT
 ): TributeData[] {
+  const safeTotal = clampToEvenTributes(totalTributes);
   const roster: TributeData[] = [];
-  for (let i = 0; i < totalTributes; i++) {
+  for (let i = 0; i < safeTotal; i++) {
     const district = Math.floor(i / tributesPerDistrict) + 1;
     const indexInDistrict = (i % tributesPerDistrict) + 1;
 
@@ -299,16 +309,17 @@ export function getDefaultTributesState(
   totalTributes: number = DEFAULT_TOTAL_TRIBUTES,
   tributesPerDistrict: TributesPerDistrict = DEFAULT_TRIBUTES_PER_DISTRICT
 ): TributesSetupState {
-  const validDivisors = getValidTributesPerDistrict(totalTributes);
+  const safeTotal = clampToEvenTributes(totalTributes);
+  const validDivisors = getValidTributesPerDistrict(safeTotal);
   const resolvedPerDistrict = validDivisors.includes(tributesPerDistrict)
     ? tributesPerDistrict
     : validDivisors[0] ?? 2;
 
-  const districtCount = Math.floor(totalTributes / resolvedPerDistrict);
-  const tributes = createInitialRoster(totalTributes, resolvedPerDistrict);
+  const districtCount = Math.floor(safeTotal / resolvedPerDistrict);
+  const tributes = createInitialRoster(safeTotal, resolvedPerDistrict);
 
   return {
-    totalTributes,
+    totalTributes: safeTotal,
     tributesPerDistrict: resolvedPerDistrict,
     districtCount,
     tributes,
@@ -327,7 +338,7 @@ export function reconcileTributesRoster(
   targetTotal: number,
   targetPerDistrict: TributesPerDistrict
 ): TributeData[] {
-  const safeTotal = Math.max(MIN_TOTAL_TRIBUTES, Math.min(MAX_TOTAL_TRIBUTES, targetTotal));
+  const safeTotal = clampToEvenTributes(targetTotal);
   const reconciled: TributeData[] = [];
 
   for (let i = 0; i < safeTotal; i++) {

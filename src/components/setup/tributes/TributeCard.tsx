@@ -73,7 +73,7 @@ export const TributeCard = memo(function TributeCard({
             aria-hidden="true"
           />
           <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-            {t("districtSlot", { district: tribute.district, slot: indexInDistrict })}
+            {t("slotNumber", { slot: indexInDistrict })}
           </span>
         </div>
 
@@ -132,14 +132,10 @@ export const TributeCard = memo(function TributeCard({
             </h4>
           </div>
 
-          {/* Badges: Gender + District */}
+          {/* Badges: Gender */}
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="inline-block text-[10px] font-mono font-semibold px-2 py-0.5 clip-chamfer-xs bg-muted/40 text-muted-foreground border border-border group-hover:border-border/80">
               {t(GENDER_LABEL_KEYS[tribute.gender])}
-            </span>
-
-            <span className="inline-block text-[10px] font-mono text-muted-foreground/70">
-              D{tribute.district}
             </span>
           </div>
 
