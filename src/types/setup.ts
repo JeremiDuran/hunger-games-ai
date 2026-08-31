@@ -4,7 +4,7 @@ export type GameStatus = Database["public"]["Enums"]["game_status"];
 
 export type GamePacing = "instant" | "normal" | "cinematic";
 
-export type SetupTab = "arena" | "tributes" | "rules";
+export type SetupTab = "arena" | "tributes" | "rules" | "summary";
 
 export interface ArenaHazardSettings {
   enableBloodbath: boolean;
@@ -70,7 +70,10 @@ export type NarrativeVoice =
   | "capitol_broadcast"
   | "gamemaker_log";
 
-export type VictoryCondition = "sole_victor" | "district_duo_twist";
+export type VictoryCondition =
+  | "sole_victor"
+  | "district_duo_twist"
+  | "no_victors";
 
 export interface RulesSetupState {
   turnGranularity: TurnGranularity;

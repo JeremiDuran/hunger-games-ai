@@ -51,7 +51,8 @@ const SECTOR_BEACONS = Array.from({ length: 12 }).map((_, i) => {
 
 export function BackgroundArenaHolo() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { activePalette } = useThemeEngine();
+  const { activePalette, resolvedMode } = useThemeEngine();
+  const isLight = resolvedMode === "light";
 
   useGSAP(
     () => {
@@ -61,7 +62,7 @@ export function BackgroundArenaHolo() {
 
       if (prefersReducedMotion) {
         gsap.set(".holo-rotate, .holo-counter-rotate, .holo-pulse, .holo-beacon, .holo-wave", {
-          opacity: 0.35,
+          opacity: isLight ? 0.6 : 0.35,
           scale: 1,
         });
         return;
@@ -88,7 +89,7 @@ export function BackgroundArenaHolo() {
       // 3. Topographical contour elevation breathing
       gsap.to(".holo-pulse", {
         scale: 1.03,
-        opacity: 0.6,
+        opacity: isLight ? 0.8 : 0.6,
         duration: 4.5,
         ease: "sine.inOut",
         yoyo: true,
@@ -103,7 +104,7 @@ export function BackgroundArenaHolo() {
       // 4. Sector environmental beacons pulsing
       gsap.to(".holo-beacon", {
         scale: 1.35,
-        opacity: 0.75,
+        opacity: isLight ? 0.9 : 0.75,
         duration: 2.4,
         ease: "power2.inOut",
         yoyo: true,
@@ -120,8 +121,8 @@ export function BackgroundArenaHolo() {
         ".holo-wave",
         {
           scale: 0.15,
-          opacity: 0.7,
-          strokeWidth: 2,
+          opacity: isLight ? 0.85 : 0.7,
+          strokeWidth: isLight ? 2.5 : 2,
         },
         {
           scale: 1.15,
@@ -135,7 +136,7 @@ export function BackgroundArenaHolo() {
         }
       );
     },
-    { scope: containerRef, dependencies: [activePalette.id] }
+    { scope: containerRef, dependencies: [activePalette.id, isLight] }
   );
 
   return (
@@ -146,15 +147,21 @@ export function BackgroundArenaHolo() {
     >
       {/* Deep atmospheric backdrop glow reacting to visual palette */}
       <div
-        className="absolute inset-0 opacity-25 transition-all duration-700"
+        className={`absolute inset-0 transition-all duration-700 ${
+          isLight ? "opacity-40" : "opacity-25"
+        }`}
         style={{
-          background: `radial-gradient(ellipse 80% 60% at 50% 45%, ${activePalette.accentHex}30 0%, ${activePalette.highlightHex}12 50%, transparent 85%)`,
+          background: isLight
+            ? `radial-gradient(ellipse 85% 65% at 50% 45%, ${activePalette.accentHex}35 0%, ${activePalette.highlightHex}18 50%, transparent 88%)`
+            : `radial-gradient(ellipse 80% 60% at 50% 45%, ${activePalette.accentHex}30 0%, ${activePalette.highlightHex}12 50%, transparent 85%)`,
         }}
       />
 
       {/* Subtle topographic hexagonal ambient grid */}
       <div
-        className="absolute inset-0 opacity-[0.035] transition-opacity duration-700"
+        className={`absolute inset-0 transition-opacity duration-700 ${
+          isLight ? "opacity-[0.09]" : "opacity-[0.035]"
+        }`}
         style={{
           backgroundImage: `radial-gradient(${activePalette.accentHex} 1.5px, transparent 1.5px)`,
           backgroundSize: "32px 32px",
@@ -163,7 +170,9 @@ export function BackgroundArenaHolo() {
 
       {/* Center Readability Mask: Keeps the center transparent so form controls remain ultra-crisp */}
       <div
-        className="absolute inset-0 w-full h-full opacity-65 transition-opacity duration-500"
+        className={`absolute inset-0 w-full h-full transition-opacity duration-500 ${
+          isLight ? "opacity-90" : "opacity-65"
+        }`}
         style={{
           maskImage:
             "radial-gradient(ellipse 70% 55% at 50% 45%, transparent 25%, black 85%)",

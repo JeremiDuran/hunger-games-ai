@@ -6,7 +6,6 @@ import { Sliders, Sparkles } from "lucide-react";
 import { TurnGranularitySelector } from "./TurnGranularitySelector";
 import { GamemakerDirectives } from "./GamemakerDirectives";
 import { NarrativeVoiceSelector } from "./NarrativeVoiceSelector";
-import { PreFlightSummaryCard } from "./PreFlightSummaryCard";
 
 export function RulesPacingWorkspace() {
   const t = useTranslations("setup.rules");
@@ -18,7 +17,7 @@ export function RulesPacingWorkspace() {
         <div className="flex items-center gap-2 text-primary">
           <Sliders className="h-5 w-5" />
           <span className="text-xs font-mono font-bold uppercase tracking-wider">
-            Step 3 of 3 • Directives & Protocol
+            Step 3 of 3 • Game Rules & Directives
           </span>
         </div>
         <h2 className="text-xl sm:text-2xl font-serif font-bold uppercase tracking-wider text-foreground">
@@ -56,11 +55,7 @@ export function RulesPacingWorkspace() {
           <NarrativeVoiceSelector />
         </div>
       </section>
-
-      {/* 4. Pre-Flight Readiness Summary Card */}
-      <section aria-labelledby="section-preflight" className="pt-4">
-        <PreFlightSummaryCard />
-      </section>
     </div>
   );
 }
+

@@ -36,7 +36,6 @@ export function TurnGranularitySelector() {
       title: t("turnGranularity.eventByEvent"),
       description: t("turnGranularity.eventByEventDesc"),
       icon: Play,
-      badge: "DEFAULT",
     },
     {
       id: "full_phase",

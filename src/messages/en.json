@@ -142,7 +142,8 @@
     "tabs": {
       "arena": "Arena Protocol",
       "tributes": "Tribute Roster",
-      "rules": "Rules & Pacing"
+      "rules": "Game Rules",
+      "summary": "Launch Summary"
     },
     "header": {
       "badge": "Capitol Gamemaker Staging",
@@ -152,9 +153,11 @@
       "upcomingNotice": "Upcoming Subsystem",
       "nextStep": "PROCEED TO TRIBUTES",
       "nextStepTributes": "PROCEED TO TRIBUTES",
-      "nextStepRules": "PROCEED TO LAUNCH PROTOCOL",
+      "nextStepRules": "PROCEED TO GAME RULES",
+      "nextStepSummary": "PROCEED TO SUMMARY",
       "previousStep": "RETURN TO ARENA",
-      "previousStepTributes": "RETURN TO TRIBUTES"
+      "previousStepTributes": "RETURN TO TRIBUTES",
+      "previousStepRules": "RETURN TO RULES"
     },
     "arena": {
       "presetDropdownLabel": "Arena Inspiration Preset",
@@ -269,8 +272,8 @@
       "stepIncomplete": "Please resolve validation errors before advancing"
     },
     "rules": {
-      "title": "Simulation Directives & Narrative Pacing",
-      "subtitle": "Configure execution speed, combat lethality, hazard behavior, and storytelling voice",
+      "title": "Game Rules & Simulation Directives",
+      "subtitle": "Configure game rules, execution speed, combat lethality, hazard behavior, and storytelling voice",
       "granularityHeading": "Simulation Granularity & Pacing",
       "granularitySubheading": "Control how turns are advanced and how quickly AI narratives stream.",
       "turnGranularity": {
@@ -353,7 +356,9 @@
         "soleVictor": "Sole Victor Standing",
         "soleVictorDesc": "Canonical rule: Exactly one tribute must survive to be crowned Victor.",
         "districtDuo": "District Duo Exemption (74th Twist)",
-        "districtDuoDesc": "If the final two surviving tributes are from the same District, both are declared Victors."
+        "districtDuoDesc": "If the final two surviving tributes are from the same District, both are declared Victors.",
+        "noVictors": "No Victors / Total Annihilation",
+        "noVictorsDesc": "The Capitol allows zero survivors. If tributes refuse to fight or time expires, all perish in mutual destruction."
       },
       "summary": {
         "heading": "Pre-Flight Readiness Check",
@@ -370,6 +375,39 @@
         "editArena": "Edit Arena",
         "editTributes": "Edit Roster"
       }
+    },
+    "summary": {
+      "stepBadge": "Step 4 of 4 • Final Pre-Flight Launch Summary",
+      "title": "CAPITOL WAR ROOM • LAUNCH SUMMARY",
+      "subtitle": "Final verification of battleground arena coordinates, tribute deployment pods, and simulation directives",
+      "arenaHeading": "Arena & Environmental Parameters",
+      "arenaNameLabel": "Arena Codename",
+      "simulationTitleLabel": "Broadcast Title",
+      "loreLabel": "Terrain & AI Prompt Context",
+      "activeHazardsLabel": "Active Hazards Matrix",
+      "tributesHeading": "Tribute Pedestal Pod Formation",
+      "tributesSubtitle": "{count} tributes deployed across {districts} districts",
+      "rulesHeading": "Simulation Rules & Storytelling Directives",
+      "turnMode": "Turn Progression",
+      "pacingSpeed": "Streaming Pacing",
+      "combatLethality": "Combat Lethality",
+      "alliances": "Alliance Dynamic",
+      "narrativeVoice": "AI Storyteller Voice",
+      "victoryCondition": "Victory Rule",
+      "feastLabel": "Mid-Game Feast",
+      "feastActive": "Enabled",
+      "feastInactive": "Disabled",
+      "editArena": "Edit Arena",
+      "editTributes": "Edit Roster",
+      "editRules": "Edit Rules",
+      "allSystemsNominal": "ALL PROTOCOLS NOMINAL • READY FOR DEPLOYMENT",
+      "validationErrorBanner": "One or more earlier subsystems contain incomplete or invalid configurations.",
+      "launchGameCta": "SOUND THE CANNON & ENTER ARENA",
+      "launchingProgress": "DEPLOYING ARENA PODS & CALIBRATING SIMULATION...",
+      "returnLobbyCta": "Return to Gamemaker Hub",
+      "compactDossierTooltip": "District {district} • {name}",
+      "unnamedTribute": "Tribute {number}",
+      "customLoreSnippet": "Custom Lore"
     },
     "status": {
       "draftSynced": "DRAFT SYNCED",

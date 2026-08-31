@@ -29,7 +29,6 @@ export function NarrativeVoiceSelector() {
       title: t("narrativeVoice.novel"),
       desc: t("narrativeVoice.novelDesc"),
       icon: BookOpen,
-      badge: "DEFAULT",
     },
     {
       id: "capitol_broadcast",

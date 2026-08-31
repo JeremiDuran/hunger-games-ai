@@ -3,7 +3,7 @@
 import React, { useCallback } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Trees, Users, Sliders, ArrowLeft } from "lucide-react";
+import { Trees, Users, Sliders, ShieldCheck, ArrowLeft } from "lucide-react";
 import { useSetup } from "@/lib/setup/setup-context";
 import { SetupTab } from "@/types/setup";
 import { useThemeEngine } from "@/lib/theme-context";
@@ -18,6 +18,7 @@ export function SetupHeaderNav() {
     isArenaValid,
     isTributesValid,
     isRulesValid,
+    isLaunchReady,
     gameStatus,
     validateArenaStep,
     validateTributesStep,
@@ -49,18 +50,24 @@ export function SetupHeaderNav() {
         return;
       }
 
-      if (tabId === "rules") {
-        const isTributesOk = validateTributesStep();
-        if (!isTributesOk) {
-          setActiveTab("tributes");
-          const firstErrorEl = document.querySelector<HTMLElement>('[aria-invalid="true"]');
-          if (firstErrorEl) {
-            firstErrorEl.focus();
-            firstErrorEl.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-          return;
+      const isTributesOk = validateTributesStep();
+      if (!isTributesOk) {
+        setActiveTab("tributes");
+        const firstErrorEl = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+        if (firstErrorEl) {
+          firstErrorEl.focus();
+          firstErrorEl.scrollIntoView({ behavior: "smooth", block: "center" });
         }
+        return;
+      }
+
+      if (tabId === "rules") {
         setActiveTab("rules");
+        return;
+      }
+
+      if (tabId === "summary") {
+        setActiveTab("summary");
       }
     },
     [setActiveTab, validateArenaStep, validateTributesStep]
@@ -84,6 +91,12 @@ export function SetupHeaderNav() {
       label: t("tabs.rules"),
       icon: Sliders,
       isReady: isRulesValid,
+    },
+    {
+      id: "summary",
+      label: t("tabs.summary"),
+      icon: ShieldCheck,
+      isReady: isLaunchReady,
     },
   ];
 

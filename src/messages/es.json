@@ -142,7 +142,8 @@
     "tabs": {
       "arena": "Protocolo de Arena",
       "tributes": "Lista de Tributos",
-      "rules": "Reglas y Ritmo"
+      "rules": "Reglas del Juego",
+      "summary": "Resumen de Lanzamiento"
     },
     "header": {
       "badge": "Preparación del Creador del Capitolio",
@@ -152,9 +153,11 @@
       "upcomingNotice": "Subsistema Próximo",
       "nextStep": "CONTINUAR A TRIBUTOS",
       "nextStepTributes": "CONTINUAR A TRIBUTOS",
-      "nextStepRules": "CONTINUAR A PROTOCOLO DE LANZAMIENTO",
+      "nextStepRules": "CONTINUAR A REGLAS DEL JUEGO",
+      "nextStepSummary": "CONTINUAR AL RESUMEN",
       "previousStep": "VOLVER A ARENA",
-      "previousStepTributes": "VOLVER A TRIBUTOS"
+      "previousStepTributes": "VOLVER A TRIBUTOS",
+      "previousStepRules": "VOLVER A REGLAS"
     },
     "arena": {
       "presetDropdownLabel": "Preajuste de Inspiración de Arena",
@@ -269,8 +272,8 @@
       "stepIncomplete": "Por favor resuelve los errores de validación antes de avanzar"
     },
     "rules": {
-      "title": "Directivas de Simulación y Ritmo Narrativo",
-      "subtitle": "Configura la velocidad de ejecución, letalidad de combate, comportamiento de peligros y tono narrativo",
+      "title": "Reglas del Juego y Directivas de Simulación",
+      "subtitle": "Configura las reglas del juego, velocidad de ejecución, letalidad de combate, comportamiento de peligros y tono narrativo",
       "granularityHeading": "Granularidad y Ritmo de Simulación",
       "granularitySubheading": "Controla cómo avanzan los turnos y la velocidad de transmisión de la narrativa de IA.",
       "turnGranularity": {
@@ -353,7 +356,9 @@
         "soleVictor": "Vencedor Único en Pie",
         "soleVictorDesc": "Regla canónica: Exactamente un tributo debe sobrevivir para ser coronado Vencedor.",
         "districtDuo": "Exención de Dúo de Distrito (Giro de los 74°)",
-        "districtDuoDesc": "Si los dos últimos tributos supervivientes son del mismo Distrito, ambos son proclamados Vencedores."
+        "districtDuoDesc": "Si los dos últimos tributos supervivientes son del mismo Distrito, ambos son proclamados Vencedores.",
+        "noVictors": "Sin Vencedores / Aniquilación Total",
+        "noVictorsDesc": "El Capitolio no permite supervivientes. Si los tributos se niegan a luchar o expira el tiempo, todos perecen."
       },
       "summary": {
         "heading": "Verificación de Preparación Pre-Vuelo",
@@ -370,6 +375,39 @@
         "editArena": "Editar Arena",
         "editTributes": "Editar Lista"
       }
+    },
+    "summary": {
+      "stepBadge": "Paso 4 de 4 • Resumen Final de Lanzamiento",
+      "title": "SALA DE GUERRA DEL CAPITOLIO • RESUMEN DE LANZAMIENTO",
+      "subtitle": "Verificación final de coordenadas de la arena, plataformas de despliegue de tributos y directivas de simulación",
+      "arenaHeading": "Parámetros de la Arena y del Entorno",
+      "arenaNameLabel": "Nombre Clave de la Arena",
+      "simulationTitleLabel": "Título de Transmisión",
+      "loreLabel": "Terreno y Contexto de Instrucciones para la IA",
+      "activeHazardsLabel": "Matriz de Peligros Activos",
+      "tributesHeading": "Formación de Plataformas de Tributos",
+      "tributesSubtitle": "{count} tributos desplegados a lo largo de {districts} distritos",
+      "rulesHeading": "Reglas de Simulación y Directivas Narrativas",
+      "turnMode": "Progresión de Turnos",
+      "pacingSpeed": "Ritmo de Transmisión",
+      "combatLethality": "Letalidad de Combate",
+      "alliances": "Dinámica de Alianzas",
+      "narrativeVoice": "Voz del Narrador IA",
+      "victoryCondition": "Regla de Victoria",
+      "feastLabel": "Banquete en la Cornucopia",
+      "feastActive": "Habilitado",
+      "feastInactive": "Deshabilitado",
+      "editArena": "Editar Arena",
+      "editTributes": "Editar Lista",
+      "editRules": "Editar Reglas",
+      "allSystemsNominal": "TODOS LOS PROTOCOLOS NOMINALES • LISTO PARA EL DESPLIEGUE",
+      "validationErrorBanner": "Uno o más subsistemas anteriores contienen configuraciones incompletas o inválidas.",
+      "launchGameCta": "SONAR EL CAÑÓN E INGRESAR A LA ARENA",
+      "launchingProgress": "DESPLEGANDO PLATAFORMAS Y CALIBRANDO SIMULACIÓN...",
+      "returnLobbyCta": "Volver al Centro de Creadores",
+      "compactDossierTooltip": "Distrito {district} • {name}",
+      "unnamedTribute": "Tributo {number}",
+      "customLoreSnippet": "Historia Personalizada"
     },
     "status": {
       "draftSynced": "BORRADOR SINCRONIZADO",

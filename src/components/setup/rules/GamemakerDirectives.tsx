@@ -174,6 +174,11 @@ export function GamemakerDirectives() {
       title: t("victory.districtDuo"),
       desc: t("victory.districtDuoDesc"),
     },
+    {
+      id: "no_victors",
+      title: t("victory.noVictors"),
+      desc: t("victory.noVictorsDesc"),
+    },
   ];
 
   return (
@@ -529,7 +534,7 @@ export function GamemakerDirectives() {
           <span>{t("victoryHeading")}</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
           {victoryOptions.map((opt) => {
             const isSelected = rulesState.victoryCondition === opt.id;
             return (

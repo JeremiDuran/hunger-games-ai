@@ -53,7 +53,7 @@ export const rulesSetupSchema = z.object({
     .enum(["novel_cinematic", "capitol_broadcast", "gamemaker_log"] as const satisfies readonly [NarrativeVoice, ...NarrativeVoice[]])
     .default("novel_cinematic"),
   victoryCondition: z
-    .enum(["sole_victor", "district_duo_twist"] as const satisfies readonly [VictoryCondition, ...VictoryCondition[]])
+    .enum(["sole_victor", "district_duo_twist", "no_victors"] as const satisfies readonly [VictoryCondition, ...VictoryCondition[]])
     .default("sole_victor"),
 });
 
