@@ -1,4 +1,4 @@
-﻿# Software Testing Log
+# Software Testing Log
 
 Tracks all test sessions run by the `software-testing` skill.
 Updated automatically after each session (pass, skip, or circuit break).
@@ -12,7 +12,7 @@ Updated automatically after each session (pass, skip, or circuit break).
 
 | File | Test Type | Status | Iterations | Date | Notes |
 |---|---|---|---|---|---|
-| *(no entries yet)* | — | — | — | — | — |
+| `src/lib/schemas/setup.ts` | Unit / Schema Contract | ✅ Passed | 1 | 2026-09-01 | Covers 35 tests for Arena, Tributes, Rules Zod schemas, field error mapping, storage draft parsers, and DB payload serialization transforms. |
 
 ---
 

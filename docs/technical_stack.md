@@ -19,6 +19,7 @@ Hunger Games AI (`hg-ai`) is built on **Next.js 16 App Router** with server-firs
 | **Database & Auth** | Supabase (PostgreSQL + Auth) | Relational database with strict Row-Level Security (RLS), Anonymous Auth (`signInAnonymously()`), and subquery caching. |
 | **Internationalization** | `next-intl` 4.13 | Full multi-language support from the ground up (`src/app/[locale]/...`, `src/messages/`). |
 | **Data Validation** | Zod 4 (v4.5) | Layered validation (Defense in Depth) across client forms, route handlers, and database payloads. |
+| **Testing Framework** | Vitest 4 (`vitest`, `vite-tsconfig-paths`) | High-speed unit, schema contract, and logic test runner with TypeScript path alias support. |
 | **AI / LLM Routing** *(Planned)* | Vercel AI SDK + OpenRouter | Server-side LLM streaming for dynamic narrative generation (`src/lib/ai.ts`, `/api/narrative`). |
 | **Payments & Tokens** *(Planned)* | Stripe (`stripe`, `@stripe/stripe-js`) | Token balance purchases and Gamemaker passes. |
 
@@ -131,6 +132,15 @@ The `next-devtools-mcp` server provides real-time access to Next.js 16 compiler 
 # Start local development server (Turbopack + next-devtools MCP)
 npm run dev
 
+# Run automated tests (Vitest single run)
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage reporting
+npm run test:coverage
+
 # Run TypeScript typecheck
 npx tsc --noEmit
 
@@ -140,3 +150,25 @@ npm run lint
 # Production build test
 npm run build
 ```
+
+---
+
+## 5. Automated Testing Architecture & Quality Gates
+
+Hunger Games AI enforces strict testing discipline adhering to the project's [`software-testing`](../.agents/skills/software-testing/SKILL.md) and [`no-slop`](../.agents/skills/no-slop/SKILL.md) quality gates.
+
+```
+          ┌─────────┐
+          │   E2E   │  ← Playwright: critical user journeys only (e.g. signup → setup → victor)
+          ├─────────┤
+          │  Integ  │  ← Vitest + Supabase test client: API route handlers & session transitions
+          ├─────────┤
+          │  Unit   │  ← Vitest: pure functions, Zod schemas, transforms, state machines, parsers
+          └─────────┘
+```
+
+### A. Testing Principles & Rules
+1. **Narrowest, Fastest Layer First**: Unit tests are preferred for pure logic, state transitions, Zod schemas, and data transforms.
+2. **Deterministic & Isolated**: Unit and schema tests never make live database writes or network calls.
+3. **Layered Validation Parity**: Zod schemas in `src/lib/schemas/` are tested for boundary constraints, whitespace trimming, field-level error mapping, and exact database payload serialization (`camelCase` → `snake_case`).
+4. **Circuit Breaker Protocol**: Test iteration is capped at a strict 5-iteration limit to prevent anti-pattern loops. Test runs and statuses are tracked in `.agents/skills/software-testing/test-log.md`.
