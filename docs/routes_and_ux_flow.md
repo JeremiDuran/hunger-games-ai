@@ -154,12 +154,29 @@ sequenceDiagram
 
 ---
 
-### Step 3: Protocol Confirmation & Launch
-- **Pre-Flight Summary**:
-  - Total Tributes ready (e.g., 24 Alive).
-  - Arena Codename & Active Hazard Matrix.
-  - Game Speed / Narrative Pacing selector (Instant, Normal, Cinematic Dramatic).
-- **CTA**: **`[ SOUND THE CANNON & ENTER ARENA ]`** → Creates DB entities and redirects to `/game/[id]`.
+### Step 3: Simulation Rules & Pacing Protocol (`/setup`)
+> *See dedicated reference*: [`simulation_rules_and_customizations.md`](./simulation_rules_and_customizations.md) for full descriptions of all parameters.
+
+- **Turn Granularity & Streaming Controls**:
+  - `Turn Granularity`: **Event-by-Event (Step)** *(Default)* vs. **Full Phase in One Go (Batch)** vs. **Autonomous Auto-Play**.
+  - `Narrative Streaming Speed`: **Cinematic Dramatic** *(Default)* vs. **Standard Speed** vs. **Instant Speedrun**.
+- **Gamemaker Combat & Scenario Directives**:
+  - `Combat Lethality Rate`: **Classic Balanced** *(6–8 days)* vs. **Bloodbath Surge** *(3–4 days)* vs. **Gritty Survivalist** *(8–10 days)*.
+  - `Alliance & Betrayal Dynamics`: **Dynamic Pacts** vs. **Strict Lone Wolves** vs. **Career Pack Supremacy**.
+  - `Mid-Game Cornucopia Feast`: Toggle mid-game supply clash at the horn.
+  - `Victory Condition`: **Sole Victor Standing** vs. **District Duo Exemption (74th Twist)**.
+- **Hazard-Bound Modifiers (Reactively Linked to Step 1)**:
+  - `Sponsor Drop Generosity`: **Capitol Abundance** vs. **Standard Patronage** vs. **Famine / Hardcore** *(bound to `enableSponsorDrops`)*.
+  - `Muttation Behavior`: **Final Climax Release** vs. **Dynamic Night Stalkers** *(bound to `enableMuttations`)*.
+  - `Disaster Frequency`: **Moderate Periodic** vs. **Frequent Cataclysms** vs. **Reactive Stalls Only** *(bound to `enableDisasters`)*.
+- **AI Narrative Voice**:
+  - **Cinematic Novel Prose** *(3rd person novel)* vs. **Capitol Broadcast** *(Caesar Flickerman)* vs. **Gamemaker Tactical Log** *(Cold telemetry)*.
+- **Pre-Flight Readiness Review**:
+  - Modular synopsis cards for Arena, Roster Capacity, and Directives.
+  - 1-click edit shortcuts back to steps 1 and 2.
+  - Guest Anonymous vs. Capitol Cloud Account status.
+- **Final Launch Action**:
+  - **`[ SOUND THE CANNON & ENTER ARENA ]`** (with `Ctrl+Enter` / `Cmd+Enter` accelerator) → Serializes payload into DB / storage and initiates `/game/[id]`.
 
 ---
 

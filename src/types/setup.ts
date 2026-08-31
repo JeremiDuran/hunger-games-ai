@@ -53,3 +53,35 @@ export interface TributesSetupState {
   tributes: TributeData[];
 }
 
+export type TurnGranularity = "event_by_event" | "full_phase" | "autoplay";
+
+export type CombatLethality = "balanced" | "high_bloodbath" | "gritty_survival";
+
+export type SponsorGenerosity = "standard" | "abundance" | "famine";
+
+export type MuttationTiming = "climax_only" | "night_stalkers";
+
+export type DisasterFrequency = "moderate" | "frequent" | "reactive_only";
+
+export type AllianceDynamic = "dynamic_pacts" | "lone_wolves" | "career_pack";
+
+export type NarrativeVoice =
+  | "novel_cinematic"
+  | "capitol_broadcast"
+  | "gamemaker_log";
+
+export type VictoryCondition = "sole_victor" | "district_duo_twist";
+
+export interface RulesSetupState {
+  turnGranularity: TurnGranularity;
+  pacing: GamePacing;
+  combatLethality: CombatLethality;
+  sponsorGenerosity: SponsorGenerosity;
+  muttationTiming: MuttationTiming;
+  disasterFrequency: DisasterFrequency;
+  allianceDynamic: AllianceDynamic;
+  enableMidGameFeast: boolean;
+  narrativeVoice: NarrativeVoice;
+  victoryCondition: VictoryCondition;
+}
+

@@ -1,5 +1,72 @@
 import { z } from "zod";
-import { ArenaSetupState, GamePacing } from "@/types/setup";
+import {
+  ArenaSetupState,
+  GamePacing,
+  RulesSetupState,
+  TurnGranularity,
+  CombatLethality,
+  SponsorGenerosity,
+  MuttationTiming,
+  DisasterFrequency,
+  AllianceDynamic,
+  NarrativeVoice,
+  VictoryCondition,
+} from "@/types/setup";
+
+export const DEFAULT_RULES_STATE: RulesSetupState = {
+  turnGranularity: "event_by_event",
+  pacing: "cinematic",
+  combatLethality: "balanced",
+  sponsorGenerosity: "standard",
+  muttationTiming: "climax_only",
+  disasterFrequency: "moderate",
+  allianceDynamic: "dynamic_pacts",
+  enableMidGameFeast: true,
+  narrativeVoice: "novel_cinematic",
+  victoryCondition: "sole_victor",
+};
+
+export const rulesSetupSchema = z.object({
+  turnGranularity: z
+    .enum(["event_by_event", "full_phase", "autoplay"] as const satisfies readonly [TurnGranularity, ...TurnGranularity[]])
+    .default("event_by_event"),
+  pacing: z
+    .enum(["instant", "normal", "cinematic"] as const satisfies readonly [GamePacing, ...GamePacing[]])
+    .default("cinematic"),
+  combatLethality: z
+    .enum(["balanced", "high_bloodbath", "gritty_survival"] as const satisfies readonly [CombatLethality, ...CombatLethality[]])
+    .default("balanced"),
+  sponsorGenerosity: z
+    .enum(["standard", "abundance", "famine"] as const satisfies readonly [SponsorGenerosity, ...SponsorGenerosity[]])
+    .default("standard"),
+  muttationTiming: z
+    .enum(["climax_only", "night_stalkers"] as const satisfies readonly [MuttationTiming, ...MuttationTiming[]])
+    .default("climax_only"),
+  disasterFrequency: z
+    .enum(["moderate", "frequent", "reactive_only"] as const satisfies readonly [DisasterFrequency, ...DisasterFrequency[]])
+    .default("moderate"),
+  allianceDynamic: z
+    .enum(["dynamic_pacts", "lone_wolves", "career_pack"] as const satisfies readonly [AllianceDynamic, ...AllianceDynamic[]])
+    .default("dynamic_pacts"),
+  enableMidGameFeast: z.boolean().default(true),
+  narrativeVoice: z
+    .enum(["novel_cinematic", "capitol_broadcast", "gamemaker_log"] as const satisfies readonly [NarrativeVoice, ...NarrativeVoice[]])
+    .default("novel_cinematic"),
+  victoryCondition: z
+    .enum(["sole_victor", "district_duo_twist"] as const satisfies readonly [VictoryCondition, ...VictoryCondition[]])
+    .default("sole_victor"),
+});
+
+export type RulesSetupSchemaType = z.infer<typeof rulesSetupSchema>;
+
+/**
+ * Safe parser for sessionStorage rules draft.
+ */
+export function safeParseRulesDraft(raw: unknown): RulesSetupState | null {
+  if (!raw || typeof raw !== "object") return null;
+  const result = rulesSetupSchema.safeParse(raw);
+  return result.success ? result.data : null;
+}
 
 /**
  * Validation schema for the Arena & Environment Protocol (Step 1 of Setup)
@@ -73,9 +140,11 @@ export function validateArenaFields(state: ArenaSetupState): {
 export function toGameDbPayload(
   arenaState: ArenaSetupState,
   userId: string,
-  tributeCount: number = 24
+  tributeCount: number = 24,
+  rulesState?: RulesSetupState
 ) {
   const validated = arenaSetupSchema.parse(arenaState);
+  const validatedRules = rulesSetupSchema.parse(rulesState ?? DEFAULT_RULES_STATE);
   const validatedTributeCount = z
     .number()
     .int()
@@ -94,7 +163,16 @@ export function toGameDbPayload(
       enable_muttations: validated.hazards.enableMuttations,
       enable_disasters: validated.hazards.enableDisasters,
       enable_sponsor_drops: validated.hazards.enableSponsorDrops,
-      pacing: validated.pacing,
+      pacing: validatedRules.pacing,
+      turn_granularity: validatedRules.turnGranularity,
+      combat_lethality: validatedRules.combatLethality,
+      sponsor_generosity: validated.hazards.enableSponsorDrops ? validatedRules.sponsorGenerosity : "disabled",
+      muttation_timing: validated.hazards.enableMuttations ? validatedRules.muttationTiming : "disabled",
+      disaster_frequency: validated.hazards.enableDisasters ? validatedRules.disasterFrequency : "disabled",
+      alliance_dynamic: validatedRules.allianceDynamic,
+      enable_mid_game_feast: validatedRules.enableMidGameFeast,
+      narrative_voice: validatedRules.narrativeVoice,
+      victory_condition: validatedRules.victoryCondition,
     },
     tribute_count: validatedTributeCount,
     status: "setup" as const,

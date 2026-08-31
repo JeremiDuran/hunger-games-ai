@@ -17,6 +17,7 @@ export function SetupHeaderNav() {
     setActiveTab,
     isArenaValid,
     isTributesValid,
+    isRulesValid,
     gameStatus,
     validateArenaStep,
     validateTributesStep,
@@ -82,7 +83,7 @@ export function SetupHeaderNav() {
       id: "rules",
       label: t("tabs.rules"),
       icon: Sliders,
-      isReady: false,
+      isReady: isRulesValid,
     },
   ];
 

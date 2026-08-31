@@ -268,6 +268,109 @@
       "tributesCountEven": "The tribute roster capacity must be a multiple of two",
       "stepIncomplete": "Please resolve validation errors before advancing"
     },
+    "rules": {
+      "title": "Simulation Directives & Narrative Pacing",
+      "subtitle": "Configure execution speed, combat lethality, hazard behavior, and storytelling voice",
+      "granularityHeading": "Simulation Granularity & Pacing",
+      "granularitySubheading": "Control how turns are advanced and how quickly AI narratives stream.",
+      "turnGranularity": {
+        "title": "Turn Progression Mode",
+        "eventByEvent": "Event-by-Event (Step)",
+        "eventByEventDesc": "Advance one clash at a time. Maximizes suspense and tactical detail.",
+        "fullPhase": "Full Phase (Batch)",
+        "fullPhaseDesc": "Simulate entire Day or Night in one go. Ideal for fast group broadcasts.",
+        "autoplay": "Autonomous Auto-Play",
+        "autoplayDesc": "Continuous hands-off broadcast streaming with automatic phase transitions."
+      },
+      "pacingSpeed": {
+        "title": "Narrative Streaming Speed",
+        "cinematic": "Cinematic Dramatic",
+        "cinematicDesc": "Rich streaming text, dramatic suspense pauses, and full sound cues.",
+        "normal": "Standard Speed",
+        "normalDesc": "Balanced pacing with steady token streaming.",
+        "instant": "Instant Speedrun",
+        "instantDesc": "Skip text delays; immediate round calculation."
+      },
+      "directivesHeading": "Gamemaker Directives & Lethality",
+      "directivesSubheading": "Calibrate mathematical combat RNG balance, resource scarcity, and twist rules.",
+      "combat": {
+        "title": "Combat Lethality Rate",
+        "balanced": "Classic Balanced",
+        "balancedDesc": "Standard survival rate with natural combat flow across 6–8 arena days.",
+        "highBloodbath": "Bloodbath Surge",
+        "highBloodbathDesc": "Aggressive confrontation; rapid casualties and fast 3–4 day matches.",
+        "grittySurvival": "Gritty Survivalist",
+        "grittySurvivalDesc": "Cautious tributes prioritizing stealth and shelter; extended slow-burn games."
+      },
+      "alliances": {
+        "title": "Alliance & Betrayal Dynamics",
+        "dynamicPacts": "Dynamic Pacts & Betrayals",
+        "dynamicPactsDesc": "Alliances form organically and fracture over critical resources.",
+        "loneWolves": "Strict Lone Wolves",
+        "loneWolvesDesc": "Zero cooperation; pure cutthroat free-for-all.",
+        "careerPack": "Career Pack Supremacy",
+        "careerPackDesc": "Districts 1, 2, and 4 form cohesive hunting packs early on."
+      },
+      "feast": {
+        "title": "Mid-Game Cornucopia Feast",
+        "desc": "Gamemakers summon remaining tributes to the Cornucopia with vital medicine and weapons when the roster dwindles."
+      },
+      "hazardsBound": {
+        "inactiveInArena": "Inactive in Arena Protocol",
+        "enableShortcut": "Enable in Arena",
+        "sponsorTitle": "Sponsor Drop Generosity",
+        "sponsorAbundance": "Capitol Abundance",
+        "sponsorAbundanceDesc": "Frequent parachute drops with medicine, food, and high-tier weapons.",
+        "sponsorStandard": "Standard Patronage",
+        "sponsorStandardDesc": "Occasional survival gifts earned by charismatic or high-kill tributes.",
+        "sponsorFamine": "Famine / Hardcore",
+        "sponsorFamineDesc": "Zero sponsor deliveries; survival depends entirely on foraging and hunting.",
+        "muttationTitle": "Gamemaker Muttation Behavior",
+        "muttationClimax": "Final Climax Release",
+        "muttationClimaxDesc": "Bio-engineered beasts unleashed only in the endgame to force the final confrontation.",
+        "muttationNight": "Dynamic Night Stalkers",
+        "muttationNightDesc": "Predatory muttations roam the arena grounds every night.",
+        "disasterTitle": "Environmental Disaster Frequency",
+        "disasterModerate": "Moderate Periodic",
+        "disasterModerateDesc": "Gamemakers deploy floods, acid rain, or fog when tributes stay idle.",
+        "disasterFrequent": "Frequent Cataclysms",
+        "disasterFrequentDesc": "Unrelenting environmental hazards forcing constant movement.",
+        "disasterReactive": "Reactive Stalls Only",
+        "disasterReactiveDesc": "Traps triggered only when combat reaches a prolonged stalemate."
+      },
+      "voiceHeading": "AI Narrative Voice & Persona",
+      "voiceSubheading": "Instruct the AI storyteller's tone, vocabulary, and perspective.",
+      "narrativeVoice": {
+        "novel": "Cinematic Novel Prose",
+        "novelDesc": "Immersive, sensory 3rd-person storytelling capturing internal terror and grit.",
+        "broadcast": "Capitol Broadcast Commentary",
+        "broadcastDesc": "Flamboyant, sensationalist, propaganda commentary ala Caesar Flickerman.",
+        "log": "Gamemaker Tactical Log",
+        "logDesc": "Cold, clinical, military surveillance reports with objective casualty telemetry."
+      },
+      "victoryHeading": "Victory Protocol & Climax Rules",
+      "victory": {
+        "soleVictor": "Sole Victor Standing",
+        "soleVictorDesc": "Canonical rule: Exactly one tribute must survive to be crowned Victor.",
+        "districtDuo": "District Duo Exemption (74th Twist)",
+        "districtDuoDesc": "If the final two surviving tributes are from the same District, both are declared Victors."
+      },
+      "summary": {
+        "heading": "Pre-Flight Readiness Check",
+        "subheading": "Review initialized subsystems before sounding the opening cannon",
+        "arenaReady": "Arena Environment Locked",
+        "rosterReady": "Tribute Roster Validated",
+        "rulesReady": "Directives Armed",
+        "allReady": "ALL PROTOCOLS VERIFIED",
+        "incompleteWarning": "RESOLVE SETUP ERRORS",
+        "guestNotice": "Guest Session Active • Progress stored locally in your browser",
+        "registeredNotice": "Capitol Account Active • Cloud synchronization enabled",
+        "launchCta": "SOUND THE CANNON & ENTER ARENA",
+        "launching": "INITIALIZING ARENA PODS...",
+        "editArena": "Edit Arena",
+        "editTributes": "Edit Roster"
+      }
+    },
     "status": {
       "draftSynced": "DRAFT SYNCED",
       "validationError": "PROTOCOL INCOMPLETE",

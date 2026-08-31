@@ -268,6 +268,109 @@
       "tributesCountEven": "La capacidad de la lista de tributos debe ser un múltiplo de dos",
       "stepIncomplete": "Por favor resuelve los errores de validación antes de avanzar"
     },
+    "rules": {
+      "title": "Directivas de Simulación y Ritmo Narrativo",
+      "subtitle": "Configura la velocidad de ejecución, letalidad de combate, comportamiento de peligros y tono narrativo",
+      "granularityHeading": "Granularidad y Ritmo de Simulación",
+      "granularitySubheading": "Controla cómo avanzan los turnos y la velocidad de transmisión de la narrativa de IA.",
+      "turnGranularity": {
+        "title": "Modo de Progresión de Turnos",
+        "eventByEvent": "Evento por Evento (Paso a Paso)",
+        "eventByEventDesc": "Avanza un enfrentamiento a la vez. Maximiza el suspenso y el detalle táctico.",
+        "fullPhase": "Fase Completa (Lote)",
+        "fullPhaseDesc": "Simula el Día o la Noche completos de una sola vez. Ideal para transmisiones rápidas.",
+        "autoplay": "Reproducción Automática Autónoma",
+        "autoplayDesc": "Transmisión continua sin intervención manual con transiciones automáticas de fase."
+      },
+      "pacingSpeed": {
+        "title": "Velocidad de Transmisión Narrativa",
+        "cinematic": "Dramático Cinemático",
+        "cinematicDesc": "Texto enriquecido en tiempo real, pausas de suspenso y efectos sonoros completos.",
+        "normal": "Velocidad Estándar",
+        "normalDesc": "Ritmo equilibrado con flujo constante de texto.",
+        "instant": "Velocidad Ultrarrápida",
+        "instantDesc": "Omite demoras de texto; cálculo inmediato de la ronda."
+      },
+      "directivesHeading": "Directivas de Creadores de Juegos y Letalidad",
+      "directivesSubheading": "Calibra el balance matemático del combate, escasez de recursos y reglas de giro.",
+      "combat": {
+        "title": "Tasa de Letalidad de Combate",
+        "balanced": "Clásico Equilibrado",
+        "balancedDesc": "Tasa de supervivencia estándar con flujo natural a lo largo de 6–8 días de arena.",
+        "highBloodbath": "Oleada de Baño de Sangre",
+        "highBloodbathDesc": "Enfrentamientos agresivos; bajas rápidas y partidas cortas de 3–4 días.",
+        "grittySurvival": "Supervivencia Extrema",
+        "grittySurvivalDesc": "Tributos cautelosos priorizando el sigilo y refugio; partidas prolongadas de tensión lenta."
+      },
+      "alliances": {
+        "title": "Dinámica de Alianzas y Traiciones",
+        "dynamicPacts": "Pactos Dinámicos y Traiciones",
+        "dynamicPactsDesc": "Las alianzas se forman orgánicamente y se fracturan por recursos críticos.",
+        "loneWolves": "Lobos Solitarios Estrictos",
+        "loneWolvesDesc": "Cero cooperación; lucha despiadada de todos contra todos.",
+        "careerPack": "Supremacía de Profesionales",
+        "careerPackDesc": "Los Distritos 1, 2 y 4 forman jaurías de caza cohesionadas desde el inicio."
+      },
+      "feast": {
+        "title": "Banquete de la Cornucopia a Mitad de Juego",
+        "desc": "Los Creadores convocan a los tributos sobrevivientes a la Cornucopia con medicinas y armas vitales cuando el grupo disminuye."
+      },
+      "hazardsBound": {
+        "inactiveInArena": "Inactivo en el Protocolo de Arena",
+        "enableShortcut": "Activar en Arena",
+        "sponsorTitle": "Generosidad de Patrocinadores",
+        "sponsorAbundance": "Abundancia del Capitolio",
+        "sponsorAbundanceDesc": "Entregas frecuentes en paracaídas con medicinas, comida y armas de alto nivel.",
+        "sponsorStandard": "Patrocinio Estándar",
+        "sponsorStandardDesc": "Regalos de supervivencia ocasionales ganados por tributos carismáticos o letales.",
+        "sponsorFamine": "Hambruna / Modo Difícil",
+        "sponsorFamineDesc": "Cero entregas de patrocinadores; la supervivencia depende solo de la recolección y caza.",
+        "muttationTitle": "Comportamiento de Mutaciones",
+        "muttationClimax": "Liberación en Clímax Final",
+        "muttationClimaxDesc": "Bestias bioingenieriles desatadas solo en la fase final para forzar el desenlace.",
+        "muttationNight": "Acechadores Nocturnos Dinámicos",
+        "muttationNightDesc": "Mutaciones depredadoras merodean por los terrenos de la arena cada noche.",
+        "disasterTitle": "Frecuencia de Desastres Ambientales",
+        "disasterModerate": "Periódico Moderado",
+        "disasterModerateDesc": "Inundaciones, lluvia ácida o niebla desatadas cuando los tributos permanecen inactivos.",
+        "disasterFrequent": "Cataclismos Frecuentes",
+        "disasterFrequentDesc": "Peligros ambientales implacables que obligan a un movimiento constante.",
+        "disasterReactive": "Solo en Estancamiento",
+        "disasterReactiveDesc": "Trampas activadas únicamente cuando el combate entra en un punto muerto prolongado."
+      },
+      "voiceHeading": "Voz Narrativa y Personalidad de IA",
+      "voiceSubheading": "Instruye el tono, vocabulario y perspectiva del narrador de IA.",
+      "narrativeVoice": {
+        "novel": "Prosa de Novela Cinemática",
+        "novelDesc": "Narración inmersiva y sensorial en tercera persona que captura el terror y realismo interno.",
+        "broadcast": "Transmisión Oficial del Capitolio",
+        "broadcastDesc": "Comentario extravagante, sensacionalista y propagandístico al estilo Caesar Flickerman.",
+        "log": "Registro Táctico de Creador de Juegos",
+        "logDesc": "Reportes fríos, clínicos y de vigilancia militar con telemetría objetiva de bajas."
+      },
+      "victoryHeading": "Protocolo de Victoria y Reglas Especiales",
+      "victory": {
+        "soleVictor": "Vencedor Único en Pie",
+        "soleVictorDesc": "Regla canónica: Exactamente un tributo debe sobrevivir para ser coronado Vencedor.",
+        "districtDuo": "Exención de Dúo de Distrito (Giro de los 74°)",
+        "districtDuoDesc": "Si los dos últimos tributos supervivientes son del mismo Distrito, ambos son proclamados Vencedores."
+      },
+      "summary": {
+        "heading": "Verificación de Preparación Pre-Vuelo",
+        "subheading": "Revisa los subsistemas inicializados antes de hacer sonar el cañón inaugural",
+        "arenaReady": "Entorno de Arena Fijado",
+        "rosterReady": "Lista de Tributos Validada",
+        "rulesReady": "Directivas Armadas",
+        "allReady": "TODOS LOS PROTOCOLOS VERIFICADOS",
+        "incompleteWarning": "RESUELVE LOS ERRORES DE CONFIGURACIÓN",
+        "guestNotice": "Sesión de Invitado Activa • Progreso guardado localmente en tu navegador",
+        "registeredNotice": "Cuenta del Capitolio Activa • Sincronización en la nube habilitada",
+        "launchCta": "SONAR EL CAÑÓN E INGRESAR A LA ARENA",
+        "launching": "INICIALIZANDO PLATAFORMAS DE LANZAMIENTO...",
+        "editArena": "Editar Arena",
+        "editTributes": "Editar Lista"
+      }
+    },
     "status": {
       "draftSynced": "BORRADOR SINCRONIZADO",
       "validationError": "PROTOCOLO INCOMPLETO",

@@ -17,6 +17,8 @@ import {
   TributeData,
   TributesSetupState,
   TributesPerDistrict,
+  RulesSetupState,
+  ArenaHazardSettings,
 } from "@/types/setup";
 import { ARENA_PRESETS } from "@/config/arena-presets";
 import {
@@ -32,12 +34,16 @@ import {
   safeParseArenaDraft,
   validateTributesFields,
   safeParseTributesDraft,
+  safeParseRulesDraft,
+  DEFAULT_RULES_STATE,
+  rulesSetupSchema,
   ArenaFieldErrorMap,
   TributeFieldErrorMap,
 } from "@/lib/schemas/setup";
 
 const ARENA_DRAFT_STORAGE_KEY = "hg_setup_arena_draft";
 const TRIBUTES_DRAFT_STORAGE_KEY = "hg_setup_tributes_draft";
+const RULES_DRAFT_STORAGE_KEY = "hg_setup_rules_draft";
 
 export type DraftStatus = "synced" | "error";
 
@@ -90,6 +96,17 @@ function writeTributesDraftToStorage(state: TributesSetupState) {
   }
 }
 
+function writeRulesDraftToStorage(state: RulesSetupState) {
+  if (typeof window === "undefined") return;
+  try {
+    const serialized = JSON.stringify(state);
+    window.localStorage.setItem(RULES_DRAFT_STORAGE_KEY, serialized);
+    window.sessionStorage.setItem(RULES_DRAFT_STORAGE_KEY, serialized);
+  } catch {
+    // QuotaExceededError or private browsing
+  }
+}
+
 function subscribeToStorage(callback: () => void) {
   if (typeof window === "undefined") return () => {};
   window.addEventListener("storage", callback);
@@ -124,6 +141,19 @@ const clientTributesSnapshot = () => {
   }
 };
 
+const clientRulesSnapshot = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    return (
+      window.localStorage.getItem(RULES_DRAFT_STORAGE_KEY) ??
+      window.sessionStorage.getItem(RULES_DRAFT_STORAGE_KEY) ??
+      null
+    );
+  } catch {
+    return null;
+  }
+};
+
 interface SetupContextValue {
   activeTab: SetupTab;
   setActiveTab: (tab: SetupTab) => void;
@@ -146,6 +176,7 @@ interface SetupContextValue {
   resetArenaToDefault: () => void;
   resetToDefault: () => void; // Alias for backward compatibility
   validateArenaStep: () => boolean;
+  enableHazardInArena: (hazardKey: keyof ArenaHazardSettings) => void;
 
   // Step 2: Tributes
   tributesState: TributesSetupState;
@@ -165,10 +196,17 @@ interface SetupContextValue {
   resetTributesToDefault: () => void;
   validateTributesStep: () => boolean;
 
+  // Step 3: Rules & Pacing
+  rulesState: RulesSetupState;
+  isRulesValid: boolean;
+  updateRules: (updates: Partial<RulesSetupState>) => void;
+  resetRulesToDefault: () => void;
+
   // Global Setup Meta
   isHydrated: boolean;
   draftStatus: DraftStatus;
   gameStatus: GameStatus;
+  isLaunchReady: boolean;
 }
 
 const SetupContext = createContext<SetupContextValue | null>(null);
@@ -183,6 +221,8 @@ export function SetupProvider({ children }: { children: ReactNode }) {
   const [customTributesState, setCustomTributesState] = useState<TributesSetupState | null>(null);
   const [tributesTouched, setTributesTouched] = useState<Record<string, boolean>>({});
 
+  const [customRulesState, setCustomRulesState] = useState<RulesSetupState | null>(null);
+
   const rawArenaStorage = useSyncExternalStore(
     subscribeToStorage,
     clientArenaSnapshot,
@@ -192,6 +232,12 @@ export function SetupProvider({ children }: { children: ReactNode }) {
   const rawTributesStorage = useSyncExternalStore(
     subscribeToStorage,
     clientTributesSnapshot,
+    emptyServerSnapshot
+  );
+
+  const rawRulesStorage = useSyncExternalStore(
+    subscribeToStorage,
+    clientRulesSnapshot,
     emptyServerSnapshot
   );
 
@@ -243,8 +289,27 @@ export function SetupProvider({ children }: { children: ReactNode }) {
     [tributesState.tributes, tributesState.totalTributes]
   );
 
+  // 3. Rules & Pacing State
+  const rulesState = useMemo<RulesSetupState>(() => {
+    if (customRulesState !== null) return customRulesState;
+    if (rawRulesStorage) {
+      try {
+        const parsed = safeParseRulesDraft(JSON.parse(rawRulesStorage));
+        if (parsed) return parsed;
+      } catch {
+        // Corrupt storage payload; fallback to default
+      }
+    }
+    return DEFAULT_RULES_STATE;
+  }, [customRulesState, rawRulesStorage]);
+
+  const isRulesValid = useMemo(() => {
+    return rulesSetupSchema.safeParse(rulesState).success;
+  }, [rulesState]);
+
   const isHydrated = typeof window !== "undefined";
-  const draftStatus: DraftStatus = isArenaValid && isTributesValid ? "synced" : "error";
+  const draftStatus: DraftStatus = isArenaValid && isTributesValid && isRulesValid ? "synced" : "error";
+  const isLaunchReady = isArenaValid && isTributesValid && isRulesValid;
 
   // Arena Handlers
   const setArenaFieldTouched = useCallback((field: keyof ArenaSetupState) => {
@@ -285,6 +350,21 @@ export function SetupProvider({ children }: { children: ReactNode }) {
       if (isValid) {
         writeArenaDraftToStorage(nextState);
       }
+    },
+    [arenaState]
+  );
+
+  const enableHazardInArena = useCallback(
+    (hazardKey: keyof ArenaHazardSettings) => {
+      const nextState: ArenaSetupState = {
+        ...arenaState,
+        hazards: {
+          ...arenaState.hazards,
+          [hazardKey]: true,
+        },
+      };
+      setCustomArenaState(nextState);
+      writeArenaDraftToStorage(nextState);
     },
     [arenaState]
   );
@@ -435,6 +515,24 @@ export function SetupProvider({ children }: { children: ReactNode }) {
     return isTributesValid;
   }, [isTributesValid, tributesState.tributes]);
 
+  // Rules Handlers
+  const updateRules = useCallback(
+    (updates: Partial<RulesSetupState>) => {
+      const nextState: RulesSetupState = { ...rulesState, ...updates };
+      setCustomRulesState(nextState);
+      const { success } = rulesSetupSchema.safeParse(nextState);
+      if (success) {
+        writeRulesDraftToStorage(nextState);
+      }
+    },
+    [rulesState]
+  );
+
+  const resetRulesToDefault = useCallback(() => {
+    setCustomRulesState(DEFAULT_RULES_STATE);
+    writeRulesDraftToStorage(DEFAULT_RULES_STATE);
+  }, []);
+
   const gameStatus: GameStatus = "setup";
 
   const value = useMemo<SetupContextValue>(
@@ -460,6 +558,7 @@ export function SetupProvider({ children }: { children: ReactNode }) {
       resetArenaToDefault,
       resetToDefault: resetArenaToDefault,
       validateArenaStep,
+      enableHazardInArena,
       // Tributes
       tributesState,
       tributes: tributesState.tributes,
@@ -477,10 +576,16 @@ export function SetupProvider({ children }: { children: ReactNode }) {
       batchImportTributeNames,
       resetTributesToDefault,
       validateTributesStep,
+      // Rules
+      rulesState,
+      isRulesValid,
+      updateRules,
+      resetRulesToDefault,
       // Global
       isHydrated,
       draftStatus,
       gameStatus,
+      isLaunchReady,
     }),
     [
       activeTab,
@@ -495,6 +600,7 @@ export function SetupProvider({ children }: { children: ReactNode }) {
       applyArenaPresetById,
       resetArenaToDefault,
       validateArenaStep,
+      enableHazardInArena,
       tributesState,
       validTributesPerDistrictOptions,
       tributeErrors,
@@ -507,9 +613,14 @@ export function SetupProvider({ children }: { children: ReactNode }) {
       batchImportTributeNames,
       resetTributesToDefault,
       validateTributesStep,
+      rulesState,
+      isRulesValid,
+      updateRules,
+      resetRulesToDefault,
       isHydrated,
       draftStatus,
       gameStatus,
+      isLaunchReady,
     ]
   );
 

@@ -4,15 +4,17 @@ import React, { useRef, useCallback, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useTranslations } from "next-intl";
-import { Sparkles, ArrowRight, ArrowLeft, Check, AlertCircle, ShieldCheck } from "lucide-react";
+import { Sparkles, ArrowRight, ArrowLeft, Check, AlertCircle, Flame } from "lucide-react";
 import { SetupProvider, useSetup } from "@/lib/setup/setup-context";
 import { SetupHeaderNav } from "@/components/setup/SetupHeaderNav";
 import { ArenaPresetSelector } from "@/components/setup/ArenaPresetSelector";
 import { ArenaForm } from "@/components/setup/ArenaForm";
 import { TributeRoster } from "@/components/setup/tributes/TributeRoster";
+import { RulesPacingWorkspace } from "@/components/setup/rules/RulesPacingWorkspace";
 import { BackgroundArenaHolo } from "@/components/setup/backgrounds/BackgroundArenaHolo";
 import { ThemeSidePanel } from "@/components/disclaimer/ThemeSidePanel";
 import { useThemeEngine } from "@/lib/theme-context";
+import { toGameDbPayload, toTributesDbPayload } from "@/lib/schemas/setup";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(useGSAP);
@@ -27,12 +29,15 @@ function SetupStagingContent() {
     arenaState,
     tributes,
     districtCount,
+    rulesState,
     isArenaValid,
     isTributesValid,
+    isLaunchReady,
     validateArenaStep,
     validateTributesStep,
   } = useSetup();
   const { activePalette } = useThemeEngine();
+  const [isLaunching, setIsLaunching] = React.useState(false);
 
   useGSAP(
     () => {
@@ -108,6 +113,43 @@ function SetupStagingContent() {
     }
   }, [activeTab, validateArenaStep, validateTributesStep, setActiveTab]);
 
+  const handleLaunch = useCallback(() => {
+    const isArenaOk = validateArenaStep();
+    if (!isArenaOk) {
+      setActiveTab("arena");
+      return;
+    }
+
+    const isTributesOk = validateTributesStep();
+    if (!isTributesOk) {
+      setActiveTab("tributes");
+      return;
+    }
+
+    setIsLaunching(true);
+
+    try {
+      // Serialize game setup and tribute payload into local staging
+      const gamePayload = toGameDbPayload(arenaState, "guest-session-id", tributes.length, rulesState);
+      const tributesPayload = toTributesDbPayload(tributes, "local-game-session");
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("hg_active_game_ready", JSON.stringify({
+          game: gamePayload,
+          tributes: tributesPayload,
+          launchedAt: new Date().toISOString(),
+        }));
+      }
+
+      // Smooth feedback
+      setTimeout(() => {
+        setIsLaunching(false);
+      }, 800);
+    } catch {
+      setIsLaunching(false);
+    }
+  }, [arenaState, rulesState, tributes, validateArenaStep, validateTributesStep, setActiveTab]);
+
   const handlePrevious = useCallback(() => {
     if (activeTab === "tributes") {
       setActiveTab("arena");
@@ -118,21 +160,25 @@ function SetupStagingContent() {
     }
   }, [activeTab, setActiveTab]);
 
-  // Keyboard shortcut Ctrl+Enter / Cmd+Enter to proceed
+  // Keyboard shortcut Ctrl+Enter / Cmd+Enter to proceed or launch
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
-        handleProceed();
+        if (activeTab === "rules") {
+          handleLaunch();
+        } else {
+          handleProceed();
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleProceed]);
+  }, [handleProceed, handleLaunch, activeTab]);
 
   const currentStepReady =
-    activeTab === "arena" ? isArenaValid : activeTab === "tributes" ? isTributesValid : isArenaValid && isTributesValid;
+    activeTab === "arena" ? isArenaValid : activeTab === "tributes" ? isTributesValid : isLaunchReady;
 
   return (
     <div
@@ -184,46 +230,8 @@ function SetupStagingContent() {
           )}
 
           {activeTab === "rules" && (
-            <div className="p-8 clip-chamfer-md bg-card/90 border-2 border-primary/40 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 clip-chamfer-xs bg-primary/10 border border-primary/40 text-primary">
-                  <ShieldCheck className="h-6 w-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-mono font-bold uppercase tracking-wider text-foreground">
-                    Launch Protocol & Pre-Flight Review
-                  </h2>
-                  <p className="text-xs text-muted-foreground font-mono mt-0.5">
-                    Subsystem review for {arenaState.simulationTitle}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 clip-chamfer-sm bg-background/80 border border-border space-y-2">
-                  <span className="text-[11px] font-mono uppercase text-muted-foreground block font-bold">
-                    Arena Specification
-                  </span>
-                  <p className="text-sm font-mono font-bold text-foreground">
-                    {arenaState.arenaName}
-                  </p>
-                  <p className="text-xs text-muted-foreground font-mono line-clamp-3">
-                    {arenaState.arenaDescription}
-                  </p>
-                </div>
-
-                <div className="p-4 clip-chamfer-sm bg-background/80 border border-border space-y-2">
-                  <span className="text-[11px] font-mono uppercase text-muted-foreground block font-bold">
-                    Tribute Roster Capacity
-                  </span>
-                  <p className="text-sm font-mono font-bold text-foreground">
-                    {tributes.length} Active Tributes ({districtCount} Districts)
-                  </p>
-                  <p className="text-xs text-emerald-400 font-mono">
-                    All slots verified and ready for Cornucopia deployment.
-                  </p>
-                </div>
-              </div>
+            <div>
+              <RulesPacingWorkspace />
             </div>
           )}
         </div>
@@ -257,9 +265,13 @@ function SetupStagingContent() {
                   <>
                     Arena: <strong className="text-primary">{arenaState.arenaName || "Custom Arena"}</strong>
                   </>
-                ) : (
+                ) : activeTab === "tributes" ? (
                   <>
                     Roster: <strong className="text-primary">{tributes.length} Tributes</strong> ({districtCount} Districts)
+                  </>
+                ) : (
+                  <>
+                    Protocol: <strong className="text-primary">{rulesState.turnGranularity.replace(/_/g, " ")}</strong> ({rulesState.combatLethality.replace(/_/g, " ")})
                   </>
                 )}
               </p>
@@ -291,7 +303,29 @@ function SetupStagingContent() {
                 <span>{activeTab === "arena" ? t("header.nextStepTributes") : t("header.nextStepRules")}</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
-            ) : null}
+            ) : (
+              <button
+                type="button"
+                onClick={handleLaunch}
+                disabled={!isLaunchReady || isLaunching}
+                style={{
+                  background: `linear-gradient(to right, ${activePalette.accentHex}, ${activePalette.highlightHex})`,
+                }}
+                className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 clip-chamfer-sm text-black font-mono font-black text-xs sm:text-sm tracking-wider uppercase border border-yellow-300 shadow-[0_0_25px_var(--theme-glow),0_4px_0_rgba(0,0,0,0.3)] transition-all duration-200 ${
+                  isLaunchReady && !isLaunching
+                    ? "hover:brightness-110 active:translate-y-0.5 active:shadow-none cursor-pointer"
+                    : "opacity-60 cursor-not-allowed"
+                }`}
+              >
+                <Flame className="h-4 w-4 fill-black text-black" />
+                <span>
+                  {isLaunching
+                    ? t("rules.summary.launching")
+                    : t("rules.summary.launchCta")}
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </main>
