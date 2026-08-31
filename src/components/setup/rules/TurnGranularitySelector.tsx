@@ -8,20 +8,23 @@ import { TurnGranularity, GamePacing } from "@/types/setup";
 
 export function TurnGranularitySelector() {
   const t = useTranslations("setup.rules");
-  const { rulesState, updateRules } = useSetup();
+  const { rulesState, updateRules, gameStatus } = useSetup();
+  const isEditable = gameStatus === "setup" || gameStatus === "archived";
 
   const handleGranularitySelect = useCallback(
     (granularity: TurnGranularity) => {
+      if (!isEditable) return;
       updateRules({ turnGranularity: granularity });
     },
-    [updateRules]
+    [updateRules, isEditable]
   );
 
   const handlePacingSelect = useCallback(
     (pacing: GamePacing) => {
+      if (!isEditable) return;
       updateRules({ pacing });
     },
-    [updateRules]
+    [updateRules, isEditable]
   );
 
   const granularityOptions: {
@@ -101,11 +104,16 @@ export function TurnGranularitySelector() {
               <button
                 key={opt.id}
                 type="button"
+                disabled={!isEditable}
                 onClick={() => handleGranularitySelect(opt.id)}
-                className={`p-4 text-left clip-chamfer-sm border transition-all duration-200 cursor-pointer flex flex-col justify-between select-none ${
-                  isSelected
-                    ? "bg-card border-primary/90 shadow-[0_0_15px_var(--theme-glow),0_2px_8px_rgba(0,0,0,0.3)] ring-1 ring-primary/40"
-                    : "bg-card/40 border-border/70 hover:border-primary/40 hover:bg-card/70 opacity-80 hover:opacity-100"
+                className={`p-4 text-left clip-chamfer-sm border transition-all duration-200 flex flex-col justify-between select-none ${
+                  !isEditable
+                    ? isSelected
+                      ? "bg-card border-primary/50 opacity-90 cursor-default"
+                      : "bg-card/30 border-border/40 opacity-40 cursor-not-allowed"
+                    : isSelected
+                    ? "bg-card border-primary/90 shadow-[0_0_15px_var(--theme-glow),0_2px_8px_rgba(0,0,0,0.3)] ring-1 ring-primary/40 cursor-pointer"
+                    : "bg-card/40 border-border/70 hover:border-primary/40 hover:bg-card/70 opacity-80 hover:opacity-100 cursor-pointer"
                 }`}
               >
                 <div className="space-y-2.5 w-full">
@@ -168,11 +176,16 @@ export function TurnGranularitySelector() {
               <button
                 key={opt.id}
                 type="button"
+                disabled={!isEditable}
                 onClick={() => handlePacingSelect(opt.id)}
-                className={`p-3.5 text-left clip-chamfer-xs border transition-all duration-200 cursor-pointer flex items-center justify-between select-none ${
-                  isSelected
-                    ? "bg-card border-primary/80 shadow-xs ring-1 ring-primary/30"
-                    : "bg-card/30 border-border/60 hover:border-primary/40 hover:bg-card/60 opacity-80 hover:opacity-100"
+                className={`p-3.5 text-left clip-chamfer-xs border transition-all duration-200 flex items-center justify-between select-none ${
+                  !isEditable
+                    ? isSelected
+                      ? "bg-card border-primary/50 opacity-90 cursor-default"
+                      : "bg-card/20 border-border/40 opacity-40 cursor-not-allowed"
+                    : isSelected
+                    ? "bg-card border-primary/80 shadow-xs ring-1 ring-primary/30 cursor-pointer"
+                    : "bg-card/30 border-border/60 hover:border-primary/40 hover:bg-card/60 opacity-80 hover:opacity-100 cursor-pointer"
                 }`}
               >
                 <div className="flex items-center gap-3">

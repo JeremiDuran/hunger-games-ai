@@ -21,33 +21,38 @@ import { ArenaHazardSettings } from "@/types/setup";
 export function ArenaForm() {
   const t = useTranslations("setup.arena");
   const tVal = useTranslations("setup.validation");
-  const { arenaState, updateArena, errors, touched, setFieldTouched } = useSetup();
+  const { arenaState, updateArena, errors, touched, setFieldTouched, gameStatus } = useSetup();
+  const isEditable = gameStatus === "setup" || gameStatus === "archived";
 
   const handleTitleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!isEditable) return;
       updateArena({ simulationTitle: e.target.value });
     },
-    [updateArena]
+    [updateArena, isEditable]
   );
 
   const handleArenaNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!isEditable) return;
       updateArena({ arenaName: e.target.value });
     },
-    [updateArena]
+    [updateArena, isEditable]
   );
 
   const handleDescriptionChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (!isEditable) return;
       updateArena({ arenaDescription: e.target.value });
     },
-    [updateArena]
+    [updateArena, isEditable]
   );
 
   const hazards = arenaState.hazards;
 
   const handleHazardToggle = useCallback(
     (hazardKey: keyof ArenaHazardSettings) => {
+      if (!isEditable) return;
       updateArena({
         hazards: {
           ...hazards,
@@ -55,7 +60,7 @@ export function ArenaForm() {
         },
       });
     },
-    [hazards, updateArena]
+    [hazards, updateArena, isEditable]
   );
 
   // Field error visibility flags
@@ -110,10 +115,11 @@ export function ArenaForm() {
               value={arenaState.simulationTitle}
               onChange={handleTitleChange}
               onBlur={() => setFieldTouched("simulationTitle")}
+              disabled={!isEditable}
               aria-invalid={showTitleError ? "true" : "false"}
               aria-describedby={showTitleError ? "simulation-title-error" : "simulation-title-help"}
               placeholder={t("customTitlePlaceholder")}
-              className={`w-full px-3.5 py-2.5 clip-chamfer-xs bg-background/90 border text-sm font-serif font-bold text-foreground placeholder:text-muted-foreground/60 transition-colors ${
+              className={`w-full px-3.5 py-2.5 clip-chamfer-xs bg-background/90 border text-sm font-serif font-bold text-foreground placeholder:text-muted-foreground/60 transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                 showTitleError
                   ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive"
                   : "border-border focus:border-primary focus:ring-1 focus:ring-primary"
@@ -169,10 +175,11 @@ export function ArenaForm() {
               value={arenaState.arenaName}
               onChange={handleArenaNameChange}
               onBlur={() => setFieldTouched("arenaName")}
+              disabled={!isEditable}
               aria-invalid={showArenaNameError ? "true" : "false"}
               aria-describedby={showArenaNameError ? "arena-name-error" : "arena-name-help"}
               placeholder={t("arenaNamePlaceholder")}
-              className={`w-full px-3.5 py-2.5 clip-chamfer-xs bg-background/90 border text-sm font-serif font-bold text-foreground placeholder:text-muted-foreground/60 transition-colors ${
+              className={`w-full px-3.5 py-2.5 clip-chamfer-xs bg-background/90 border text-sm font-serif font-bold text-foreground placeholder:text-muted-foreground/60 transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                 showArenaNameError
                   ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive"
                   : "border-border focus:border-primary focus:ring-1 focus:ring-primary"
@@ -239,10 +246,11 @@ export function ArenaForm() {
             value={arenaState.arenaDescription}
             onChange={handleDescriptionChange}
             onBlur={() => setFieldTouched("arenaDescription")}
+            disabled={!isEditable}
             aria-invalid={showDescriptionError ? "true" : "false"}
             aria-describedby={showDescriptionError ? "arena-desc-error" : "arena-desc-help"}
             placeholder={t("descPlaceholder")}
-            className={`w-full px-3.5 py-3 clip-chamfer-xs bg-background/90 border text-xs sm:text-sm font-sans leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors resize-y min-h-[120px] ${
+            className={`w-full px-3.5 py-3 clip-chamfer-xs bg-background/90 border text-xs sm:text-sm font-sans leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors resize-y min-h-[120px] disabled:opacity-60 disabled:cursor-not-allowed ${
               showDescriptionError
                 ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive"
                 : "border-border focus:border-primary focus:ring-1 focus:ring-primary"
@@ -287,8 +295,18 @@ export function ArenaForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {/* Bloodbath */}
           <div
-            onClick={() => handleHazardToggle("enableBloodbath")}
-            className={`p-4 clip-chamfer-sm border transition-all duration-200 cursor-pointer flex items-start gap-3.5 select-none ${
+            role={isEditable ? "button" : undefined}
+            tabIndex={isEditable ? 0 : undefined}
+            onClick={isEditable ? () => handleHazardToggle("enableBloodbath") : undefined}
+            onKeyDown={(e) => {
+              if (isEditable && (e.key === "Enter" || e.key === " ")) {
+                e.preventDefault();
+                handleHazardToggle("enableBloodbath");
+              }
+            }}
+            className={`p-4 clip-chamfer-sm border transition-all duration-200 flex items-start gap-3.5 select-none ${
+              isEditable ? "cursor-pointer" : "cursor-default"
+            } ${
               arenaState.hazards.enableBloodbath
                 ? "bg-card border-primary/80 shadow-xs"
                 : "bg-card/40 border-border/50 opacity-70"
@@ -328,8 +346,18 @@ export function ArenaForm() {
 
           {/* Muttations */}
           <div
-            onClick={() => handleHazardToggle("enableMuttations")}
-            className={`p-4 clip-chamfer-sm border transition-all duration-200 cursor-pointer flex items-start gap-3.5 select-none ${
+            role={isEditable ? "button" : undefined}
+            tabIndex={isEditable ? 0 : undefined}
+            onClick={isEditable ? () => handleHazardToggle("enableMuttations") : undefined}
+            onKeyDown={(e) => {
+              if (isEditable && (e.key === "Enter" || e.key === " ")) {
+                e.preventDefault();
+                handleHazardToggle("enableMuttations");
+              }
+            }}
+            className={`p-4 clip-chamfer-sm border transition-all duration-200 flex items-start gap-3.5 select-none ${
+              isEditable ? "cursor-pointer" : "cursor-default"
+            } ${
               arenaState.hazards.enableMuttations
                 ? "bg-card border-primary/80 shadow-xs"
                 : "bg-card/40 border-border/50 opacity-70"
@@ -369,8 +397,18 @@ export function ArenaForm() {
 
           {/* Disasters */}
           <div
-            onClick={() => handleHazardToggle("enableDisasters")}
-            className={`p-4 clip-chamfer-sm border transition-all duration-200 cursor-pointer flex items-start gap-3.5 select-none ${
+            role={isEditable ? "button" : undefined}
+            tabIndex={isEditable ? 0 : undefined}
+            onClick={isEditable ? () => handleHazardToggle("enableDisasters") : undefined}
+            onKeyDown={(e) => {
+              if (isEditable && (e.key === "Enter" || e.key === " ")) {
+                e.preventDefault();
+                handleHazardToggle("enableDisasters");
+              }
+            }}
+            className={`p-4 clip-chamfer-sm border transition-all duration-200 flex items-start gap-3.5 select-none ${
+              isEditable ? "cursor-pointer" : "cursor-default"
+            } ${
               arenaState.hazards.enableDisasters
                 ? "bg-card border-primary/80 shadow-xs"
                 : "bg-card/40 border-border/50 opacity-70"
@@ -410,8 +448,18 @@ export function ArenaForm() {
 
           {/* Sponsor Drops */}
           <div
-            onClick={() => handleHazardToggle("enableSponsorDrops")}
-            className={`p-4 clip-chamfer-sm border transition-all duration-200 cursor-pointer flex items-start gap-3.5 select-none ${
+            role={isEditable ? "button" : undefined}
+            tabIndex={isEditable ? 0 : undefined}
+            onClick={isEditable ? () => handleHazardToggle("enableSponsorDrops") : undefined}
+            onKeyDown={(e) => {
+              if (isEditable && (e.key === "Enter" || e.key === " ")) {
+                e.preventDefault();
+                handleHazardToggle("enableSponsorDrops");
+              }
+            }}
+            className={`p-4 clip-chamfer-sm border transition-all duration-200 flex items-start gap-3.5 select-none ${
+              isEditable ? "cursor-pointer" : "cursor-default"
+            } ${
               arenaState.hazards.enableSponsorDrops
                 ? "bg-card border-primary/80 shadow-xs"
                 : "bg-card/40 border-border/50 opacity-70"

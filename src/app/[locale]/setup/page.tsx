@@ -48,8 +48,15 @@ function SetupStagingContent() {
         typeof window !== "undefined" &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+      const hasFooter = Boolean(containerRef.current?.querySelector(".setup-footer"));
+      const animTargets = [
+        ".setup-hero",
+        ".setup-body",
+        hasFooter ? ".setup-footer" : null,
+      ].filter((t): t is string => Boolean(t));
+
       if (prefersReducedMotion) {
-        gsap.set([".setup-hero", ".setup-body", ".setup-footer"], {
+        gsap.set(animTargets, {
           opacity: 1,
           y: 0,
         });
@@ -62,19 +69,21 @@ function SetupStagingContent() {
         ".setup-hero",
         { opacity: 0, y: -15 },
         { opacity: 1, y: 0, duration: 0.4, clearProps: "transform" }
-      )
-        .fromTo(
-          ".setup-body",
-          { opacity: 0, y: 15 },
-          { opacity: 1, y: 0, duration: 0.5, clearProps: "transform" },
-          "-=0.1"
-        )
-        .fromTo(
+      ).fromTo(
+        ".setup-body",
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.5, clearProps: "transform" },
+        "-=0.1"
+      );
+
+      if (hasFooter) {
+        tl.fromTo(
           ".setup-footer",
           { opacity: 0, y: 10 },
           { opacity: 1, y: 0, duration: 0.4, clearProps: "transform" },
           "-=0.2"
         );
+      }
     },
     { scope: containerRef, dependencies: [activeTab] }
   );
@@ -230,11 +239,13 @@ function SetupStagingContent() {
         className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 z-20 outline-none space-y-8"
       >
         {/* Hero Header */}
-        <div className="setup-hero pb-2 border-b border-border/60">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black tracking-wider uppercase text-foreground">
-            {t("header.title")}
-          </h1>
-        </div>
+        {activeTab !== "summary" && (
+          <div className="setup-hero pb-2 border-b border-border/60">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black tracking-wider uppercase text-foreground">
+              {t("header.title")}
+            </h1>
+          </div>
+        )}
 
         {/* Dynamic Body Content according to activeTab */}
         <div className="setup-body space-y-8">

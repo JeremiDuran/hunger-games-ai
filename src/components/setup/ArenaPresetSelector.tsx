@@ -8,7 +8,8 @@ import { useSetup } from "@/lib/setup/setup-context";
 
 export function ArenaPresetSelector() {
   const t = useTranslations("setup.arena");
-  const { selectedPresetId, applyPresetById } = useSetup();
+  const { selectedPresetId, applyPresetById, gameStatus } = useSetup();
+  const isEditable = gameStatus === "setup" || gameStatus === "archived";
 
   const handleSelectChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -49,7 +50,8 @@ export function ArenaPresetSelector() {
             id="arena-preset-select"
             value={selectedPresetId || "custom"}
             onChange={handleSelectChange}
-            className="w-full appearance-none px-3.5 py-2 pr-9 clip-chamfer-xs bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary text-xs font-mono font-semibold text-foreground transition-colors cursor-pointer"
+            disabled={!isEditable}
+            className="w-full appearance-none px-3.5 py-2 pr-9 clip-chamfer-xs bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary text-xs font-mono font-semibold text-foreground transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="custom" disabled={Boolean(selectedPresetId)}>
               {t("customPresetOption")}

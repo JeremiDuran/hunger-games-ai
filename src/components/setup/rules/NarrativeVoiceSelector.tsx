@@ -8,13 +8,15 @@ import { NarrativeVoice } from "@/types/setup";
 
 export function NarrativeVoiceSelector() {
   const t = useTranslations("setup.rules");
-  const { rulesState, updateRules } = useSetup();
+  const { rulesState, updateRules, gameStatus } = useSetup();
+  const isEditable = gameStatus === "setup" || gameStatus === "archived";
 
   const handleVoiceSelect = useCallback(
     (narrativeVoice: NarrativeVoice) => {
+      if (!isEditable) return;
       updateRules({ narrativeVoice });
     },
-    [updateRules]
+    [updateRules, isEditable]
   );
 
   const voiceOptions: {
@@ -64,11 +66,16 @@ export function NarrativeVoiceSelector() {
             <button
               key={opt.id}
               type="button"
+              disabled={!isEditable}
               onClick={() => handleVoiceSelect(opt.id)}
-              className={`p-4 text-left clip-chamfer-sm border transition-all duration-200 cursor-pointer flex flex-col justify-between select-none ${
-                isSelected
-                  ? "bg-card border-primary/90 shadow-[0_0_15px_var(--theme-glow),0_2px_8px_rgba(0,0,0,0.3)] ring-1 ring-primary/40"
-                  : "bg-card/40 border-border/70 hover:border-primary/40 hover:bg-card/70 opacity-80 hover:opacity-100"
+              className={`p-4 text-left clip-chamfer-sm border transition-all duration-200 flex flex-col justify-between select-none ${
+                !isEditable
+                  ? isSelected
+                    ? "bg-card border-primary/50 opacity-90 cursor-default"
+                    : "bg-card/30 border-border/40 opacity-40 cursor-not-allowed"
+                  : isSelected
+                  ? "bg-card border-primary/90 shadow-[0_0_15px_var(--theme-glow),0_2px_8px_rgba(0,0,0,0.3)] ring-1 ring-primary/40 cursor-pointer"
+                  : "bg-card/40 border-border/70 hover:border-primary/40 hover:bg-card/70 opacity-80 hover:opacity-100 cursor-pointer"
               }`}
             >
               <div className="space-y-2.5 w-full">

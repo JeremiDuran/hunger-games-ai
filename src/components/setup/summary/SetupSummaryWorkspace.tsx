@@ -4,23 +4,21 @@ import React, { useCallback, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import {
-  ShieldCheck,
   Trees,
   Users,
   Sliders,
   Flame,
   ArrowRight,
   Edit3,
-  Check,
   AlertCircle,
   Zap,
   Radio,
   Skull,
   Award,
   BookOpen,
-  UserCheck,
-  Globe,
   Home,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useSetup } from "@/lib/setup/setup-context";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -34,7 +32,6 @@ interface SetupSummaryWorkspaceProps {
 
 export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) {
   const t = useTranslations("setup.summary");
-  const tRules = useTranslations("setup.rules");
   const tArena = useTranslations("setup.arena");
   const {
     arenaState,
@@ -44,6 +41,7 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
     isArenaValid,
     isTributesValid,
     isLaunchReady,
+    gameStatus,
     setActiveTab,
     validateArenaStep,
     validateTributesStep,
@@ -51,6 +49,8 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
   const { isPermanent, user } = useAuth();
   const { activePalette } = useThemeEngine();
   const [isLaunching, setIsLaunching] = useState(false);
+  const [showLore, setShowLore] = useState(false);
+  const isEditable = gameStatus === "setup" || gameStatus === "archived";
 
   const handleEditArena = useCallback(() => {
     setActiveTab("arena");
@@ -136,24 +136,18 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
 
   return (
     <div className="space-y-8 w-full animate-fadeIn pb-12">
-      {/* Section Header */}
-      <div className="space-y-1 pb-4 border-b border-border/70">
-        <div className="flex items-center gap-2 text-primary">
-          <ShieldCheck className="h-5 w-5" />
-          <span className="text-xs font-mono font-bold uppercase tracking-wider">
-            {t("stepBadge")}
-          </span>
-        </div>
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-serif font-black tracking-wider uppercase text-foreground">
+      {/* Central Command Hub Header */}
+      <div className="setup-hero space-y-1 pb-4 border-b border-border/70">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black tracking-wider uppercase text-foreground">
           {t("title")}
-        </h2>
+        </h1>
         <p className="text-xs sm:text-sm text-muted-foreground font-sans max-w-2xl">
           {t("subtitle")}
         </p>
       </div>
 
       {/* Validation Warning Alert if any step is incomplete */}
-      {!isLaunchReady && (
+      {!isLaunchReady && isEditable && (
         <div className="p-4 clip-chamfer-sm bg-destructive/15 border-2 border-destructive/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-destructive-foreground">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
@@ -199,14 +193,16 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
               {t("arenaHeading")}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={handleEditArena}
-            className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            <Edit3 className="h-3.5 w-3.5" />
-            <span>{t("editArena")}</span>
-          </button>
+          {isEditable && (
+            <button
+              type="button"
+              onClick={handleEditArena}
+              className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer self-start sm:self-auto"
+            >
+              <Edit3 className="h-3.5 w-3.5" />
+              <span>{t("editArena")}</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -230,15 +226,32 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
           </div>
         </div>
 
-        {/* Environmental Lore */}
+        {/* Environmental Lore (Toggable, default hidden) */}
         {arenaState.arenaDescription && (
-          <div className="space-y-1.5 p-3.5 clip-chamfer-xs bg-background/60 border border-border/60">
-            <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground tracking-wider">
-              {t("loreLabel")}
-            </span>
-            <p className="text-xs sm:text-sm text-foreground/90 font-sans leading-relaxed line-clamp-3">
-              {arenaState.arenaDescription}
-            </p>
+          <div className="space-y-2 pt-1 border-t border-border/40">
+            <button
+              type="button"
+              onClick={() => setShowLore((prev) => !prev)}
+              className="inline-flex items-center gap-2 text-xs font-mono font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-1"
+            >
+              {showLore ? (
+                <ChevronUp className="h-3.5 w-3.5 text-primary" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5 text-primary" />
+              )}
+              <span>{showLore ? t("hideLore") : t("viewLore")}</span>
+            </button>
+
+            {showLore && (
+              <div className="space-y-1.5 p-3.5 clip-chamfer-xs bg-background/60 border border-border/60 animate-fadeIn">
+                <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground tracking-wider">
+                  {t("loreLabel")}
+                </span>
+                <p className="text-xs sm:text-sm text-foreground/90 font-sans leading-relaxed">
+                  {arenaState.arenaDescription}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -289,20 +302,22 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleEditTributes}
-            className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            <Edit3 className="h-3.5 w-3.5" />
-            <span>{t("editTributes")}</span>
-          </button>
+          {isEditable && (
+            <button
+              type="button"
+              onClick={handleEditTributes}
+              className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer self-start sm:self-auto"
+            >
+              <Edit3 className="h-3.5 w-3.5" />
+              <span>{t("editTributes")}</span>
+            </button>
+          )}
         </div>
 
         {/* Dynamic Compact Tribute Formation Grid */}
         <CompactTributeFormation
           tributes={tributes}
-          onSelectTribute={() => handleEditTributes()}
+          onSelectTribute={isEditable ? () => handleEditTributes() : undefined}
         />
       </section>
 
@@ -321,14 +336,16 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
               {t("rulesHeading")}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={handleEditRules}
-            className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            <Edit3 className="h-3.5 w-3.5" />
-            <span>{t("editRules")}</span>
-          </button>
+          {isEditable && (
+            <button
+              type="button"
+              onClick={handleEditRules}
+              className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer self-start sm:self-auto"
+            >
+              <Edit3 className="h-3.5 w-3.5" />
+              <span>{t("editRules")}</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -412,29 +429,7 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
         </div>
       </section>
 
-      {/* 4. Session / Persistence Banner */}
-      <div className="p-3.5 clip-chamfer-xs bg-background/60 border border-border/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-mono text-muted-foreground">
-        <div className="flex items-center gap-2">
-          {isPermanent ? (
-            <>
-              <UserCheck className="h-4 w-4 text-emerald-400" />
-              <span className="text-foreground">{tRules("summary.registeredNotice")}</span>
-            </>
-          ) : (
-            <>
-              <Globe className="h-4 w-4 text-primary" />
-              <span>{tRules("summary.guestNotice")}</span>
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-          <Check className="h-3.5 w-3.5" />
-          <span>{t("allSystemsNominal")}</span>
-        </div>
-      </div>
-
-      {/* 5. Centered Command Action Zone at the Bottom */}
+      {/* 4. Centered Command Action Zone at the Bottom */}
       <div className="pt-6 flex flex-col items-center justify-center space-y-4">
         {/* Main Launch Button */}
         <button

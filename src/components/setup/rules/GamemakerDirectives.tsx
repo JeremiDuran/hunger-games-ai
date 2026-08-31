@@ -26,52 +26,60 @@ import {
 
 export function GamemakerDirectives() {
   const t = useTranslations("setup.rules");
-  const { rulesState, updateRules, arenaState, enableHazardInArena } = useSetup();
+  const { rulesState, updateRules, arenaState, enableHazardInArena, gameStatus } = useSetup();
+  const isEditable = gameStatus === "setup" || gameStatus === "archived";
 
   const handleLethalitySelect = useCallback(
     (combatLethality: CombatLethality) => {
+      if (!isEditable) return;
       updateRules({ combatLethality });
     },
-    [updateRules]
+    [updateRules, isEditable]
   );
 
   const handleAllianceSelect = useCallback(
     (allianceDynamic: AllianceDynamic) => {
+      if (!isEditable) return;
       updateRules({ allianceDynamic });
     },
-    [updateRules]
+    [updateRules, isEditable]
   );
 
   const handleFeastToggle = useCallback(() => {
+    if (!isEditable) return;
     updateRules({ enableMidGameFeast: !rulesState.enableMidGameFeast });
-  }, [rulesState.enableMidGameFeast, updateRules]);
+  }, [rulesState.enableMidGameFeast, updateRules, isEditable]);
 
   const handleSponsorSelect = useCallback(
     (sponsorGenerosity: SponsorGenerosity) => {
+      if (!isEditable) return;
       updateRules({ sponsorGenerosity });
     },
-    [updateRules]
+    [updateRules, isEditable]
   );
 
   const handleMuttationSelect = useCallback(
     (muttationTiming: MuttationTiming) => {
+      if (!isEditable) return;
       updateRules({ muttationTiming });
     },
-    [updateRules]
+    [updateRules, isEditable]
   );
 
   const handleDisasterSelect = useCallback(
     (disasterFrequency: DisasterFrequency) => {
+      if (!isEditable) return;
       updateRules({ disasterFrequency });
     },
-    [updateRules]
+    [updateRules, isEditable]
   );
 
   const handleVictorySelect = useCallback(
     (victoryCondition: VictoryCondition) => {
+      if (!isEditable) return;
       updateRules({ victoryCondition });
     },
-    [updateRules]
+    [updateRules, isEditable]
   );
 
   const hasSponsorDrops = arenaState.hazards.enableSponsorDrops;

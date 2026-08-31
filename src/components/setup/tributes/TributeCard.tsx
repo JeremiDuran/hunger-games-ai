@@ -31,7 +31,8 @@ export const TributeCard = memo(function TributeCard({
   onEdit,
 }: TributeCardProps) {
   const t = useTranslations("setup.tributes");
-  const { tributeErrors, tributesTouched } = useSetup();
+  const { tributeErrors, tributesTouched, gameStatus } = useSetup();
+  const isEditable = gameStatus === "setup" || gameStatus === "archived";
   const [imageError, setImageError] = useState(false);
 
   const errors = tributeErrors[tribute.id] || {};
@@ -51,7 +52,7 @@ export const TributeCard = memo(function TributeCard({
           onEdit(tribute.id);
         }
       }}
-      aria-label={`${t("editTribute")}: ${tribute.name || t("unnamedTribute")}, District ${tribute.district} Slot ${indexInDistrict}`}
+      aria-label={`${isEditable ? t("editTribute") : "View Tribute"}: ${tribute.name || t("unnamedTribute")}, District ${tribute.district} Slot ${indexInDistrict}`}
       className={`group relative p-4 clip-chamfer-md bg-card/85 backdrop-blur-sm border transition-all duration-300 cursor-pointer flex flex-col justify-between select-none ${
         hasNameError || (isTouched && isNameEmpty)
           ? "border-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.25)] bg-red-950/10"
@@ -155,12 +156,12 @@ export const TributeCard = memo(function TributeCard({
       {/* Bottom CTA Action Strip */}
       <div className="mt-3 pt-2.5 border-t border-border/40 flex items-center justify-between">
         <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">
-          {t("clickToEdit")}
+          {isEditable ? t("clickToEdit") : "View Dossier"}
         </span>
 
         <span className="inline-flex items-center gap-1 px-2 py-1 clip-chamfer-xs bg-primary/10 group-hover:bg-primary text-primary group-hover:text-primary-foreground font-mono font-bold text-[10px] uppercase tracking-wider border border-primary/30 group-hover:border-primary transition-all duration-200">
           <Edit3 className="h-3 w-3" />
-          <span>{t("editDossier")}</span>
+          <span>{isEditable ? t("editDossier") : "Dossier"}</span>
         </span>
       </div>
     </div>

@@ -70,14 +70,17 @@ function TributeEditorBody({
 }: TributeEditorBodyProps) {
   const t = useTranslations("setup.tributes");
   const tVal = useTranslations("setup.validation");
-  const { updateTribute, tributeErrors, tributesTouched } = useSetup();
+  const { updateTribute, tributeErrors, tributesTouched, gameStatus } = useSetup();
+  const isEditable = gameStatus === "setup" || gameStatus === "archived";
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
-    nameInputRef.current?.focus({ preventScroll: true });
-  }, []);
+    if (isEditable) {
+      nameInputRef.current?.focus({ preventScroll: true });
+    }
+  }, [isEditable]);
 
   const errors = tributeErrors[tribute.id] || {};
   const isTouched = tributesTouched[tribute.id] || false;
@@ -85,44 +88,50 @@ function TributeEditorBody({
 
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!isEditable) return;
       updateTribute(tribute.id, { name: e.target.value });
     },
-    [tribute.id, updateTribute]
+    [tribute.id, updateTribute, isEditable]
   );
 
   const handleGenderSelectChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
+      if (!isEditable) return;
       updateTribute(tribute.id, { gender: e.target.value as TributeGender });
     },
-    [tribute.id, updateTribute]
+    [tribute.id, updateTribute, isEditable]
   );
 
   const handlePersonalityChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (!isEditable) return;
       updateTribute(tribute.id, { personality: e.target.value });
     },
-    [tribute.id, updateTribute]
+    [tribute.id, updateTribute, isEditable]
   );
 
   const handlePhysicalChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (!isEditable) return;
       updateTribute(tribute.id, { physicalAspect: e.target.value });
     },
-    [tribute.id, updateTribute]
+    [tribute.id, updateTribute, isEditable]
   );
 
   const handleAvatarUrlChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!isEditable) return;
       setImageError(false);
       updateTribute(tribute.id, { avatarUrl: e.target.value.trim() || null });
     },
-    [tribute.id, updateTribute]
+    [tribute.id, updateTribute, isEditable]
   );
 
   const handleClearAvatar = useCallback(() => {
+    if (!isEditable) return;
     setImageError(false);
     updateTribute(tribute.id, { avatarUrl: null });
-  }, [tribute.id, updateTribute]);
+  }, [tribute.id, updateTribute, isEditable]);
 
   return (
     <>
@@ -238,7 +247,7 @@ function TributeEditorBody({
                   <ImageIcon className="h-3 w-3 text-primary" />
                   <span>{t("avatarUrlLabel")}</span>
                 </span>
-                {tribute.avatarUrl && (
+                {tribute.avatarUrl && isEditable && (
                   <button
                     type="button"
                     onClick={handleClearAvatar}
@@ -255,8 +264,9 @@ function TributeEditorBody({
                   type="url"
                   value={tribute.avatarUrl || ""}
                   onChange={handleAvatarUrlChange}
+                  disabled={!isEditable}
                   placeholder="https://..."
-                  className="w-full px-3 py-1.5 clip-chamfer-xs bg-background/90 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 border border-border focus:border-primary focus:outline-none"
+                  className="w-full px-3 py-1.5 clip-chamfer-xs bg-background/90 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 border border-border focus:border-primary focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -286,11 +296,12 @@ function TributeEditorBody({
                   type="text"
                   value={tribute.name}
                   onChange={handleNameChange}
+                  disabled={!isEditable}
                   maxLength={60}
                   placeholder={t("namePlaceholder")}
                   aria-invalid={hasNameError}
                   aria-describedby={hasNameError ? `modal-name-err-${tribute.id}` : undefined}
-                  className={`w-full px-4 py-2.5 clip-chamfer-xs bg-background text-sm font-mono text-foreground placeholder:text-muted-foreground/50 border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary ${
+                  className={`w-full px-4 py-2.5 clip-chamfer-xs bg-background text-sm font-mono text-foreground placeholder:text-muted-foreground/50 border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed ${
                     hasNameError
                       ? "border-red-500 text-red-300"
                       : "border-border hover:border-primary/50 focus:border-primary"
@@ -327,7 +338,8 @@ function TributeEditorBody({
                   id={`modal-gender-${tribute.id}`}
                   value={tribute.gender === "unspecified" ? "non_binary" : tribute.gender}
                   onChange={handleGenderSelectChange}
-                  className="w-full px-3.5 py-2 clip-chamfer-xs bg-background/90 text-xs font-mono font-medium text-foreground border border-border hover:border-primary/50 focus:border-primary focus:outline-none transition-all cursor-pointer appearance-none pr-9"
+                  disabled={!isEditable}
+                  className="w-full px-3.5 py-2 clip-chamfer-xs bg-background/90 text-xs font-mono font-medium text-foreground border border-border hover:border-primary/50 focus:border-primary focus:outline-none transition-all cursor-pointer appearance-none pr-9 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {GENDER_OPTIONS.map((opt) => (
                     <option
@@ -364,9 +376,10 @@ function TributeEditorBody({
                 rows={3}
                 value={tribute.personality}
                 onChange={handlePersonalityChange}
+                disabled={!isEditable}
                 maxLength={280}
                 placeholder={t("personalityPlaceholder")}
-                className="w-full px-3.5 py-2 clip-chamfer-xs bg-background/90 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 border border-border hover:border-primary/40 focus:border-primary focus:outline-none resize-none"
+                className="w-full px-3.5 py-2 clip-chamfer-xs bg-background/90 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 border border-border hover:border-primary/40 focus:border-primary focus:outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -389,9 +402,10 @@ function TributeEditorBody({
                 rows={3}
                 value={tribute.physicalAspect}
                 onChange={handlePhysicalChange}
+                disabled={!isEditable}
                 maxLength={280}
                 placeholder={t("physicalPlaceholder")}
-                className="w-full px-3.5 py-2 clip-chamfer-xs bg-background/90 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 border border-border hover:border-primary/40 focus:border-primary focus:outline-none resize-none"
+                className="w-full px-3.5 py-2 clip-chamfer-xs bg-background/90 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 border border-border hover:border-primary/40 focus:border-primary focus:outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
           </div>
