@@ -1,18 +1,31 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+function redirectWithCookies(
+  url: URL | string,
+  sourceResponse: NextResponse
+): NextResponse {
+  const redirectResponse = NextResponse.redirect(url);
+  sourceResponse.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie);
+  });
+  return redirectResponse;
+}
+
 export async function updateSession(
   request: NextRequest,
   initialResponse?: NextResponse
 ) {
-  let response =
+  const response =
     initialResponse ??
     NextResponse.next({
       request,
     });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return response;
@@ -23,17 +36,18 @@ export async function updateSession(
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value)
         );
-        // Create new response if modifying cookies
-        response = NextResponse.next({
-          request,
-        });
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options)
         );
+        if (headers) {
+          Object.entries(headers).forEach(([key, value]) =>
+            response.headers.set(key, value)
+          );
+        }
       },
     },
   });
@@ -60,7 +74,7 @@ export async function updateSession(
     if (!isPermanent) {
       const loginUrl = new URL(`${localePrefix}/login`, request.url);
       loginUrl.searchParams.set("next", pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectWithCookies(loginUrl, response);
     }
   }
 
@@ -74,7 +88,7 @@ export async function updateSession(
         nextParam.startsWith("/") && !nextParam.startsWith("//")
           ? nextParam
           : `${localePrefix}/lobby`;
-      return NextResponse.redirect(new URL(safeNext, request.url));
+      return redirectWithCookies(new URL(safeNext, request.url), response);
     }
   }
 
@@ -83,13 +97,15 @@ export async function updateSession(
     if (user) {
       if (user.is_anonymous) {
         // Guest user with active session: direct to single-game arena setup
-        return NextResponse.redirect(
-          new URL(`${localePrefix}/setup`, request.url)
+        return redirectWithCookies(
+          new URL(`${localePrefix}/setup`, request.url),
+          response
         );
       } else {
         // Permanent user: direct to Capitol lobby
-        return NextResponse.redirect(
-          new URL(`${localePrefix}/lobby`, request.url)
+        return redirectWithCookies(
+          new URL(`${localePrefix}/lobby`, request.url),
+          response
         );
       }
     }
