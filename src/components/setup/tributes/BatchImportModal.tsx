@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { FileUp, X, Check, AlertCircle } from "lucide-react";
+
+const emptySubscribe = () => () => {};
 
 interface BatchImportModalProps {
   isOpen: boolean;
@@ -19,6 +22,7 @@ export function BatchImportModal({
 }: BatchImportModalProps) {
   const t = useTranslations("setup.tributes.batch");
   const [rawText, setRawText] = useState("");
+  const isMounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const parsedNames = rawText
     .split(/[\n,;]+/)
@@ -32,14 +36,14 @@ export function BatchImportModal({
     onClose();
   }, [parsedNames, onImport, onClose]);
 
-  if (!isOpen) return null;
+  if (!isMounted || !isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="batch-import-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
     >
       <div className="relative w-full max-w-xl p-6 clip-chamfer-md bg-card border-2 border-primary/60 shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_20px_var(--theme-glow)] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
@@ -123,6 +127,7 @@ export function BatchImportModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

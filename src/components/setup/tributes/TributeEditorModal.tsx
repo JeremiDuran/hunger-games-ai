@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import gsap from "gsap";
@@ -13,6 +14,7 @@ import {
   Image as ImageIcon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Check,
   AlertCircle,
   Trash2,
@@ -38,10 +40,9 @@ interface TributeEditorModalProps {
 }
 
 const GENDER_OPTIONS: { value: TributeGender; labelKey: string }[] = [
-  { value: "female", labelKey: "genderFemale" },
   { value: "male", labelKey: "genderMale" },
-  { value: "non_binary", labelKey: "genderNonBinary" },
-  { value: "unspecified", labelKey: "genderUnspecified" },
+  { value: "female", labelKey: "genderFemale" },
+  { value: "non_binary", labelKey: "genderOther" },
 ];
 
 interface TributeEditorBodyProps {
@@ -75,7 +76,7 @@ function TributeEditorBody({
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
-    nameInputRef.current?.focus();
+    nameInputRef.current?.focus({ preventScroll: true });
   }, []);
 
   const errors = tributeErrors[tribute.id] || {};
@@ -89,9 +90,9 @@ function TributeEditorBody({
     [tribute.id, updateTribute]
   );
 
-  const handleGenderChange = useCallback(
-    (gender: TributeGender) => {
-      updateTribute(tribute.id, { gender });
+  const handleGenderSelectChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      updateTribute(tribute.id, { gender: e.target.value as TributeGender });
     },
     [tribute.id, updateTribute]
   );
@@ -132,17 +133,12 @@ function TributeEditorBody({
             <User className="h-5 w-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2
-                id="tribute-editor-title"
-                className="text-base sm:text-lg font-mono font-black uppercase tracking-wider text-foreground"
-              >
-                {t("dossierEditorTitle")}
-              </h2>
-              <span className="text-[10px] font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 clip-chamfer-xs border border-primary/30">
-                D{tribute.district} #{slotIndexInDistrict}
-              </span>
-            </div>
+            <h2
+              id="tribute-editor-title"
+              className="text-base sm:text-lg font-mono font-black uppercase tracking-wider text-foreground"
+            >
+              {t("dossierEditorTitle")}
+            </h2>
             <p id="tribute-editor-desc" className="text-xs text-muted-foreground font-mono mt-0.5">
               {t("dossierEditorSubtitle", {
                 district: tribute.district,
@@ -197,11 +193,11 @@ function TributeEditorBody({
       </div>
 
       {/* 2. Scrollable Body Content */}
-      <div className="p-4 sm:p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+      <div className="p-5 sm:p-7 space-y-6 overflow-y-auto max-h-[calc(92vh-150px)]">
         {/* Top Section: Avatar & Primary Attributes */}
-        <div className="flex flex-col md:flex-row gap-5 items-start">
+        <div className="flex flex-col md:flex-row gap-6 items-start">
           {/* Left: Avatar Portrait & URL Input */}
-          <div className="w-full md:w-56 shrink-0 space-y-3">
+          <div className="w-full md:w-60 shrink-0 space-y-3.5">
             <div className="relative w-full aspect-3/4 max-w-[200px] mx-auto md:max-w-none clip-chamfer-sm bg-background/90 border-2 border-border shadow-inner overflow-hidden flex items-center justify-center group">
               {tribute.avatarUrl && !imageError ? (
                 <Image
@@ -318,29 +314,34 @@ function TributeEditorBody({
               )}
             </div>
 
-            {/* Gender Selector Buttons */}
+            {/* Gender Selector Dropdown */}
             <div>
-              <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+              <label
+                htmlFor={`modal-gender-${tribute.id}`}
+                className="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground block mb-1.5"
+              >
                 {t("genderLabel")}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {GENDER_OPTIONS.map((opt) => {
-                  const isSelected = tribute.gender === opt.value;
-                  return (
-                    <button
+              <div className="relative">
+                <select
+                  id={`modal-gender-${tribute.id}`}
+                  value={tribute.gender === "unspecified" ? "non_binary" : tribute.gender}
+                  onChange={handleGenderSelectChange}
+                  className="w-full px-3.5 py-2 clip-chamfer-xs bg-background/90 text-xs font-mono font-medium text-foreground border border-border hover:border-primary/50 focus:border-primary focus:outline-none transition-all cursor-pointer appearance-none pr-9"
+                >
+                  {GENDER_OPTIONS.map((opt) => (
+                    <option
                       key={opt.value}
-                      type="button"
-                      onClick={() => handleGenderChange(opt.value)}
-                      className={`px-3 py-2 clip-chamfer-xs text-xs font-mono font-bold uppercase tracking-wider border transition-all cursor-pointer text-center ${
-                        isSelected
-                          ? "bg-primary text-primary-foreground border-primary shadow-xs font-black"
-                          : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/70 border-border"
-                      }`}
+                      value={opt.value}
+                      className="bg-card text-foreground font-mono"
                     >
                       {t(opt.labelKey)}
-                    </button>
-                  );
-                })}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                  <ChevronDown className="h-4 w-4" />
+                </div>
               </div>
             </div>
 
@@ -462,6 +463,8 @@ function TributeEditorBody({
   );
 }
 
+const emptySubscribe = () => () => {};
+
 export function TributeEditorModal({
   tribute,
   isOpen,
@@ -476,6 +479,19 @@ export function TributeEditorModal({
 }: TributeEditorModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const isMounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   // Handle keyboard shortcuts (Escape to close, Ctrl/Cmd + Left/Right for prev/next)
   useEffect(() => {
@@ -536,16 +552,16 @@ export function TributeEditorModal({
     { scope: modalRef, dependencies: [isOpen] }
   );
 
-  if (!isOpen || !tribute) return null;
+  if (!isMounted || !isOpen || !tribute) return null;
 
-  return (
+  return createPortal(
     <div
       ref={modalRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="tribute-editor-title"
       aria-describedby="tribute-editor-desc"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md overflow-y-auto"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-8 bg-black/90 backdrop-blur-md overflow-y-auto"
       onClick={(e) => {
         if (e.target === modalRef.current) {
           onClose();
@@ -554,7 +570,7 @@ export function TributeEditorModal({
     >
       <div
         ref={cardRef}
-        className="relative w-full max-w-3xl my-auto clip-chamfer-md bg-card/95 border-2 border-primary/60 shadow-[0_0_50px_rgba(0,0,0,0.9),0_0_25px_var(--theme-glow)] flex flex-col max-h-[90vh] overflow-hidden"
+        className="relative w-full max-w-4xl my-auto clip-chamfer-md bg-card/98 border-2 border-primary/70 shadow-[0_0_80px_rgba(0,0,0,0.95),0_0_35px_var(--theme-glow)] flex flex-col max-h-[92vh] overflow-hidden"
       >
         {/* Holographic Top Glow Accent */}
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-80" />
@@ -572,6 +588,7 @@ export function TributeEditorModal({
           hasNext={hasNext}
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
