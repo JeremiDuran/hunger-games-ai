@@ -44,6 +44,57 @@
 }
 
 /* ==========================================================================
+   SUPPRESS BROWSER NATIVE REVEAL/CLEAR ICONS ON PASSWORD INPUTS
+   (Each vendor prefix must remain in its own rule block to prevent browsers
+   from invalidating the entire selector list)
+   ========================================================================== */
+::-ms-reveal {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+input[type="password"]::-ms-reveal {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+input[type="password"]::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+input[type="text"]::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
+input::-webkit-contacts-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
+/* ==========================================================================
    DEFAULT / ROOT FALLBACK (MOCKINGJAY DEFAULT)
    ========================================================================== */
 :root {

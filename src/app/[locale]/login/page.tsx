@@ -16,6 +16,10 @@ import {
   Lock,
   ArrowRight,
   RefreshCw,
+  Eye,
+  EyeOff,
+  Check,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useThemeEngine } from "@/lib/theme-context";
@@ -23,6 +27,11 @@ import { useA11y } from "@/lib/a11y/a11y-context";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { ThemeSidePanel } from "@/components/disclaimer/ThemeSidePanel";
 import { BackgroundConstellation } from "@/components/landing/backgrounds/BackgroundConstellation";
+import {
+  evaluatePasswordCriteria,
+  registerSchema,
+  signInSchema,
+} from "@/lib/schemas/auth";
 
 function LoginForm() {
   const router = useRouter();
@@ -45,6 +54,9 @@ function LoginForm() {
   const [mode, setMode] = useState<"signin" | "register">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(
     initialError === "auth_callback_failed"
@@ -53,6 +65,13 @@ function LoginForm() {
   );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Live password criteria evaluation during render
+  const passwordCriteria = evaluatePasswordCriteria(password);
+  const passwordsMatch =
+    password.length > 0 &&
+    confirmPassword.length > 0 &&
+    password === confirmPassword;
 
   // Keyboard shortcut: Escape outside of form inputs returns to perimeter
   const handleReturnToPerimeter = useCallback(() => {
@@ -72,7 +91,27 @@ function LoginForm() {
 
     try {
       if (mode === "signin") {
-        const result = await signInWithPassword({ email, password });
+        // Validate signin inputs
+        const parseResult = signInSchema.safeParse({ email, password });
+        if (!parseResult.success) {
+          const firstIssue = parseResult.error.issues[0];
+          let err = t("messages.signinFailed");
+          if (
+            firstIssue.message === "invalidEmail" ||
+            firstIssue.message === "emailRequired"
+          ) {
+            err = t("messages.emailInvalid");
+          }
+          setErrorMessage(err);
+          announceAssertive(err);
+          setIsSubmitting(false);
+          return;
+        }
+
+        const result = await signInWithPassword({
+          email: parseResult.data.email,
+          password: parseResult.data.password,
+        });
         if (!result.success) {
           const err = result.error || t("messages.signinFailed");
           setErrorMessage(err);
@@ -86,13 +125,45 @@ function LoginForm() {
           router.push(nextUrl);
         }, 600);
       } else {
+        // Validate register inputs with strict password complexity & match
+        const effectiveUsername = username.trim() || email.split("@")[0];
+        const parseResult = registerSchema.safeParse({
+          username: effectiveUsername,
+          email,
+          password,
+          confirmPassword,
+        });
+
+        if (!parseResult.success) {
+          const firstIssue = parseResult.error.issues[0];
+          let err = t("messages.registerFailed");
+
+          if (firstIssue.message === "passwordMismatch") {
+            err = t("messages.passwordMismatch");
+          } else if (firstIssue.message.startsWith("password")) {
+            err = t("messages.passwordInvalid");
+          } else if (
+            firstIssue.message === "invalidEmail" ||
+            firstIssue.message === "emailRequired"
+          ) {
+            err = t("messages.emailInvalid");
+          } else if (firstIssue.message.startsWith("username")) {
+            err = t("messages.usernameInvalid");
+          }
+
+          setErrorMessage(err);
+          announceAssertive(err);
+          setIsSubmitting(false);
+          return;
+        }
+
         // Register / Upgrade flow
         if (isAuthenticated && isAnonymous) {
           // Progress Preservation Link
           const result = await upgradeGuestAccount({
-            email,
-            password,
-            username,
+            email: parseResult.data.email,
+            password: parseResult.data.password,
+            username: parseResult.data.username,
           });
           if (!result.success) {
             const err = result.isConflict
@@ -111,9 +182,9 @@ function LoginForm() {
         } else {
           // Standard permanent signup
           const result = await signUpWithPassword({
-            email,
-            password,
-            username,
+            email: parseResult.data.email,
+            password: parseResult.data.password,
+            username: parseResult.data.username,
           });
           if (!result.success) {
             const err = result.error || t("messages.registerFailed");
@@ -138,6 +209,150 @@ function LoginForm() {
       setIsSubmitting(false);
     }
   };
+
+  // Helper to render password requirements & live strength meter
+  const renderPasswordCriteria = (isDesktop: boolean) => (
+    <div
+      id={
+        isDesktop
+          ? "password-requirements-desktop"
+          : "password-requirements-mobile"
+      }
+      className={`space-y-2.5 p-3.5 bg-card/95 backdrop-blur-md clip-chamfer-xs border border-primary/50 text-xs font-mono shadow-[0_0_20px_var(--theme-glow),0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-300 ${
+        isDesktop
+          ? "hidden lg:block absolute left-[calc(100%+16px)] top-28 w-72 z-30 animate-in fade-in slide-in-from-left-2 duration-300"
+          : "block lg:hidden my-2"
+      }`}
+    >
+      <div className="flex items-center justify-between text-[11px]">
+        <span className="text-muted-foreground font-bold">{t("strength")}</span>
+        <span
+          className={`font-bold uppercase tracking-wider ${
+            passwordCriteria.strength === "strong"
+              ? "text-emerald-400"
+              : passwordCriteria.strength === "fair"
+              ? "text-amber-400"
+              : "text-red-400"
+          }`}
+        >
+          {passwordCriteria.strength === "strong"
+            ? t("strengthStrong")
+            : passwordCriteria.strength === "fair"
+            ? t("strengthFair")
+            : t("strengthWeak")}
+        </span>
+      </div>
+
+      {/* Visual Strength Meter */}
+      <div className="w-full h-1.5 bg-background/80 rounded-full overflow-hidden border border-border/50">
+        <div
+          className={`h-full transition-all duration-300 ${
+            passwordCriteria.strength === "strong"
+              ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+              : passwordCriteria.strength === "fair"
+              ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+              : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+          }`}
+          style={{
+            width: `${Math.max(10, (passwordCriteria.metCount / 5) * 100)}%`,
+          }}
+        />
+      </div>
+
+      {/* Criteria Checklist */}
+      <div className="grid grid-cols-1 gap-1.5 pt-1 text-[11px]">
+        <div
+          className={`flex items-center gap-1.5 ${
+            passwordCriteria.hasMinLength
+              ? "text-emerald-400"
+              : "text-muted-foreground"
+          }`}
+        >
+          {passwordCriteria.hasMinLength ? (
+            <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+          ) : (
+            <X
+              className="h-3 w-3 shrink-0 text-muted-foreground/60"
+              aria-hidden="true"
+            />
+          )}
+          <span>{t("reqMinLength")}</span>
+        </div>
+
+        <div
+          className={`flex items-center gap-1.5 ${
+            passwordCriteria.hasUppercase
+              ? "text-emerald-400"
+              : "text-muted-foreground"
+          }`}
+        >
+          {passwordCriteria.hasUppercase ? (
+            <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+          ) : (
+            <X
+              className="h-3 w-3 shrink-0 text-muted-foreground/60"
+              aria-hidden="true"
+            />
+          )}
+          <span>{t("reqUppercase")}</span>
+        </div>
+
+        <div
+          className={`flex items-center gap-1.5 ${
+            passwordCriteria.hasLowercase
+              ? "text-emerald-400"
+              : "text-muted-foreground"
+          }`}
+        >
+          {passwordCriteria.hasLowercase ? (
+            <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+          ) : (
+            <X
+              className="h-3 w-3 shrink-0 text-muted-foreground/60"
+              aria-hidden="true"
+            />
+          )}
+          <span>{t("reqLowercase")}</span>
+        </div>
+
+        <div
+          className={`flex items-center gap-1.5 ${
+            passwordCriteria.hasNumber
+              ? "text-emerald-400"
+              : "text-muted-foreground"
+          }`}
+        >
+          {passwordCriteria.hasNumber ? (
+            <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+          ) : (
+            <X
+              className="h-3 w-3 shrink-0 text-muted-foreground/60"
+              aria-hidden="true"
+            />
+          )}
+          <span>{t("reqNumber")}</span>
+        </div>
+
+        <div
+          className={`flex items-center gap-1.5 ${
+            passwordCriteria.hasSymbol
+              ? "text-emerald-400"
+              : "text-muted-foreground"
+          }`}
+        >
+          {passwordCriteria.hasSymbol ? (
+            <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+          ) : (
+            <X
+              className="h-3 w-3 shrink-0 text-muted-foreground/60"
+              aria-hidden="true"
+            />
+          )}
+          <span>{t("reqSymbol")}</span>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen relative flex flex-col justify-between overflow-x-clip bg-background text-foreground transition-colors duration-500 selection:bg-primary selection:text-primary-foreground">
@@ -173,7 +388,12 @@ function LoginForm() {
         tabIndex={-1}
         className="flex-1 w-full flex items-center justify-center px-4 sm:px-6 py-8 z-20 outline-none"
       >
-        <div className="w-full max-w-md mx-auto">
+        <div className="w-full max-w-md mx-auto relative">
+          {/* Desktop Floating Side Panel for Password Criteria (Unobtrusive) */}
+          {mode === "register" &&
+            password.length > 0 &&
+            renderPasswordCriteria(true)}
+
           {/* Main Card */}
           <div className="relative p-6 sm:p-8 clip-chamfer-md border-2 border-primary/60 bg-card/90 backdrop-blur-md shadow-[0_0_35px_var(--theme-glow),0_20px_50px_rgba(0,0,0,0.6)]">
             {/* Top Accent Gradient Bar */}
@@ -228,6 +448,7 @@ function LoginForm() {
                   setMode("signin");
                   setErrorMessage(null);
                   setSuccessMessage(null);
+                  setConfirmPassword("");
                 }}
                 className={`py-2 px-3 text-center uppercase tracking-wider font-bold transition-all cursor-pointer ${
                   mode === "signin"
@@ -247,6 +468,7 @@ function LoginForm() {
                   setMode("register");
                   setErrorMessage(null);
                   setSuccessMessage(null);
+                  setConfirmPassword("");
                 }}
                 className={`py-2 px-3 text-center uppercase tracking-wider font-bold transition-all cursor-pointer ${
                   mode === "register"
@@ -379,9 +601,9 @@ function LoginForm() {
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
-                    minLength={6}
+                    minLength={mode === "register" ? 8 : 1}
                     autoComplete={
                       mode === "signin" ? "current-password" : "new-password"
                     }
@@ -394,12 +616,86 @@ function LoginForm() {
                         ? "auth-error"
                         : successMessage
                         ? "auth-success"
+                        : mode === "register"
+                        ? "password-requirements-mobile"
                         : undefined
                     }
-                    className="w-full pl-9 pr-3 py-2.5 clip-chamfer-xs bg-background/80 border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs sm:text-sm placeholder:text-muted-foreground/50 transition-colors"
+                    className="w-full pl-9 pr-10 py-2.5 clip-chamfer-xs bg-background/80 border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs sm:text-sm placeholder:text-muted-foreground/50 transition-colors"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={
+                      showPassword ? t("hidePassword") : t("showPassword")
+                    }
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none transition-colors cursor-pointer"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" aria-hidden="true" />
+                    ) : (
+                      <Eye className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </button>
                 </div>
               </div>
+
+              {/* Mobile Inline Password Strength & Checklist (renders only on < lg screens) */}
+              {mode === "register" &&
+                password.length > 0 &&
+                renderPasswordCriteria(false)}
+
+              {/* Confirm Password Field */}
+              {mode === "register" && (
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider mb-1.5"
+                  >
+                    {t("confirmPasswordLabel")}
+                  </label>
+                  <div className="relative">
+                    <div
+                      className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground"
+                      aria-hidden="true"
+                    >
+                      <Lock className="h-4 w-4" />
+                    </div>
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      autoComplete="new-password"
+                      placeholder={t("confirmPasswordPlaceholder")}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={`w-full pl-9 pr-10 py-2.5 clip-chamfer-xs bg-background/80 border text-foreground font-mono text-xs sm:text-sm placeholder:text-muted-foreground/50 transition-colors focus:outline-none ${
+                        confirmPassword.length > 0
+                          ? passwordsMatch
+                            ? "border-emerald-500 focus:border-emerald-500"
+                            : "border-red-500 focus:border-red-500"
+                          : "border-border focus:border-primary"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      aria-label={
+                        showConfirmPassword
+                          ? t("hidePassword")
+                          : t("showPassword")
+                      }
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none transition-colors cursor-pointer"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" aria-hidden="true" />
+                      ) : (
+                        <Eye className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Submit CTA */}
               <button

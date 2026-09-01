@@ -40,6 +40,7 @@ interface AuthContextValue {
     password: string;
     username?: string;
   }) => Promise<{ success: boolean; error?: string; isConflict?: boolean }>;
+  resendVerificationEmail: (email?: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -288,6 +289,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [supabase, fetchProfile]
   );
 
+  // Resend Email Verification Dispatch
+  const resendVerificationEmail = useCallback(
+    async (targetEmail?: string) => {
+      try {
+        const emailToSend = targetEmail || user?.email;
+        if (!emailToSend) {
+          return { success: false, error: "No email address found" };
+        }
+        const { error } = await supabase.auth.resend({
+          type: "signup",
+          email: emailToSend,
+        });
+        if (error) {
+          return { success: false, error: error.message };
+        }
+        return { success: true };
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Failed to resend verification dispatch";
+        return { success: false, error: msg };
+      }
+    },
+    [supabase, user]
+  );
+
   // Sign Out
   const signOut = useCallback(async () => {
     try {
@@ -327,6 +355,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithPassword,
       signUpWithPassword,
       upgradeGuestAccount,
+      resendVerificationEmail,
       signOut,
       refreshProfile,
     }),
@@ -344,6 +373,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithPassword,
       signUpWithPassword,
       upgradeGuestAccount,
+      resendVerificationEmail,
       signOut,
       refreshProfile,
     ]
