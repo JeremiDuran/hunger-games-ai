@@ -22,6 +22,7 @@ import {
   ALLIANCE_COHESION_FRACTURE,
   ENDGAME_TRIBUTE_COUNT,
   SAME_DISTRICT_TRUCE_PROBABILITY,
+  SAME_DISTRICT_ALLIANCE_PROBABILITY,
 } from "./constants";
 
 // ==========================================
@@ -31,7 +32,7 @@ import {
 export const CAREER_DISTRICTS = [1, 2, 4] as const;
 export const DISTRICT_PARTNER_BASE_AFFINITY = 75;
 export const CAREER_PACK_BASE_AFFINITY = 60;
-export const SAME_DISTRICT_ALLIANCE_PROBABILITY = 0.75;
+export { SAME_DISTRICT_ALLIANCE_PROBABILITY };
 export const SPONTANEOUS_TRUCE_AFFINITY_THRESHOLD = 50;
 
 // ==========================================

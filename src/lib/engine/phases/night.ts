@@ -295,6 +295,7 @@ export class NightPhaseResolver implements BasePhaseResolver {
           fallenToday.length > 0
             ? `The Capitol anthem blares across the sky as the faces of ${fallenTodayNames.join(", ")} appear in the stars.`
             : "The Capitol anthem plays in the night sky. No tributes fell today.",
+        specialRulesTriggered: ["fallen_anthem_broadcast"],
       },
     });
 

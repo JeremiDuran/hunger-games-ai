@@ -89,6 +89,9 @@ export const ALLIANCE_COHESION_FRACTURE = 25;
 /** Tactical ambush power bonus for backstabbing an ally (+35% combat power) */
 export const ALLIANCE_AMBUSH_POWER_BONUS = 1.35;
 
+/** Probability of outer district partners forming a starting alliance in dynamic pacts mode */
+export const SAME_DISTRICT_ALLIANCE_PROBABILITY = 0.20;
+
 /** Truce probabilities for peaceful day encounters */
 export const SAME_DISTRICT_TRUCE_PROBABILITY = 0.8;
 export const CROSS_DISTRICT_TRUCE_PROBABILITY = 0.45;

@@ -193,8 +193,8 @@ export function dbAllianceToEngine(row: Tables<"game_alliances">): EngineAllianc
 export function engineAllianceToDbPayload(
   alliance: EngineAlliance
 ): TablesInsert<"game_alliances"> {
-  return {
-    id: alliance.id.startsWith("alliance-") ? undefined : alliance.id,
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(alliance.id);
+  const payload: TablesInsert<"game_alliances"> = {
     game_id: alliance.gameId,
     tribute_ids: alliance.tributeIds,
     status: alliance.status,
@@ -202,6 +202,10 @@ export function engineAllianceToDbPayload(
     dissolved_phase_id: alliance.dissolvedPhaseId,
     betrayed_by_tribute_id: alliance.betrayedByTributeId,
   };
+  if (isUuid) {
+    payload.id = alliance.id;
+  }
+  return payload;
 }
 
 /**
@@ -221,19 +225,25 @@ export function enginePhaseResultToDbPayloads(result: EnginePhaseResult): {
     status: "completed",
   };
 
-  const eventRows: TablesInsert<"game_phase_events">[] = result.events.map((event) => ({
-    id: event.eventId.startsWith("event-") ? undefined : event.eventId,
-    phase_id: result.phaseId,
-    game_id: result.gameId,
-    event_order: event.eventOrder,
-    event_category: event.eventCategory,
-    outcome_type: event.outcomeType,
-    tribute_ids: event.tributeIds,
-    killer_ids: event.killerIds,
-    victim_ids: event.victimIds,
-    narrative_text: event.narrativeText ?? "",
-    state_delta: event.stateDeltas as unknown as Json,
-  }));
+  const eventRows: TablesInsert<"game_phase_events">[] = result.events.map((event) => {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(event.eventId);
+    const row: TablesInsert<"game_phase_events"> = {
+      phase_id: result.phaseId,
+      game_id: result.gameId,
+      event_order: event.eventOrder,
+      event_category: event.eventCategory,
+      outcome_type: event.outcomeType,
+      tribute_ids: event.tributeIds,
+      killer_ids: event.killerIds,
+      victim_ids: event.victimIds,
+      narrative_text: event.narrativeText ?? "",
+      state_delta: event.stateDeltas as unknown as Json,
+    };
+    if (isUuid) {
+      row.id = event.eventId;
+    }
+    return row;
+  });
 
   return { phaseRow, eventRows };
 }

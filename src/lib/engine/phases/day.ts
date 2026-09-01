@@ -633,7 +633,8 @@ export class DayPhaseResolver implements BasePhaseResolver {
 
     // If medical or sustenance, auto-consume if injured
     let recoveryNotes = "";
-    if ((sponsorCategory === "medical" || sponsorCategory === "sustenance") && needsMedical) {
+    const isConsumed = (sponsorCategory === "medical" || sponsorCategory === "sustenance") && needsMedical;
+    if (isConsumed) {
       const consumeResult = consumeItem(sponsorItem.id, updated);
       updated = consumeResult.updatedTribute;
       recoveryNotes = ` (+${consumeResult.recoveryDelta.survivalDelta} Survival)`;
@@ -655,6 +656,7 @@ export class DayPhaseResolver implements BasePhaseResolver {
           survivalDelta: updated.biometrics.survival - tribute.biometrics.survival,
           sanityDelta: 10,
           itemsGained: [sponsorItem.name],
+          itemsConsumed: isConsumed ? [sponsorItem.name] : undefined,
           narrativeNotes: `A silver Capitol parachute drifted down delivering ${sponsorItem.name} to ${tribute.name}${recoveryNotes}.`,
         },
       },
