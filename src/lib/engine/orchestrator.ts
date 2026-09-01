@@ -10,12 +10,13 @@ import {
   PhaseType,
   EngineTribute,
 } from "./types";
-import { createPRNG } from "./prng";
+import { createPRNG, PRNG } from "./prng";
 import { getPhaseResolver } from "./phases";
 
 export interface AdvancePhaseInput {
   gameState: EngineGameState;
   customPhaseType?: PhaseType;
+  phaseIdOverride?: string;
 }
 
 export interface AdvancePhaseOutput {
@@ -24,15 +25,37 @@ export interface AdvancePhaseOutput {
 }
 
 /**
+ * Generates a deterministic RFC 4122 v4 compliant UUID using the phase PRNG instance.
+ */
+export function generateDeterministicUuid(prng: PRNG): string {
+  const hex = "0123456789abcdef";
+  const yHex = "89ab";
+  let uuid = "";
+  for (let i = 0; i < 36; i++) {
+    if (i === 8 || i === 13 || i === 18 || i === 23) {
+      uuid += "-";
+    } else if (i === 14) {
+      uuid += "4"; // version 4
+    } else if (i === 19) {
+      uuid += yHex[prng.nextInt(0, 3)]; // variant RFC 4122
+    } else {
+      uuid += hex[prng.nextInt(0, 15)];
+    }
+  }
+  return uuid;
+}
+
+/**
  * Pure, deterministic function that advances a game to its next procedural phase.
  */
 export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
-  const { gameState, customPhaseType } = input;
+  const { gameState, customPhaseType, phaseIdOverride } = input;
 
   // 1. If game is already finished, return immediate no-op result
   if (gameState.status === "finished") {
+    const endPrng = createPRNG(`${gameState.gameId}-phase-end-${gameState.seed}`);
     const emptyResult: EnginePhaseResult = {
-      phaseId: `phase-${gameState.gameId.slice(0, 6)}-end`,
+      phaseId: phaseIdOverride ?? generateDeterministicUuid(endPrng),
       gameId: gameState.gameId,
       dayNumber: gameState.currentDay,
       phaseType: gameState.currentPhaseType,
@@ -53,25 +76,27 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
     customPhaseType,
   });
 
-  const phaseId = `phase-${gameState.gameId.slice(0, 8)}-p${nextPhaseOrder}-${nextPhaseType}`;
-
   // 3. Instantiate deterministic PRNG for this specific phase round
   const prng = createPRNG(
     `${gameState.gameId}-phase-${nextPhaseOrder}-${nextPhaseType}-${gameState.seed}`
   );
 
+  const phaseId = phaseIdOverride ?? generateDeterministicUuid(prng);
+
   // 4. Resolve the phase via registered PhaseResolver strategy
   const resolver = getPhaseResolver(nextPhaseType);
-  const livingTributes = Array.from(gameState.tributes.values()).filter(
+  const livingTributesBeforePhase = Array.from(gameState.tributes.values()).filter(
     (t) => t.status === "alive"
   );
+
+  const initialAliveCount = livingTributesBeforePhase.length;
 
   const resolution = resolver.resolvePhase({
     gameId: gameState.gameId,
     dayNumber: nextDayNumber,
     phaseType: nextPhaseType,
     phaseOrder: nextPhaseOrder,
-    aliveTributes: livingTributes,
+    aliveTributes: livingTributesBeforePhase,
     allTributes: gameState.tributes,
     alliances: gameState.alliances,
     settings: gameState.settings,
@@ -82,18 +107,18 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
 
   // 5. Update placement and deathPhaseId for any tributes who fell in this phase
   const updatedTributes = new Map<string, EngineTribute>(resolution.updatedTributes);
-  const aliveAfterPhase = Array.from(updatedTributes.values()).filter(
-    (t) => t.status === "alive"
-  );
 
-  for (const fallenId of resolution.fallenTributeIds) {
+  // Assign ordered placements to fallen tributes in reverse order of survival
+  for (let i = 0; i < resolution.fallenTributeIds.length; i++) {
+    const fallenId = resolution.fallenTributeIds[i];
     const fallen = updatedTributes.get(fallenId);
     if (fallen) {
+      const calculatedPlacement = initialAliveCount - i;
       updatedTributes.set(fallenId, {
         ...fallen,
         status: "dead",
         deathPhaseId: phaseId,
-        placement: fallen.placement ?? aliveAfterPhase.length + resolution.fallenTributeIds.length,
+        placement: fallen.placement ?? Math.max(2, calculatedPlacement),
       });
     }
   }
@@ -106,25 +131,33 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
   let isVictory = false;
   let winnerIds: string[] | null = null;
 
-  // Case A: Sole Victor (1 or 0 tributes alive)
-  if (finalAliveTributes.length <= 1) {
+  // Case A: Sole Victor (1 tribute alive)
+  if (finalAliveTributes.length === 1) {
     isVictory = true;
-    if (finalAliveTributes.length === 1) {
-      const victor = finalAliveTributes[0];
-      winnerIds = [victor.id];
-      updatedTributes.set(victor.id, {
-        ...victor,
-        placement: 1,
-      });
-    } else {
-      // 0 alive: Mutual destruction
-      winnerIds = [];
+    const victor = finalAliveTributes[0];
+    winnerIds = [victor.id];
+    updatedTributes.set(victor.id, {
+      ...victor,
+      placement: 1,
+    });
+  }
+  // Case B: Mutual Destruction / No Victors (0 tributes alive)
+  else if (finalAliveTributes.length === 0) {
+    isVictory = true;
+    winnerIds = [];
+    // Ensure all final fallen tributes have placement assigned
+    for (const fallenId of resolution.fallenTributeIds) {
+      const fallen = updatedTributes.get(fallenId);
+      if (fallen && (fallen.placement === null || fallen.placement === 1)) {
+        updatedTributes.set(fallenId, {
+          ...fallen,
+          placement: 2,
+        });
+      }
     }
   }
-
-  // Case B: District Duo Twist
-  if (
-    !isVictory &&
+  // Case C: District Duo Twist (2 tributes alive from the same district)
+  else if (
     gameState.settings.victoryCondition === "district_duo_twist" &&
     finalAliveTributes.length === 2 &&
     finalAliveTributes[0].district === finalAliveTributes[1].district

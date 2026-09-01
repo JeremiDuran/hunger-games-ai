@@ -3,15 +3,20 @@
  * Bidirectional mapping between Supabase DB models, Setup Wizard types, and Engine Domain models.
  */
 
-import { Tables, TablesUpdate, Json } from "@/types/database";
+import { Tables, TablesInsert, TablesUpdate, Json } from "@/types/database";
 import { TributeData } from "@/types/setup";
 import { DEFAULT_RULES_STATE } from "@/lib/schemas/setup";
 import {
   EngineTribute,
+  EngineAlliance,
+  EngineGameState,
+  EnginePhaseResult,
   EngineGameSettings,
   TributeBiometrics,
   PhysicalConditionTag,
   MentalConditionTag,
+  AllianceStatus,
+  PhaseType,
 } from "./types";
 import {
   clampBiometric,
@@ -19,6 +24,8 @@ import {
   evaluatePhysicalTag,
   evaluateMentalTag,
 } from "./biometrics";
+import { EngineItem } from "./items/types";
+import { isEngineItem } from "./items/buffs";
 
 /**
  * Parses raw JSONB stats from the database into strict TributeBiometrics.
@@ -74,9 +81,6 @@ export function parseDbTributeStats(rawStats: unknown): TributeBiometrics {
 
   return createInitialBiometrics();
 }
-
-import { EngineItem } from "./items/types";
-import { isEngineItem } from "./items/buffs";
 
 /**
  * Safely parses raw inventory JSONB into an array of EngineItem objects or string names.
@@ -166,6 +170,123 @@ export function initializeEngineRoster(
   }
 
   return roster;
+}
+
+/**
+ * Converts a Supabase `game_alliances` row into an EngineAlliance domain model.
+ */
+export function dbAllianceToEngine(row: Tables<"game_alliances">): EngineAlliance {
+  return {
+    id: row.id,
+    gameId: row.game_id,
+    tributeIds: row.tribute_ids,
+    status: (row.status as AllianceStatus) || "active",
+    formedPhaseId: row.formed_phase_id,
+    dissolvedPhaseId: row.dissolved_phase_id,
+    betrayedByTributeId: row.betrayed_by_tribute_id,
+  };
+}
+
+/**
+ * Converts an EngineAlliance domain model into a Supabase `game_alliances` insert payload.
+ */
+export function engineAllianceToDbPayload(
+  alliance: EngineAlliance
+): TablesInsert<"game_alliances"> {
+  return {
+    id: alliance.id.startsWith("alliance-") ? undefined : alliance.id,
+    game_id: alliance.gameId,
+    tribute_ids: alliance.tributeIds,
+    status: alliance.status,
+    formed_phase_id: alliance.formedPhaseId,
+    dissolved_phase_id: alliance.dissolvedPhaseId,
+    betrayed_by_tribute_id: alliance.betrayedByTributeId,
+  };
+}
+
+/**
+ * Converts an EnginePhaseResult into database insert payloads for `game_phases` and `game_phase_events`.
+ */
+export function enginePhaseResultToDbPayloads(result: EnginePhaseResult): {
+  phaseRow: TablesInsert<"game_phases">;
+  eventRows: TablesInsert<"game_phase_events">[];
+} {
+  const phaseRow: TablesInsert<"game_phases"> = {
+    id: result.phaseId,
+    game_id: result.gameId,
+    day_number: result.dayNumber,
+    phase_type: result.phaseType,
+    phase_order: result.phaseOrder,
+    fallen_tribute_ids: result.fallenTributeIds,
+    status: "completed",
+  };
+
+  const eventRows: TablesInsert<"game_phase_events">[] = result.events.map((event) => ({
+    id: event.eventId.startsWith("event-") ? undefined : event.eventId,
+    phase_id: result.phaseId,
+    game_id: result.gameId,
+    event_order: event.eventOrder,
+    event_category: event.eventCategory,
+    outcome_type: event.outcomeType,
+    tribute_ids: event.tributeIds,
+    killer_ids: event.killerIds,
+    victim_ids: event.victimIds,
+    narrative_text: event.narrativeText ?? "",
+    state_delta: event.stateDeltas as unknown as Json,
+  }));
+
+  return { phaseRow, eventRows };
+}
+
+/**
+ * Reconstructs a complete EngineGameState from relational Supabase database rows.
+ */
+export function dbGameStateToEngine(params: {
+  gameRow: Tables<"games">;
+  tributeRows: Tables<"tributes">[];
+  allianceRows?: Tables<"game_alliances">[];
+  latestPhaseRow?: Tables<"game_phases"> | null;
+}): EngineGameState {
+  const { gameRow, tributeRows, allianceRows = [], latestPhaseRow } = params;
+
+  const tributes = new Map<string, EngineTribute>();
+  for (const tRow of tributeRows) {
+    tributes.set(tRow.id, dbTributeToEngine(tRow));
+  }
+
+  const alliances = new Map<string, EngineAlliance>();
+  for (const aRow of allianceRows) {
+    alliances.set(aRow.id, dbAllianceToEngine(aRow));
+  }
+
+  const settings = dbGameSettingsToEngine(gameRow.settings);
+
+  // Compute current day, phase order, and phase type
+  const phaseOrder = latestPhaseRow ? latestPhaseRow.phase_order : 0;
+  const currentPhaseType = (gameRow.current_phase_type as PhaseType) || "bloodbath";
+  const currentDay = gameRow.current_day ?? 0;
+
+  // Simple deterministic seed derived from game ID
+  let seed = 42;
+  for (let i = 0; i < gameRow.id.length; i++) {
+    seed = (seed * 31 + gameRow.id.charCodeAt(i)) & 0x7fffffff;
+  }
+
+  return {
+    gameId: gameRow.id,
+    title: gameRow.title,
+    arenaName: gameRow.arena_name,
+    arenaDescription: gameRow.arena_description,
+    currentDay,
+    currentPhaseType,
+    phaseOrder,
+    status: gameRow.status,
+    winnerIds: gameRow.winner_id ? [gameRow.winner_id] : null,
+    tributes,
+    alliances,
+    settings,
+    seed,
+  };
 }
 
 /**

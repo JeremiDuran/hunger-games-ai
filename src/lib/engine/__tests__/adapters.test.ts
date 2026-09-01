@@ -6,10 +6,15 @@ import {
   engineTributeToDbUpdate,
   initializeEngineRoster,
   dbGameSettingsToEngine,
+  dbAllianceToEngine,
+  engineAllianceToDbPayload,
+  enginePhaseResultToDbPayloads,
+  dbGameStateToEngine,
 } from "../adapters";
 import { Tables } from "@/types/database";
 import { TributeData } from "@/types/setup";
-import { EngineTribute } from "../types";
+import { EngineAlliance, EnginePhaseResult, EngineTribute } from "../types";
+import { createInitialBiometrics } from "../biometrics";
 
 describe("Engine Adapters & Converters", () => {
   describe("parseDbTributeStats", () => {
@@ -83,7 +88,7 @@ describe("Engine Adapters & Converters", () => {
       expect(parseDbInventory(["bow", "knife"])).toEqual(["bow", "knife"]);
     });
 
-    it("filters out non-string items", () => {
+    it("filters out non-string items unless valid EngineItem", () => {
       expect(parseDbInventory(["knife", 123, null, "water_flask"])).toEqual([
         "knife",
         "water_flask",
@@ -173,6 +178,156 @@ describe("Engine Adapters & Converters", () => {
         physical_tag: "fatal",
         mental_tag: "manic",
       });
+    });
+  });
+
+  describe("dbAllianceToEngine & engineAllianceToDbPayload", () => {
+    it("converts DB alliance row to EngineAlliance", () => {
+      const row: Tables<"game_alliances"> = {
+        id: "alliance-1",
+        game_id: "game-1",
+        tribute_ids: ["t1", "t2"],
+        status: "active",
+        formed_phase_id: "phase-1",
+        dissolved_phase_id: null,
+        betrayed_by_tribute_id: null,
+        created_at: "2026-09-01T00:00:00Z",
+      };
+
+      const alliance = dbAllianceToEngine(row);
+      expect(alliance.id).toBe("alliance-1");
+      expect(alliance.tributeIds).toEqual(["t1", "t2"]);
+      expect(alliance.status).toBe("active");
+    });
+
+    it("converts EngineAlliance to DB insert payload", () => {
+      const alliance: EngineAlliance = {
+        id: "c4b12345-6789-4abc-def0-123456789abc",
+        gameId: "game-1",
+        tributeIds: ["t1", "t2"],
+        status: "betrayed",
+        formedPhaseId: "phase-1",
+        dissolvedPhaseId: "phase-2",
+        betrayedByTributeId: "t1",
+      };
+
+      const payload = engineAllianceToDbPayload(alliance);
+      expect(payload.game_id).toBe("game-1");
+      expect(payload.status).toBe("betrayed");
+      expect(payload.betrayed_by_tribute_id).toBe("t1");
+      expect(payload.id).toBe("c4b12345-6789-4abc-def0-123456789abc");
+    });
+  });
+
+  describe("enginePhaseResultToDbPayloads", () => {
+    it("creates typed insert rows for game_phases and game_phase_events", () => {
+      const result: EnginePhaseResult = {
+        phaseId: "e9a11111-2222-4333-8444-555555555555",
+        gameId: "game-uuid-1",
+        dayNumber: 1,
+        phaseType: "day",
+        phaseOrder: 2,
+        fallenTributeIds: ["t2"],
+        updatedTributes: new Map(),
+        isVictoryTriggered: false,
+        winnerIds: null,
+        events: [
+          {
+            eventId: "f8b11111-2222-4333-8444-555555555555",
+            eventOrder: 1,
+            eventCategory: "combat",
+            outcomeType: "death",
+            tributeIds: ["t1", "t2"],
+            killerIds: ["t1"],
+            victimIds: ["t2"],
+            narrativeText: "Katniss shoots an arrow.",
+            stateDeltas: {},
+          },
+        ],
+      };
+
+      const { phaseRow, eventRows } = enginePhaseResultToDbPayloads(result);
+
+      expect(phaseRow.id).toBe("e9a11111-2222-4333-8444-555555555555");
+      expect(phaseRow.game_id).toBe("game-uuid-1");
+      expect(phaseRow.day_number).toBe(1);
+      expect(phaseRow.phase_type).toBe("day");
+      expect(phaseRow.phase_order).toBe(2);
+      expect(phaseRow.fallen_tribute_ids).toEqual(["t2"]);
+
+      expect(eventRows).toHaveLength(1);
+      expect(eventRows[0].phase_id).toBe(phaseRow.id);
+      expect(eventRows[0].event_category).toBe("combat");
+      expect(eventRows[0].killer_ids).toEqual(["t1"]);
+      expect(eventRows[0].victim_ids).toEqual(["t2"]);
+    });
+  });
+
+  describe("dbGameStateToEngine", () => {
+    it("reconstructs complete EngineGameState from relational tables", () => {
+      const gameRow: Tables<"games"> = {
+        id: "g-100",
+        user_id: "u-1",
+        title: "The 74th Hunger Games",
+        arena_name: "Verdant Tropics",
+        arena_description: "Dense jungle.",
+        status: "in_progress",
+        current_day: 2,
+        current_phase_type: "day",
+        tribute_count: 2,
+        winner_id: null,
+        settings: {
+          enable_bloodbath: true,
+          combat_lethality: "balanced",
+        },
+        created_at: "2026-09-01T00:00:00Z",
+        updated_at: "2026-09-01T00:00:00Z",
+        ended_at: null,
+      };
+
+      const tributeRows: Tables<"tributes">[] = [
+        {
+          id: "t1",
+          game_id: "g-100",
+          name: "Katniss",
+          district: 12,
+          gender: "female",
+          personality: "Tactical",
+          physical_aspect: "Lean",
+          avatar_url: null,
+          status: "alive",
+          kill_count: 1,
+          stats: { survival: 50, sanity: 50 },
+          inventory: [],
+          death_phase_id: null,
+          placement: null,
+          created_at: "2026-09-01T00:00:00Z",
+        },
+      ];
+
+      const latestPhaseRow: Tables<"game_phases"> = {
+        id: "p-1",
+        game_id: "g-100",
+        day_number: 1,
+        phase_type: "night",
+        phase_order: 2,
+        fallen_tribute_ids: [],
+        status: "completed",
+        created_at: "2026-09-01T00:00:00Z",
+      };
+
+      const gameState = dbGameStateToEngine({
+        gameRow,
+        tributeRows,
+        latestPhaseRow,
+      });
+
+      expect(gameState.gameId).toBe("g-100");
+      expect(gameState.title).toBe("The 74th Hunger Games");
+      expect(gameState.currentDay).toBe(2);
+      expect(gameState.phaseOrder).toBe(2);
+      expect(gameState.tributes.size).toBe(1);
+      expect(gameState.settings.enableBloodbath).toBe(true);
     });
   });
 
