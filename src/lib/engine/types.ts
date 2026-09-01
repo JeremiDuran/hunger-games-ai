@@ -4,6 +4,7 @@
  */
 
 import { Database } from "@/types/database";
+import { PRNG } from "./prng";
 import {
   CombatLethality,
   AllianceDynamic,
@@ -195,3 +196,92 @@ export interface EngineGameState {
   settings: EngineGameSettings;
   seed: number;
 }
+
+// ==========================================
+// 6. Encounter Formations & Slot Matchmaker
+// ==========================================
+
+export type EncounterType =
+  // Solo Formations (1 Tribute)
+  | "solo_forage"
+  | "solo_rest"
+  | "solo_mishap"
+  | "solo_pve"
+  // Duo Formations (2 Tributes)
+  | "duel_1v1"
+  | "standoff_1v1"
+  | "coop_pve_2"
+  | "allied_camp_2"
+  | "peaceful_encounter_2"
+  // Trio Formations (3 Tributes)
+  | "ffa_3way"
+  | "ambush_1v2"
+  | "spontaneous_truce_1v2"
+  | "coop_pve_3"
+  | "allied_camp_3"
+  // Quad Formations (4 Tributes)
+  | "ffa_4way"
+  | "squad_war_2v2"
+  | "stand_1v3"
+  | "asymmetric_2v1v1"
+  | "squad_pve_4way"
+  // Special Cornucopia & Feast Events
+  | "bloodbath_horn_clash"
+  | "feast_supply_clash";
+
+export type NPCType = "mutt" | "hazard" | "beast";
+export type ThreatLevel = "minor" | "moderate" | "lethal";
+
+export interface NPCCombatant {
+  id: string;
+  name: string;
+  type: NPCType;
+  threatLevel: ThreatLevel;
+}
+
+export interface EncounterFaction {
+  id: string;
+  name: string;
+  tributeIds: string[];
+  npcIds?: string[];
+  isSpontaneousTruce?: boolean;
+  isHostileToAll?: boolean;
+}
+
+export interface ThematicEncounterContext {
+  itemContested?: string;
+  itemDiscovered?: string;
+  npcName?: string;
+  hazardName?: string;
+  locationDescription?: string;
+  specialRulesTriggered?: string[];
+}
+
+export interface EncounterSlotFormation {
+  id: string;
+  encounterOrder: number;
+  formationType: EncounterType;
+  category: EventCategory;
+  tributeIds: string[]; // 1 to 4 tributes
+  npcs: NPCCombatant[]; // 0 to 2 NPCs
+  factions: EncounterFaction[];
+  thematicContext?: ThematicEncounterContext;
+}
+
+export interface MatchmakerContext {
+  gameId: string;
+  dayNumber: number;
+  phaseType: PhaseType;
+  aliveTributes: EngineTribute[];
+  alliances: Map<string, EngineAlliance>;
+  settings: EngineGameSettings;
+  prng: PRNG;
+  arenaName?: string;
+  arenaDescription?: string;
+}
+
+export interface MatchmakerPartitionResult {
+  encounters: EncounterSlotFormation[];
+  unmatchedTributes: EngineTribute[];
+}
+
