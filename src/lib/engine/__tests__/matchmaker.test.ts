@@ -4,7 +4,6 @@ import { bootstrapInitialAlliances } from "../alliances";
 import { createPRNG } from "../prng";
 import { createInitialBiometrics } from "../biometrics";
 import { EngineTribute, EngineGameSettings, EngineAlliance } from "../types";
-import { DEFAULT_RULES_STATE } from "@/lib/schemas/setup";
 
 function createMockRoster(count: number, gameId = "game-test"): EngineTribute[] {
   const tributes: EngineTribute[] = [];

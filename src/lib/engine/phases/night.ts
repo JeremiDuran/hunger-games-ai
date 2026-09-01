@@ -1,0 +1,314 @@
+/**
+ * Hunger Games AI — Night Phase Resolver (Camps, Hypothermia, Night Mutts, Fallen Anthem)
+ * Procedural night cycle evaluating encampments, environmental exposure, nocturnal threats, and anthem recaps.
+ */
+
+import { BasePhaseResolver, PhaseContext, PhaseResolutionOutput } from "./types";
+import {
+  EngineTribute,
+  EngineEventOutcome,
+  TributeStateDelta,
+  EngineAlliance,
+} from "../types";
+import {
+  NIGHT_CAMP_SANITY_RECOVERY,
+  NIGHT_LONE_EXPOSURE_SURVIVAL_PENALTY,
+  NIGHT_LONE_ISOLATION_SANITY_PENALTY,
+} from "../constants";
+import {
+  getTributeAlliance,
+  evaluateAllianceStrain,
+  betrayAlliance,
+  dissolveAlliance,
+  syncDegradedAlliances,
+} from "../alliances";
+import { resolve1v1Clash, resolvePvEClash } from "../combat/calculus";
+import { applyBiometricDelta } from "../biometrics";
+import { getBestArmor, getBestTool } from "../items/buffs";
+
+export class NightPhaseResolver implements BasePhaseResolver {
+  readonly phaseType = "night" as const;
+
+  resolvePhase(context: PhaseContext): PhaseResolutionOutput {
+    const {
+      gameId,
+      dayNumber,
+      allTributes,
+      alliances,
+      settings,
+      prng,
+      priorFallenTributeIds = [],
+    } = context;
+
+    const updatedTributes = new Map<string, EngineTribute>(allTributes);
+    const updatedAlliances = new Map<string, EngineAlliance>(alliances);
+    const fallenTributeIds: string[] = [...priorFallenTributeIds];
+    const newlyFallenThisNight: string[] = [];
+    const events: EngineEventOutcome[] = [];
+    let eventCounter = 1;
+
+    const livingTributes = Array.from(updatedTributes.values()).filter(
+      (t) => t.status === "alive"
+    );
+
+    if (livingTributes.length === 0) {
+      return { events, fallenTributeIds, updatedTributes, updatedAlliances };
+    }
+
+    // 1. Group tributes by active alliances vs lone individuals
+    const processedTributeIds = new Set<string>();
+
+    for (const tribute of livingTributes) {
+      if (processedTributeIds.has(tribute.id)) continue;
+
+      const alliance = getTributeAlliance(updatedAlliances, tribute.id);
+
+      if (alliance && alliance.status === "active") {
+        const allyMembers = alliance.tributeIds
+          .map((id) => updatedTributes.get(id))
+          .filter((t): t is EngineTribute => t !== undefined && t.status === "alive");
+
+        if (allyMembers.length >= 2) {
+          // Check for Alliance Strain / Betrayal before settling into camp
+          const strain = evaluateAllianceStrain(
+            alliance,
+            updatedTributes,
+            livingTributes.length,
+            { settings, prng }
+          );
+
+          if (strain.shouldBetray && strain.potentialBetrayerId && prng.nextBoolean(0.75)) {
+            // Betrayal clash in the camp
+            const betrayer = updatedTributes.get(strain.potentialBetrayerId)!;
+            const victimId =
+              strain.potentialVictimId ??
+              allyMembers.find((m) => m.id !== betrayer.id)?.id;
+            const victim = victimId ? updatedTributes.get(victimId) : undefined;
+
+            if (victim) {
+              const betrayalClash = resolve1v1Clash(betrayer, victim, {
+                prng,
+                lethality: settings.combatLethality,
+                isAmbush: true, // Stealth backstab in camp
+              });
+
+              updatedTributes.set(betrayalClash.updatedVictor.id, betrayalClash.updatedVictor);
+              updatedTributes.set(betrayalClash.updatedLoser.id, betrayalClash.updatedLoser);
+
+              if (betrayalClash.isFatal) {
+                fallenTributeIds.push(betrayalClash.updatedLoser.id);
+                newlyFallenThisNight.push(betrayalClash.updatedLoser.id);
+              }
+
+              // Update alliance status to betrayed
+              const updatedAlliance = betrayAlliance(
+                alliance,
+                betrayer.id,
+                `phase-${gameId.slice(0, 6)}-d${dayNumber}`
+              );
+              updatedAlliances.set(updatedAlliance.id, updatedAlliance);
+
+              const reasonText =
+                strain.reason === "paranoid_breakdown"
+                  ? `Overcome with paranoid terror, ${betrayer.name} ambushed ${victim.name} in the dark.`
+                  : `${betrayer.name} ruthlessly struck down ${victim.name} in a cold endgame betrayal.`;
+
+              events.push({
+                eventId: `event-${gameId.slice(0, 6)}-night-${eventCounter++}`,
+                eventOrder: eventCounter,
+                eventCategory: "social",
+                outcomeType: betrayalClash.isFatal ? "death" : "wound",
+                tributeIds: [betrayer.id, victim.id],
+                killerIds: betrayalClash.isFatal ? [betrayer.id] : null,
+                victimIds: betrayalClash.isFatal ? [victim.id] : null,
+                stateDeltas: betrayalClash.stateDeltas,
+                thematicContext: {
+                  locationDescription: reasonText,
+                },
+              });
+
+              allyMembers.forEach((m) => processedTributeIds.add(m.id));
+              continue;
+            }
+          }
+
+          if (strain.shouldDissolve && strain.reason === "peaceful_drift") {
+            // Peaceful dissolution due to low cohesion / irreconcilable friction
+            const updatedAlliance = dissolveAlliance(
+              alliance,
+              `phase-${gameId.slice(0, 6)}-d${dayNumber}`
+            );
+            updatedAlliances.set(updatedAlliance.id, updatedAlliance);
+
+            events.push({
+              eventId: `event-${gameId.slice(0, 6)}-night-${eventCounter++}`,
+              eventOrder: eventCounter,
+              eventCategory: "social",
+              outcomeType: "idle",
+              tributeIds: allyMembers.map((m) => m.id),
+              killerIds: null,
+              victimIds: null,
+              stateDeltas: {},
+              thematicContext: {
+                locationDescription: `Tensions and mutual distrust reached a breaking point. ${allyMembers.map((m) => m.name).join(" and ")} dissolved their alliance and parted ways into the dark.`,
+              },
+            });
+
+            allyMembers.forEach((m) => processedTributeIds.add(m.id));
+            continue;
+          }
+
+          // Peaceful allied camp: Warmth, security, sanity recovery
+          const campDeltas: Record<string, TributeStateDelta> = {};
+          for (const member of allyMembers) {
+            const updated = applyBiometricDelta(member, {
+              sanityDelta: NIGHT_CAMP_SANITY_RECOVERY,
+            });
+            updatedTributes.set(updated.id, updated);
+            campDeltas[member.id] = {
+              tributeId: member.id,
+              survivalDelta: 0,
+              sanityDelta: NIGHT_CAMP_SANITY_RECOVERY,
+              narrativeNotes: `${member.name} shared guard duty with allies and rested safely.`,
+            };
+            processedTributeIds.add(member.id);
+          }
+
+          events.push({
+            eventId: `event-${gameId.slice(0, 6)}-night-${eventCounter++}`,
+            eventOrder: eventCounter,
+            eventCategory: "social",
+            outcomeType: "idle",
+            tributeIds: allyMembers.map((m) => m.id),
+            killerIds: null,
+            victimIds: null,
+            stateDeltas: campDeltas,
+            thematicContext: {
+              locationDescription: "Around a sheltered campfire in the dark.",
+            },
+          });
+          continue;
+        }
+      }
+
+      // -------------------------------------------------------------
+      // Lone Tribute Night Resolution (Exposure, Cold, Night Stalkers)
+      // -------------------------------------------------------------
+      processedTributeIds.add(tribute.id);
+
+      // Check for Night Mutt Stalker Attack
+      if (prng.nextBoolean(0.2)) {
+        const stalkerResult = resolvePvEClash(
+          [tribute],
+          { name: "Nocturnal Shadow Mutt", power: 50, threatLevel: "moderate" },
+          { prng }
+        );
+
+        for (const [id, updated] of stalkerResult.updatedTributes) {
+          updatedTributes.set(id, updated);
+        }
+
+        if (stalkerResult.fallenTributeIds.length > 0) {
+          fallenTributeIds.push(...stalkerResult.fallenTributeIds);
+          newlyFallenThisNight.push(...stalkerResult.fallenTributeIds);
+        }
+
+        events.push({
+          eventId: `event-${gameId.slice(0, 6)}-night-${eventCounter++}`,
+          eventOrder: eventCounter,
+          eventCategory: "mutt",
+          outcomeType: stalkerResult.fallenTributeIds.length > 0 ? "death" : "wound",
+          tributeIds: [tribute.id],
+          killerIds: null,
+          victimIds: stalkerResult.fallenTributeIds.length > 0 ? stalkerResult.fallenTributeIds : null,
+          stateDeltas: stalkerResult.stateDeltas,
+          thematicContext: {
+            npcName: "Nocturnal Shadow Mutt",
+            locationDescription: "Stalked by predator mutts in pitch darkness.",
+          },
+        });
+        continue;
+      }
+
+      // Environmental Exposure / Cold Evaluation
+      const hasArmor = getBestArmor(tribute.inventory) !== null;
+      const hasTool = getBestTool(tribute.inventory) !== null;
+
+      // Armor or tools mitigate cold exposure penalty
+      const coldPenalty = hasArmor || hasTool
+        ? Math.round(NIGHT_LONE_EXPOSURE_SURVIVAL_PENALTY / 2)
+        : NIGHT_LONE_EXPOSURE_SURVIVAL_PENALTY;
+
+      const sanityPenalty = NIGHT_LONE_ISOLATION_SANITY_PENALTY;
+
+      const updated = applyBiometricDelta(tribute, {
+        survivalDelta: coldPenalty,
+        sanityDelta: sanityPenalty,
+      });
+
+      updatedTributes.set(updated.id, updated);
+
+      if (updated.status === "dead") {
+        fallenTributeIds.push(updated.id);
+        newlyFallenThisNight.push(updated.id);
+      }
+
+      events.push({
+        eventId: `event-${gameId.slice(0, 6)}-night-${eventCounter++}`,
+        eventOrder: eventCounter,
+        eventCategory: "hazard",
+        outcomeType: updated.status === "dead" ? "death" : "wound",
+        tributeIds: [tribute.id],
+        killerIds: null,
+        victimIds: updated.status === "dead" ? [tribute.id] : null,
+        stateDeltas: {
+          [tribute.id]: {
+            tributeId: tribute.id,
+            survivalDelta: coldPenalty,
+            sanityDelta: sanityPenalty,
+            narrativeNotes: `${tribute.name} shivered through the freezing night in isolation.`,
+          },
+        },
+        thematicContext: {
+          locationDescription: "Huddled in the bitter cold darkness.",
+        },
+      });
+    }
+
+    // 2. The Fallen Anthem Event (Capitol Anthem Broadcast)
+    const fallenToday = Array.from(new Set(fallenTributeIds));
+    const fallenTodayNames = fallenToday
+      .map((id) => allTributes.get(id)?.name)
+      .filter(Boolean);
+
+    events.push({
+      eventId: `event-${gameId.slice(0, 6)}-anthem-${eventCounter++}`,
+      eventOrder: eventCounter,
+      eventCategory: "social",
+      outcomeType: "idle",
+      tributeIds: fallenToday,
+      killerIds: null,
+      victimIds: null,
+      stateDeltas: {},
+      thematicContext: {
+        locationDescription:
+          fallenToday.length > 0
+            ? `The Capitol anthem blares across the sky as the faces of ${fallenTodayNames.join(", ")} appear in the stars.`
+            : "The Capitol anthem plays in the night sky. No tributes fell today.",
+      },
+    });
+
+    const finalAlliances = syncDegradedAlliances(
+      updatedAlliances,
+      updatedTributes,
+      `phase-${gameId.slice(0, 6)}-d${dayNumber}`
+    );
+
+    return {
+      events,
+      fallenTributeIds: fallenToday,
+      updatedTributes,
+      updatedAlliances: finalAlliances,
+    };
+  }
+}

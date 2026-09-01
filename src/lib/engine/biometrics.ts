@@ -23,7 +23,6 @@ import {
   MentalConditionTag,
   TributeBiometrics,
   EngineTribute,
-  EnvironmentalContextFlags,
 } from "./types";
 
 /**
@@ -37,21 +36,12 @@ export function clampBiometric(value: number): number {
 }
 
 /**
- * Evaluates the qualitative physical condition tag from the survival score and optional environmental flags.
+ * Evaluates the qualitative physical condition tag from the survival score.
  */
-export function evaluatePhysicalTag(
-  survival: number,
-  flags?: EnvironmentalContextFlags
-): PhysicalConditionTag {
+export function evaluatePhysicalTag(survival: number): PhysicalConditionTag {
   if (survival <= SURVIVAL_FATAL_THRESHOLD) {
     return "fatal";
   }
-
-  // Environmental priority tags (if specific status conditions are active)
-  if (flags?.isPoisoned) return "poisoned";
-  if (flags?.isFreezing) return "freezing";
-  if (flags?.isStarving) return "starving";
-
   if (survival >= SURVIVAL_PRIME_THRESHOLD) {
     return "unscathed";
   }
@@ -98,7 +88,6 @@ export function createInitialBiometrics(): TributeBiometrics {
 export interface BiometricDeltaApplication {
   survivalDelta?: number;
   sanityDelta?: number;
-  contextFlags?: EnvironmentalContextFlags;
   overridePhysicalTag?: PhysicalConditionTag;
   overrideMentalTag?: MentalConditionTag;
 }
@@ -123,8 +112,7 @@ export function applyBiometricDelta(
 
   const physicalTag = isFatal
     ? "fatal"
-    : delta.overridePhysicalTag ??
-      evaluatePhysicalTag(newSurvival, delta.contextFlags);
+    : delta.overridePhysicalTag ?? evaluatePhysicalTag(newSurvival);
 
   const mentalTag = isFatal
     ? tribute.biometrics.mentalTag

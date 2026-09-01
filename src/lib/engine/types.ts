@@ -17,6 +17,8 @@ import {
   TurnGranularity,
 } from "@/types/setup";
 
+import { EngineItem } from "./items/types";
+
 // ==========================================
 // 1. Biometric Condition Tags & State
 // ==========================================
@@ -27,9 +29,6 @@ export type PhysicalConditionTag =
   | "bruised"
   | "wounded"
   | "critically_injured"
-  | "poisoned"
-  | "freezing"
-  | "starving"
   | "fatal";
 
 export type MentalConditionTag =
@@ -66,7 +65,7 @@ export interface EngineTribute {
   status: TributeStatus;
   killCount: number;
   biometrics: TributeBiometrics;
-  inventory: string[];
+  inventory: (EngineItem | string)[];
   deathPhaseId: string | null;
   placement: number | null;
 }
@@ -96,7 +95,14 @@ export interface EngineGameSettings {
 // 3. Phase & Event Taxonomy
 // ==========================================
 
-export type PhaseType = "bloodbath" | "day" | "night" | "feast";
+export type PhaseType =
+  | "bloodbath"
+  | "day"
+  | "night"
+  | "feast"
+  | "cataclysm"
+  | "npc_overload"
+  | "arena_event";
 export type EventCategory =
   | "combat"
   | "forage"
@@ -112,12 +118,6 @@ export type OutcomeType =
   | "alliance"
   | "idle";
 
-export interface EnvironmentalContextFlags {
-  isPoisoned?: boolean;
-  isFreezing?: boolean;
-  isStarving?: boolean;
-}
-
 export interface TributeStateDelta {
   tributeId: string;
   survivalDelta: number;
@@ -126,8 +126,10 @@ export interface TributeStateDelta {
   newMentalTag?: MentalConditionTag;
   isFatal?: boolean;
   killerId?: string;
-  itemsGained?: string[];
-  itemsLost?: string[];
+  itemsGained?: (EngineItem | string)[];
+  itemsLost?: (EngineItem | string)[];
+  itemsConsumed?: (EngineItem | string)[];
+  itemsDestroyed?: (EngineItem | string)[];
   narrativeNotes?: string;
 }
 
@@ -143,8 +145,11 @@ export interface EngineEventOutcome {
   narrativeText?: string;
   thematicContext?: {
     itemContested?: string;
+    itemDiscovered?: string;
     npcName?: string;
     hazardName?: string;
+    locationDescription?: string;
+    specialRulesTriggered?: string[];
   };
 }
 
@@ -175,6 +180,8 @@ export interface EngineAlliance {
   formedPhaseId: string | null;
   dissolvedPhaseId: string | null;
   betrayedByTributeId: string | null;
+  name?: string;
+  cohesion?: number;
 }
 
 // ==========================================
@@ -284,4 +291,11 @@ export interface MatchmakerPartitionResult {
   encounters: EncounterSlotFormation[];
   unmatchedTributes: EngineTribute[];
 }
+
+// ==========================================
+// 7. Re-export Item & Combat Domain Types
+// ==========================================
+
+export * from "./items/types";
+export * from "./combat/calculus";
 

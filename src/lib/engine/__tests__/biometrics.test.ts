@@ -42,17 +42,7 @@ describe("Biometric State Machine & Tag Evaluator", () => {
       expect(evaluatePhysicalTag(-5)).toBe("fatal");
     });
 
-    it("prioritizes environmental flags when survival > 0", () => {
-      expect(evaluatePhysicalTag(85, { isPoisoned: true })).toBe("poisoned");
-      expect(evaluatePhysicalTag(60, { isFreezing: true })).toBe("freezing");
-      expect(evaluatePhysicalTag(40, { isStarving: true })).toBe("starving");
-    });
-
-    it("still returns 'fatal' if survival <= 0 even with environmental flags", () => {
-      expect(evaluatePhysicalTag(0, { isPoisoned: true })).toBe("fatal");
-    });
-
-    it("maps survival tiers accurately to standard tags", () => {
+    it("maps survival tiers accurately to standard score-based tags", () => {
       // 80..100 -> unscathed
       expect(evaluatePhysicalTag(100)).toBe("unscathed");
       expect(evaluatePhysicalTag(80)).toBe("unscathed");
@@ -155,11 +145,11 @@ describe("Biometric State Machine & Tag Evaluator", () => {
     it("supports manual override tags (e.g. specific lore wounds)", () => {
       const updated = applyBiometricDelta(mockTribute, {
         survivalDelta: -10,
-        overridePhysicalTag: "poisoned",
+        overridePhysicalTag: "wounded",
       });
 
       expect(updated.biometrics.survival).toBe(40);
-      expect(updated.biometrics.physicalTag).toBe("poisoned");
+      expect(updated.biometrics.physicalTag).toBe("wounded");
     });
 
     it("does not mutate the original tribute object", () => {

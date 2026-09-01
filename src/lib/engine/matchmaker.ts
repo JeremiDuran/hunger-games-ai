@@ -10,7 +10,6 @@ import {
   EngineAlliance,
   EncounterSlotFormation,
   EncounterType,
-  EncounterFaction,
   NPCCombatant,
   EventCategory,
   MatchmakerContext,
@@ -23,10 +22,10 @@ import {
 } from "./alliances";
 import {
   MAX_TRIBUTE_SLOTS_PER_EVENT,
-  MIN_TRIBUTE_SLOTS_PER_EVENT,
   MAX_NPC_SLOTS_PER_EVENT,
-  ENDGAME_TRIBUTE_COUNT,
   CLIMAX_MUTTATION_TRIGGER_COUNT,
+  SAME_DISTRICT_TRUCE_PROBABILITY,
+  CROSS_DISTRICT_TRUCE_PROBABILITY,
 } from "./constants";
 
 // ==========================================
@@ -402,7 +401,6 @@ function buildEncounterFormation(params: BuildFormationParams): EncounterSlotFor
     phaseType,
     totalAliveCount,
     alliances,
-    settings,
     prng,
   } = params;
 
@@ -523,7 +521,10 @@ function buildEncounterFormation(params: BuildFormationParams): EncounterSlotFor
     const isSameDistrict = t1.district === t2.district;
 
     // Check for peaceful encounter / truce
-    if (affinity >= SPONTANEOUS_TRUCE_AFFINITY_THRESHOLD && prng.nextBoolean(isSameDistrict ? 0.8 : 0.45)) {
+    if (
+      affinity >= SPONTANEOUS_TRUCE_AFFINITY_THRESHOLD &&
+      prng.nextBoolean(isSameDistrict ? SAME_DISTRICT_TRUCE_PROBABILITY : CROSS_DISTRICT_TRUCE_PROBABILITY)
+    ) {
       return {
         id: `enc-${gameId.slice(0, 6)}-d${dayNumber}-${encounterOrder}`,
         encounterOrder,

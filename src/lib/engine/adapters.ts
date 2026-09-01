@@ -3,7 +3,7 @@
  * Bidirectional mapping between Supabase DB models, Setup Wizard types, and Engine Domain models.
  */
 
-import { Tables, TablesUpdate } from "@/types/database";
+import { Tables, TablesUpdate, Json } from "@/types/database";
 import { TributeData } from "@/types/setup";
 import { DEFAULT_RULES_STATE } from "@/lib/schemas/setup";
 import {
@@ -75,12 +75,17 @@ export function parseDbTributeStats(rawStats: unknown): TributeBiometrics {
   return createInitialBiometrics();
 }
 
+import { EngineItem } from "./items/types";
+import { isEngineItem } from "./items/buffs";
+
 /**
- * Safely parses raw inventory JSONB into a string array.
+ * Safely parses raw inventory JSONB into an array of EngineItem objects or string names.
  */
-export function parseDbInventory(rawInventory: unknown): string[] {
+export function parseDbInventory(rawInventory: unknown): (EngineItem | string)[] {
   if (Array.isArray(rawInventory)) {
-    return rawInventory.filter((item): item is string => typeof item === "string");
+    return rawInventory.filter(
+      (item): item is EngineItem | string => typeof item === "string" || isEngineItem(item)
+    );
   }
   return [];
 }
@@ -121,7 +126,7 @@ export function engineTributeToDbUpdate(
     kill_count: tribute.killCount,
     death_phase_id: tribute.deathPhaseId,
     placement: tribute.placement,
-    inventory: tribute.inventory,
+    inventory: tribute.inventory as unknown as Json,
     stats: {
       survival: tribute.biometrics.survival,
       sanity: tribute.biometrics.sanity,
