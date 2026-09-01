@@ -13,6 +13,9 @@ Updated automatically after each session (pass, skip, or circuit break).
 | File | Test Type | Status | Iterations | Date | Notes |
 |---|---|---|---|---|---|
 | `src/lib/schemas/setup.ts` | Unit / Schema Contract | ✅ Passed | 1 | 2026-09-01 | Covers 35 tests for Arena, Tributes, Rules Zod schemas, field error mapping, storage draft parsers, and DB payload serialization transforms. |
+| `src/lib/engine/prng.ts` | Unit / Deterministic PRNG | ✅ Passed | 1 | 2026-09-01 | Covers 15 tests for Mulberry32 reproducibility, string seed hashing, bounds, nextBoolean, pickOne, weighted picks, shuffle, and subSeed derivation. |
+| `src/lib/engine/biometrics.ts` | Unit / State Machine | ✅ Passed | 1 | 2026-09-01 | Covers 18 tests for Survival/Sanity clamping, tag evaluation across all thresholds, environmental priority flags, delta application, and condition predicates. |
+| `src/lib/engine/adapters.ts` | Unit / Schema Adapter | ✅ Passed | 2 | 2026-09-01 | Covers 17 tests for DB row to EngineTribute mapping, legacy stats fallback, inventory sanitizer, DB update serialization, and setup settings parsing. |
 
 ---
 
