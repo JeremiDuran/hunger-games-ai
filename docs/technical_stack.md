@@ -20,7 +20,7 @@ Hunger Games AI (`hg-ai`) is built on **Next.js 16 App Router** with server-firs
 | **Internationalization** | `next-intl` 4.13 | Full multi-language support from the ground up (`src/app/[locale]/...`, `src/messages/`). |
 | **Data Validation** | Zod 4 (v4.5) | Layered validation (Defense in Depth) across client forms, route handlers, and database payloads. |
 | **Testing Framework** | Vitest 4 (`vitest`, `vite-tsconfig-paths`) | High-speed unit, schema contract, and logic test runner with TypeScript path alias support. |
-| **AI / LLM Routing** *(Planned)* | Vercel AI SDK + OpenRouter | Server-side LLM streaming for dynamic narrative generation (`src/lib/ai.ts`, `/api/narrative`). |
+| **AI / LLM Routing** | Vercel AI SDK 7 + OpenRouter | Server-side LLM streaming for dynamic narrative generation (`src/lib/ai.ts`, `/api/narrative`, `openrouter/free` default). |
 | **Payments & Tokens** *(Planned)* | Stripe (`stripe`, `@stripe/stripe-js`) | Token balance purchases and Gamemaker passes. |
 
 ---

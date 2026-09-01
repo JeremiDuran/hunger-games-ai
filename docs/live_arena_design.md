@@ -82,14 +82,15 @@ A sticky, slim vertical navigation rail containing chronological phase pills:
 ### C. Central Arena Event Stack (Phase Events Feed)
 A clean, vertical list of **Event Cards** belonging strictly to the selected phase.
 
-Each **Event Card** features:
-1. **Tribute Identity Badges**:
+Each **Event Card** receives both the **LLM storytelling text** and the **raw DB event data (`game_phase_events` row)**:
+1. **Dual-Mode View Toggle (Narrative vs. Tactical Telemetry)**:
+   - **Narrative Mode (Primary)**: The rich LLM-generated flavor text capturing the encounter, rendered with real-time typewriter token streaming for active rounds or instant display for past rounds.
+   - **Tactical Telemetry Mode (Technical Keyword Parser & Fallback)**: A clean, keyword-dense tactical breakdown directly parsing the deterministic DB event row (e.g. `[COMBAT: LETHAL] D2 Cato eliminates D11 Thresh with Titanium Spear (+1 Kill, -50 HP, Loot: Spear)`).
+   - **Seamless Graceful Fallback**: If narrative streaming fails, times out, or runs offline with no API key, the card automatically displays this high-contrast Tactical Telemetry layout so the match simulation never stalls or breaks. Gamemakers can also manually toggle between Narrative and Telemetry modes at any time.
+2. **Tribute Identity Badges**:
    - Avatars / silhouettes with District badges (e.g., `D12 Katniss`, `D2 Cato`).
    - Visual status styling (e.g., lethal blow highlight, wounded border, sponsor gift icon).
-2. **Narrative Text Area**:
-   - The rich LLM-generated flavor text capturing the encounter.
-   - Supports real-time typewriter token streaming for live events, or instant display for reviewed past phases.
-3. **Outcome Micro-Badges**:
+3. **Outcome Micro-Badges & Telemetry Deltas**:
    - Status deltas: `💀 KILLED`, `🩸 WOUNDED (-20 Survival)`, `⚡ PANIC (-25 Sanity)`, `🎁 SPONSOR DROP`, `⚔️ ESCAPED`, `🤝 ALLIANCE FORMED`, `🗡️ BETRAYAL`.
 4. **Cannon Chime Banner** (for lethal events):
    - Dramatic Capitol cannon fire visual treatment when a death occurs.
