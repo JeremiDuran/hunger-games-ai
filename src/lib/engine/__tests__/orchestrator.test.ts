@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { advanceGamePhase } from "../orchestrator";
+import { advanceGamePhase, validatePhaseEventCoverage } from "../orchestrator";
 import { EngineGameState, EngineTribute } from "../types";
 import { createInitialBiometrics } from "../biometrics";
 import { DEFAULT_RULES_STATE } from "@/lib/schemas/setup";
@@ -321,4 +321,44 @@ describe("Engine Phase Orchestrator & State Machine", () => {
     expect(nextGameState.currentPhaseType).toBe("npc_overload");
     expect(phaseResult.events.every((e) => e.eventCategory === "mutt")).toBe(true);
   });
+
+  describe("Phase Event Completeness & Coverage Validation", () => {
+    it("validates that all living combatants must be part of at least one event in the phase", () => {
+      const state = createMockGameState({}, 4);
+      const livingTributes = Array.from(state.tributes.values());
+
+      // Incomplete events missing t-4
+      const incompleteEvents = [
+        { tributeIds: ["t-1", "t-2"] },
+        { tributeIds: ["t-3"] },
+      ];
+
+      const validation = validatePhaseEventCoverage({
+        livingTributes,
+        phaseEvents: incompleteEvents,
+      });
+
+      expect(validation.isValid).toBe(false);
+      expect(validation.missingTributeIds).toContain("t-4");
+      expect(validation.missingTributeNames).toContain("Tribute 4");
+      expect(validation.errorMessage).toContain("Missing events for 1 living tribute(s): Tribute 4");
+    });
+
+    it("throws error in advanceGamePhase when previousPhaseEvents has missing living tributes", () => {
+      const state = createMockGameState({ phaseOrder: 1, currentPhaseType: "day", currentDay: 1 }, 4);
+
+      // Incomplete events missing t-3 and t-4
+      const incompleteEvents = [
+        { tribute_ids: ["t-1", "t-2"] },
+      ];
+
+      expect(() => {
+        advanceGamePhase({
+          gameState: state,
+          previousPhaseEvents: incompleteEvents,
+        });
+      }).toThrowError(/Phase event coverage incomplete: Missing events for 2 living tribute\(s\)/);
+    });
+  });
 });
+

@@ -15,9 +15,13 @@ import {
   BLOODBATH_CAREER_RUSH_PROBABILITY,
   BLOODBATH_STANDARD_RUSH_PROBABILITY,
   BLOODBATH_SCARED_FLEE_THRESHOLD,
+  BLOODBATH_CAREER_SWEEP_CHANCE,
 } from "../constants";
 import { synthesizeItem } from "../items/synthesizer";
-import { resolve1v1Clash } from "../combat/calculus";
+import {
+  resolveBloodbathHornClash,
+  resolveBloodbathCareerSweep,
+} from "../combat/phase-calculus";
 import { applyBiometricDelta } from "../biometrics";
 import { claimItem } from "../items/lifecycle";
 import { synthesizeCornucopiaDescription } from "@/lib/ai";
@@ -95,23 +99,25 @@ export class BloodbathResolver implements BasePhaseResolver {
       .filter((a) => a.tactic === "flee_wilderness")
       .map((a) => a.tribute);
 
-    // 2. Resolve Horn Rush Clashes (Contested High-Tier Items & Fatal Clashes)
+    // 2. Resolve Horn Rush Clashes (Contested High-Tier Items & Fatal Weapon Strikes)
     const shuffledRushers = prng.shuffle([...rushers]);
+    const armedHornVictors: EngineTribute[] = [];
 
     while (shuffledRushers.length > 0) {
       if (shuffledRushers.length === 1) {
-        // Lone uncontested rusher loots a high-tier weapon/crate
+        // Lone uncontested rusher loots a common weapon/crate from the horn
         const luckyTribute = updatedTributes.get(shuffledRushers.pop()!.id)!;
         const weapon = synthesizeItem({
           arenaDescription,
           arenaName,
           category: "weapon",
-          tier: "rare",
+          tier: "common",
           prng,
         });
 
         const updated = claimItem(weapon, luckyTribute);
         updatedTributes.set(updated.id, updated);
+        armedHornVictors.push(updated);
 
         const stateDelta: Record<string, TributeStateDelta> = {
           [updated.id]: {
@@ -139,44 +145,33 @@ export class BloodbathResolver implements BasePhaseResolver {
           },
         });
       } else {
-        // 2 or more rushers clash over a high-tier item
+        // 2 or more rushers clash over a common weapon at the horn
         const t1 = updatedTributes.get(shuffledRushers.pop()!.id)!;
         const t2 = updatedTributes.get(shuffledRushers.pop()!.id)!;
 
-        // Spawn a contested weapon at the horn
+        // Spawn a contested common weapon at the horn
         const contestedItem = synthesizeItem({
           arenaDescription,
           arenaName,
           category: "weapon",
-          tier: prng.pickWeighted(["uncommon", "rare", "legendary"], [40, 45, 15]),
+          tier: "common",
           prng,
         });
 
-        // Give t1 the contested weapon initially to test armed clash or resolve clash
-        const clashResult = resolve1v1Clash(t1, t2, {
+        // Specialized Bloodbath Horn Clash calculus: Victor wields weapon during strike
+        const clashResult = resolveBloodbathHornClash(t1, t2, contestedItem, {
           prng,
           lethality: settings.combatLethality,
         });
 
-        let updatedVictor = clashResult.updatedVictor;
-        const updatedLoser = clashResult.updatedLoser;
-
-        // Victor loots the contested item from the Cornucopia
-        updatedVictor = claimItem(contestedItem, updatedVictor);
-        updatedTributes.set(updatedVictor.id, updatedVictor);
-        updatedTributes.set(updatedLoser.id, updatedLoser);
-
-        const stateDeltas = { ...clashResult.stateDeltas };
-        if (stateDeltas[updatedVictor.id]) {
-          stateDeltas[updatedVictor.id].itemsGained = [
-            ...(stateDeltas[updatedVictor.id].itemsGained ?? []),
-            contestedItem.name,
-          ];
-        }
+        updatedTributes.set(clashResult.updatedVictor.id, clashResult.updatedVictor);
+        updatedTributes.set(clashResult.updatedLoser.id, clashResult.updatedLoser);
 
         if (clashResult.isFatal) {
-          fallenTributeIds.push(updatedLoser.id);
+          fallenTributeIds.push(clashResult.updatedLoser.id);
         }
+
+        armedHornVictors.push(clashResult.updatedVictor);
 
         events.push({
           eventId: `event-${gameId.slice(0, 6)}-bb-${eventCounter}`,
@@ -184,9 +179,9 @@ export class BloodbathResolver implements BasePhaseResolver {
           eventCategory: "combat",
           outcomeType: clashResult.isFatal ? "death" : clashResult.isStandoff ? "idle" : "wound",
           tributeIds: [t1.id, t2.id],
-          killerIds: clashResult.isFatal ? [updatedVictor.id] : null,
-          victimIds: clashResult.isFatal ? [updatedLoser.id] : null,
-          stateDeltas,
+          killerIds: clashResult.isFatal ? [clashResult.updatedVictor.id] : null,
+          victimIds: clashResult.isFatal ? [clashResult.updatedLoser.id] : null,
+          stateDeltas: clashResult.stateDeltas,
           thematicContext: {
             cornucopiaDescription,
             itemContested: contestedItem.name,
@@ -196,8 +191,65 @@ export class BloodbathResolver implements BasePhaseResolver {
       }
     }
 
-    // 3. Resolve Peripheral Scavenging (Common tools, food, canteens, minor scuffles)
-    const shuffledScavengers = prng.shuffle([...scavengers]);
+    // 3. Career Sweep Wave: Armed Career victors hunt vulnerable scavengers or fleers
+    const careerHunters = armedHornVictors.filter(
+      (v) => (CAREER_DISTRICTS as readonly number[]).includes(v.district) && v.status === "alive"
+    );
+
+    const remainingVulnerableIds = new Set([
+      ...scavengers.map((s) => s.id),
+      ...fleers.map((f) => f.id),
+    ]);
+
+    for (const hunter of careerHunters) {
+      if (remainingVulnerableIds.size === 0) break;
+      if (!prng.nextBoolean(BLOODBATH_CAREER_SWEEP_CHANCE)) continue;
+
+      const currentHunter = updatedTributes.get(hunter.id);
+      if (!currentHunter || currentHunter.status !== "alive") continue;
+
+      const targetId = prng.pickOne(Array.from(remainingVulnerableIds));
+      remainingVulnerableIds.delete(targetId);
+
+      const target = updatedTributes.get(targetId);
+      if (!target || target.status !== "alive") continue;
+
+      // Execute Career perimeter sweep ambush
+      const sweepResult = resolveBloodbathCareerSweep(currentHunter, target, {
+        prng,
+        lethality: settings.combatLethality,
+      });
+
+      updatedTributes.set(sweepResult.updatedVictor.id, sweepResult.updatedVictor);
+      updatedTributes.set(sweepResult.updatedLoser.id, sweepResult.updatedLoser);
+
+      if (sweepResult.isFatal) {
+        fallenTributeIds.push(sweepResult.updatedLoser.id);
+      }
+
+      events.push({
+        eventId: `event-${gameId.slice(0, 6)}-bb-${eventCounter}`,
+        eventOrder: eventCounter++,
+        eventCategory: "combat",
+        outcomeType: sweepResult.isFatal ? "death" : "wound",
+        tributeIds: [currentHunter.id, target.id],
+        killerIds: sweepResult.isFatal ? [sweepResult.updatedVictor.id] : null,
+        victimIds: sweepResult.isFatal ? [sweepResult.updatedLoser.id] : null,
+        stateDeltas: sweepResult.stateDeltas,
+        thematicContext: {
+          cornucopiaDescription,
+          locationDescription: "Along the bloodied Cornucopia perimeter as tributes attempt to flee.",
+        },
+      });
+    }
+
+    // 4. Resolve Peripheral Scavenging (for remaining alive scavengers)
+    const activeScavengers = scavengers.filter((s) => {
+      const current = updatedTributes.get(s.id);
+      return current && current.status === "alive" && remainingVulnerableIds.has(s.id);
+    });
+
+    const shuffledScavengers = prng.shuffle([...activeScavengers]);
 
     while (shuffledScavengers.length > 0) {
       const current = updatedTributes.get(shuffledScavengers.pop()!.id)!;
@@ -243,8 +295,13 @@ export class BloodbathResolver implements BasePhaseResolver {
       });
     }
 
-    // 4. Resolve Perimeter Fleers (Immediate safe sprint into the wilderness)
-    for (const fleer of fleers) {
+    // 5. Resolve Perimeter Fleers (for remaining alive fleers)
+    const activeFleers = fleers.filter((f) => {
+      const current = updatedTributes.get(f.id);
+      return current && current.status === "alive" && remainingVulnerableIds.has(f.id);
+    });
+
+    for (const fleer of activeFleers) {
       const current = updatedTributes.get(fleer.id)!;
       // Minor sanity loss from sheer terror of the gong
       const updated = applyBiometricDelta(current, { sanityDelta: -5 });

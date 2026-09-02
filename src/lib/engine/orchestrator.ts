@@ -1,7 +1,7 @@
 /**
  * Hunger Games AI — Engine Phase Orchestrator & State Machine
  * Deterministic master advancement function managing phase transitions, PRNG seeding,
- * victory condition evaluation, and state persistence assembly.
+ * victory condition evaluation, phase event completeness validation, and state persistence assembly.
  */
 
 import {
@@ -13,10 +13,73 @@ import {
 import { createPRNG, PRNG } from "./prng";
 import { getPhaseResolver } from "./phases";
 
+export interface PhaseCoverageValidationResult {
+  isValid: boolean;
+  missingTributeIds: string[];
+  missingTributeNames: string[];
+  participatingTributeIds: string[];
+  totalLivingCount: number;
+  errorMessage?: string;
+}
+
+/**
+ * Validates that all living combatants participated in at least one event in the specified phase.
+ * Backend integrity rule: you cannot start the next phase if the current phase doesn't have all its events.
+ */
+export function validatePhaseEventCoverage(params: {
+  livingTributes: EngineTribute[] | Map<string, EngineTribute>;
+  phaseEvents: Array<{ tribute_ids?: string[] | null; tributeIds?: string[] }>;
+}): PhaseCoverageValidationResult {
+  const tributesList =
+    params.livingTributes instanceof Map
+      ? Array.from(params.livingTributes.values()).filter((t) => t.status === "alive")
+      : params.livingTributes.filter((t) => t.status === "alive");
+
+  const participatingSet = new Set<string>();
+  for (const ev of params.phaseEvents) {
+    const ids = ev.tributeIds ?? ev.tribute_ids ?? [];
+    for (const id of ids) {
+      if (id) participatingSet.add(id);
+    }
+  }
+
+  const missingTributes = tributesList.filter((t) => !participatingSet.has(t.id));
+  const missingTributeIds = missingTributes.map((t) => t.id);
+  const missingTributeNames = missingTributes.map((t) => t.name);
+
+  const isValid = missingTributes.length === 0;
+  const errorMessage = isValid
+    ? undefined
+    : `Phase event coverage incomplete: Missing events for ${missingTributes.length} living tribute(s): ${missingTributeNames.join(", ")}. All living combatants must participate in events before advancing to the next phase.`;
+
+  return {
+    isValid,
+    missingTributeIds,
+    missingTributeNames,
+    participatingTributeIds: Array.from(participatingSet),
+    totalLivingCount: tributesList.length,
+    errorMessage,
+  };
+}
+
+/**
+ * Asserts phase completeness and throws an error if any living tribute is missing from phase events.
+ */
+export function assertPhaseCompleteness(params: {
+  livingTributes: EngineTribute[] | Map<string, EngineTribute>;
+  phaseEvents: Array<{ tribute_ids?: string[] | null; tributeIds?: string[] }>;
+}): void {
+  const result = validatePhaseEventCoverage(params);
+  if (!result.isValid) {
+    throw new Error(result.errorMessage);
+  }
+}
+
 export interface AdvancePhaseInput {
   gameState: EngineGameState;
   customPhaseType?: PhaseType;
   phaseIdOverride?: string;
+  previousPhaseEvents?: Array<{ tribute_ids?: string[] | null; tributeIds?: string[] }>;
 }
 
 export interface AdvancePhaseOutput {
@@ -49,9 +112,17 @@ export function generateDeterministicUuid(prng: PRNG): string {
  * Pure, deterministic function that advances a game to its next procedural phase.
  */
 export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
-  const { gameState, customPhaseType, phaseIdOverride } = input;
+  const { gameState, customPhaseType, phaseIdOverride, previousPhaseEvents } = input;
 
-  // 1. If game is already finished, return immediate no-op result
+  // 1. If previous phase events are passed for an ongoing game, enforce completeness check
+  if (gameState.phaseOrder > 0 && previousPhaseEvents) {
+    assertPhaseCompleteness({
+      livingTributes: gameState.tributes,
+      phaseEvents: previousPhaseEvents,
+    });
+  }
+
+  // 2. If game is already finished, return immediate no-op result
   if (gameState.status === "finished") {
     const endPrng = createPRNG(`${gameState.gameId}-phase-end-${gameState.seed}`);
     const emptyResult: EnginePhaseResult = {
@@ -69,21 +140,21 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
     return { phaseResult: emptyResult, nextGameState: gameState };
   }
 
-  // 2. Determine next phase type and day number
+  // 3. Determine next phase type and day number
   const nextPhaseOrder = gameState.phaseOrder + 1;
   const { nextPhaseType, nextDayNumber } = computeNextPhaseStep({
     gameState,
     customPhaseType,
   });
 
-  // 3. Instantiate deterministic PRNG for this specific phase round
+  // 4. Instantiate deterministic PRNG for this specific phase round
   const prng = createPRNG(
     `${gameState.gameId}-phase-${nextPhaseOrder}-${nextPhaseType}-${gameState.seed}`
   );
 
   const phaseId = phaseIdOverride ?? generateDeterministicUuid(prng);
 
-  // 4. Resolve the phase via registered PhaseResolver strategy
+  // 5. Resolve the phase via registered PhaseResolver strategy
   const resolver = getPhaseResolver(nextPhaseType);
   const livingTributesBeforePhase = Array.from(gameState.tributes.values()).filter(
     (t) => t.status === "alive"
@@ -106,7 +177,7 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
     cornucopiaDescription: gameState.cornucopiaDescription,
   });
 
-  // 5. Update placement and deathPhaseId for any tributes who fell in this phase
+  // 6. Update placement and deathPhaseId for any tributes who fell in this phase
   const updatedTributes = new Map<string, EngineTribute>(resolution.updatedTributes);
 
   // Assign ordered placements to fallen tributes in reverse order of survival
@@ -124,7 +195,7 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
     }
   }
 
-  // 6. Evaluate Victory Conditions
+  // 7. Evaluate Victory Conditions
   const finalAliveTributes = Array.from(updatedTributes.values()).filter(
     (t) => t.status === "alive"
   );

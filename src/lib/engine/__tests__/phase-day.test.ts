@@ -64,7 +64,7 @@ describe("Day Phase Resolver (Scouting, Foraging, Skirmishes, Sponsor Drops)", (
   });
 
   it("scales sponsor drop frequency according to sponsorGenerosity setting", () => {
-    const runs = 100;
+    const runs = 200;
     let abundanceDrops = 0;
     let famineDrops = 0;
 
@@ -113,5 +113,56 @@ describe("Day Phase Resolver (Scouting, Foraging, Skirmishes, Sponsor Drops)", (
     }
 
     expect(abundanceDrops).toBeGreaterThan(famineDrops);
+  });
+
+  it("enforces strict maximum sponsor drops per day phase", () => {
+    const tributes = Array.from({ length: 24 }, (_, i) =>
+      createMockTribute(`t-${i + 1}`, (i % 12) + 1)
+    );
+    const allMap = new Map(tributes.map((t) => [t.id, t]));
+
+    for (let seed = 1; seed <= 50; seed++) {
+      const resultStandard = resolver.resolvePhase({
+        gameId: "game-1",
+        dayNumber: 1,
+        phaseType: "day",
+        phaseOrder: 2,
+        aliveTributes: tributes,
+        allTributes: allMap,
+        alliances: new Map(),
+        settings: {
+          ...defaultSettings,
+          enableSponsorDrops: true,
+          sponsorGenerosity: "standard",
+        },
+        prng: createPRNG(seed),
+        arenaName: "Arena",
+        arenaDescription: "Forest arena.",
+      });
+
+      const standardSponsorEvents = resultStandard.events.filter((e) => e.eventCategory === "sponsor");
+      expect(standardSponsorEvents.length).toBeLessThanOrEqual(1);
+
+      const resultAbundance = resolver.resolvePhase({
+        gameId: "game-1",
+        dayNumber: 1,
+        phaseType: "day",
+        phaseOrder: 2,
+        aliveTributes: tributes,
+        allTributes: allMap,
+        alliances: new Map(),
+        settings: {
+          ...defaultSettings,
+          enableSponsorDrops: true,
+          sponsorGenerosity: "abundance",
+        },
+        prng: createPRNG(seed),
+        arenaName: "Arena",
+        arenaDescription: "Forest arena.",
+      });
+
+      const abundanceSponsorEvents = resultAbundance.events.filter((e) => e.eventCategory === "sponsor");
+      expect(abundanceSponsorEvents.length).toBeLessThanOrEqual(2);
+    }
   });
 });

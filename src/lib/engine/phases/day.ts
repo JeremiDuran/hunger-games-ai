@@ -34,6 +34,8 @@ import {
   SPONSOR_PROBABILITY_FAMINE,
   SPONSOR_PROBABILITY_STANDARD,
   SPONSOR_PROBABILITY_ABUNDANCE,
+  MAX_SPONSOR_DROPS_PER_DAY_STANDARD,
+  MAX_SPONSOR_DROPS_PER_DAY_ABUNDANCE,
 } from "../constants";
 
 export class DayPhaseResolver implements BasePhaseResolver {
@@ -100,7 +102,7 @@ export class DayPhaseResolver implements BasePhaseResolver {
       }
     }
 
-    // 3. Roll for Daytime Sponsor Drops
+    // 3. Roll for Daytime Sponsor Drops (rare Capitol gifts)
     if (settings.enableSponsorDrops) {
       const sponsorProb =
         settings.sponsorGenerosity === "abundance"
@@ -109,12 +111,27 @@ export class DayPhaseResolver implements BasePhaseResolver {
           ? SPONSOR_PROBABILITY_FAMINE
           : SPONSOR_PROBABILITY_STANDARD;
 
-      const livingTributes = Array.from(updatedTributes.values()).filter(
-        (t) => t.status === "alive"
+      const maxDrops =
+        settings.sponsorGenerosity === "abundance"
+          ? MAX_SPONSOR_DROPS_PER_DAY_ABUNDANCE
+          : MAX_SPONSOR_DROPS_PER_DAY_STANDARD;
+
+      let dropsAwarded = 0;
+      const livingTributes = prng.shuffle(
+        Array.from(updatedTributes.values()).filter((t) => t.status === "alive")
       );
 
       for (const tribute of livingTributes) {
-        if (prng.nextBoolean(sponsorProb)) {
+        if (dropsAwarded >= maxDrops) break;
+
+        // Desperate or severely injured tributes attract extra Capitol sponsor sympathy
+        const isDesperate =
+          tribute.biometrics.survival < 40 ||
+          tribute.biometrics.physicalTag === "critically_injured" ||
+          tribute.biometrics.physicalTag === "wounded";
+        const effectiveProb = isDesperate ? sponsorProb * 1.5 : sponsorProb;
+
+        if (prng.nextBoolean(effectiveProb)) {
           const sponsorEvent = this.resolveSponsorDrop({
             tribute,
             eventOrder: eventCounter++,
@@ -127,6 +144,7 @@ export class DayPhaseResolver implements BasePhaseResolver {
 
           if (sponsorEvent) {
             events.push(sponsorEvent);
+            dropsAwarded++;
           }
         }
       }

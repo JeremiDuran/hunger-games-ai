@@ -8,9 +8,10 @@ import {
   EngineTribute,
   EngineEventOutcome,
 } from "../types";
-import { resolvePvEClash } from "../combat/calculus";
-import { applyBiometricDelta } from "../biometrics";
-import { getBestArmor, getBestTool } from "../items/buffs";
+import {
+  resolveArenaHazardAoE,
+  resolveMuttationSwarm,
+} from "../combat/phase-calculus";
 
 // ==========================================
 // 1. Generic NPC Overload Resolver
@@ -77,31 +78,30 @@ export class NpcOverloadResolver implements BasePhaseResolver {
       ];
       const npcName = prng.pickOne(npcNames);
       const threatLevel = prng.pickWeighted(["moderate", "lethal"], [60, 40]) as "moderate" | "lethal";
-      const npcPower = group.length * 35 + (threatLevel === "lethal" ? 30 : 15);
 
-      const pveResult = resolvePvEClash(
+      const swarmResult = resolveMuttationSwarm(
         group,
-        { name: npcName, power: npcPower, threatLevel },
+        { name: npcName, threatLevel, powerMultiplier: 1.1 },
         { prng }
       );
 
-      for (const [id, updated] of pveResult.updatedTributes) {
+      for (const [id, updated] of swarmResult.updatedTributes) {
         updatedTributes.set(id, updated);
       }
 
-      if (pveResult.fallenTributeIds.length > 0) {
-        fallenTributeIds.push(...pveResult.fallenTributeIds);
+      if (swarmResult.fallenTributeIds.length > 0) {
+        fallenTributeIds.push(...swarmResult.fallenTributeIds);
       }
 
       events.push({
         eventId: `event-${gameId.slice(0, 6)}-npcoverload-${eventCounter++}`,
         eventOrder: eventCounter,
         eventCategory: "mutt",
-        outcomeType: pveResult.fallenTributeIds.length > 0 ? "death" : "wound",
+        outcomeType: swarmResult.fallenTributeIds.length > 0 ? "death" : "wound",
         tributeIds: group.map((t) => t.id),
         killerIds: null,
-        victimIds: pveResult.fallenTributeIds.length > 0 ? pveResult.fallenTributeIds : null,
-        stateDeltas: pveResult.stateDeltas,
+        victimIds: swarmResult.fallenTributeIds.length > 0 ? swarmResult.fallenTributeIds : null,
+        stateDeltas: swarmResult.stateDeltas,
         thematicContext: {
           npcName,
           locationDescription: `An overwhelming swarm of ${npcName} ambushes the tributes simultaneously!`,
@@ -161,41 +161,35 @@ export class CataclysmResolver implements BasePhaseResolver {
     ];
     const disasterName = prng.pickOne(disasterNames);
 
-    // Each tribute or allied group deals with the cataclysm
+    // Resolve all living tributes with Arena Hazard AoE calculus
+    const hazardResult = resolveArenaHazardAoE(
+      livingTributes,
+      { name: disasterName, description: `Caught in the center of ${disasterName}` },
+      { prng }
+    );
+
+    for (const [id, updated] of hazardResult.updatedTributes) {
+      updatedTributes.set(id, updated);
+    }
+
+    if (hazardResult.fallenTributeIds.length > 0) {
+      fallenTributeIds.push(...hazardResult.fallenTributeIds);
+    }
+
     for (const tribute of livingTributes) {
-      const hasArmor = getBestArmor(tribute.inventory) !== null;
-      const hasTool = getBestTool(tribute.inventory) !== null;
-
-      const baseDamage = prng.nextInt(20, 45);
-      const mitigation = hasArmor && hasTool ? 0.6 : hasArmor || hasTool ? 0.35 : 0;
-      const damage = Math.max(5, Math.round(baseDamage * (1 - mitigation)));
-
-      const updated = applyBiometricDelta(tribute, {
-        survivalDelta: -damage,
-        sanityDelta: -15,
-      });
-
-      updatedTributes.set(updated.id, updated);
-
-      if (updated.status === "dead") {
-        fallenTributeIds.push(updated.id);
-      }
+      const delta = hazardResult.stateDeltas[tribute.id];
+      const isDead = delta?.isFatal ?? false;
 
       events.push({
         eventId: `event-${gameId.slice(0, 6)}-cataclysm-${eventCounter++}`,
         eventOrder: eventCounter,
         eventCategory: "hazard",
-        outcomeType: updated.status === "dead" ? "death" : "wound",
+        outcomeType: isDead ? "death" : "wound",
         tributeIds: [tribute.id],
         killerIds: null,
-        victimIds: updated.status === "dead" ? [tribute.id] : null,
+        victimIds: isDead ? [tribute.id] : null,
         stateDeltas: {
-          [tribute.id]: {
-            tributeId: tribute.id,
-            survivalDelta: -damage,
-            sanityDelta: -15,
-            narrativeNotes: `${tribute.name} fought through the devastating ${disasterName}${mitigation > 0 ? " using equipped gear for protection" : ""}.`,
-          },
+          [tribute.id]: delta,
         },
         thematicContext: {
           hazardName: disasterName,

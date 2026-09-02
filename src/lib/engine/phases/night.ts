@@ -12,8 +12,6 @@ import {
 } from "../types";
 import {
   NIGHT_CAMP_SANITY_RECOVERY,
-  NIGHT_LONE_EXPOSURE_SURVIVAL_PENALTY,
-  NIGHT_LONE_ISOLATION_SANITY_PENALTY,
 } from "../constants";
 import {
   getTributeAlliance,
@@ -22,9 +20,12 @@ import {
   dissolveAlliance,
   syncDegradedAlliances,
 } from "../alliances";
-import { resolve1v1Clash, resolvePvEClash } from "../combat/calculus";
+import { resolvePvEClash } from "../combat/calculus";
+import {
+  resolveNightAmbush,
+  resolveNightExposure,
+} from "../combat/phase-calculus";
 import { applyBiometricDelta } from "../biometrics";
-import { getBestArmor, getBestTool } from "../items/buffs";
 
 export class NightPhaseResolver implements BasePhaseResolver {
   readonly phaseType = "night" as const;
@@ -78,7 +79,7 @@ export class NightPhaseResolver implements BasePhaseResolver {
           );
 
           if (strain.shouldBetray && strain.potentialBetrayerId && prng.nextBoolean(0.75)) {
-            // Betrayal clash in the camp
+            // Betrayal clash in the camp: Stealth nocturnal ambush
             const betrayer = updatedTributes.get(strain.potentialBetrayerId)!;
             const victimId =
               strain.potentialVictimId ??
@@ -86,10 +87,9 @@ export class NightPhaseResolver implements BasePhaseResolver {
             const victim = victimId ? updatedTributes.get(victimId) : undefined;
 
             if (victim) {
-              const betrayalClash = resolve1v1Clash(betrayer, victim, {
+              const betrayalClash = resolveNightAmbush(betrayer, victim, {
                 prng,
                 lethality: settings.combatLethality,
-                isAmbush: true, // Stealth backstab in camp
               });
 
               updatedTributes.set(betrayalClash.updatedVictor.id, betrayalClash.updatedVictor);
@@ -230,44 +230,29 @@ export class NightPhaseResolver implements BasePhaseResolver {
         continue;
       }
 
-      // Environmental Exposure / Cold Evaluation
-      const hasArmor = getBestArmor(tribute.inventory) !== null;
-      const hasTool = getBestTool(tribute.inventory) !== null;
-
-      // Armor or tools mitigate cold exposure penalty
-      const coldPenalty = hasArmor || hasTool
-        ? Math.round(NIGHT_LONE_EXPOSURE_SURVIVAL_PENALTY / 2)
-        : NIGHT_LONE_EXPOSURE_SURVIVAL_PENALTY;
-
-      const sanityPenalty = NIGHT_LONE_ISOLATION_SANITY_PENALTY;
-
-      const updated = applyBiometricDelta(tribute, {
-        survivalDelta: coldPenalty,
-        sanityDelta: sanityPenalty,
+      // Environmental Exposure / Cold Evaluation using specialized Night Exposure calculus
+      const exposureResult = resolveNightExposure(tribute, {
+        prng,
+        isCampedWithAllies: false,
       });
 
-      updatedTributes.set(updated.id, updated);
+      updatedTributes.set(exposureResult.updatedTribute.id, exposureResult.updatedTribute);
 
-      if (updated.status === "dead") {
-        fallenTributeIds.push(updated.id);
-        newlyFallenThisNight.push(updated.id);
+      if (exposureResult.isFatal) {
+        fallenTributeIds.push(exposureResult.updatedTribute.id);
+        newlyFallenThisNight.push(exposureResult.updatedTribute.id);
       }
 
       events.push({
         eventId: `event-${gameId.slice(0, 6)}-night-${eventCounter++}`,
         eventOrder: eventCounter,
         eventCategory: "hazard",
-        outcomeType: updated.status === "dead" ? "death" : "wound",
+        outcomeType: exposureResult.isFatal ? "death" : "wound",
         tributeIds: [tribute.id],
         killerIds: null,
-        victimIds: updated.status === "dead" ? [tribute.id] : null,
+        victimIds: exposureResult.isFatal ? [tribute.id] : null,
         stateDeltas: {
-          [tribute.id]: {
-            tributeId: tribute.id,
-            survivalDelta: coldPenalty,
-            sanityDelta: sanityPenalty,
-            narrativeNotes: `${tribute.name} shivered through the freezing night in isolation.`,
-          },
+          [tribute.id]: exposureResult.stateDelta,
         },
         thematicContext: {
           locationDescription: "Huddled in the bitter cold darkness.",

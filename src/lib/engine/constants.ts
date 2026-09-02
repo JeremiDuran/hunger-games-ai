@@ -113,9 +113,13 @@ export const NUMERICAL_SUPERIORITY_ADVANTAGE = 1.4;
 // 6. Sponsor Generosity Probabilities
 // ==========================================
 
-export const SPONSOR_PROBABILITY_FAMINE = 0.1;
-export const SPONSOR_PROBABILITY_STANDARD = 0.25;
-export const SPONSOR_PROBABILITY_ABUNDANCE = 0.45;
+export const SPONSOR_PROBABILITY_FAMINE = 0.015;
+export const SPONSOR_PROBABILITY_STANDARD = 0.04;
+export const SPONSOR_PROBABILITY_ABUNDANCE = 0.10;
+
+/** Max sponsor gifts that can descend in a single Day phase */
+export const MAX_SPONSOR_DROPS_PER_DAY_STANDARD = 1;
+export const MAX_SPONSOR_DROPS_PER_DAY_ABUNDANCE = 2;
 
 // ==========================================
 // 7. Night Phase Environmental & Camp Parameters
@@ -133,12 +137,33 @@ export const BLOODBATH_CAREER_RUSH_PROBABILITY = 0.9;
 export const BLOODBATH_STANDARD_RUSH_PROBABILITY = 0.45;
 export const BLOODBATH_SCARED_FLEE_THRESHOLD = 35;
 
+/** Bloodbath Horn Rush lethality boost (representing chaotic opening horn melee) */
+export const BLOODBATH_CHAOS_DAMAGE_MULTIPLIER = 1.6;
+export const BLOODBATH_CONTESTED_WEAPON_BASE_DAMAGE = 35;
+export const BLOODBATH_CAREER_SWEEP_CHANCE = 0.75;
+
 export const FEAST_DESPERATE_SURVIVAL_THRESHOLD = 40;
 export const FEAST_DESPERATE_ATTENDANCE_PROBABILITY = 0.85;
 export const FEAST_STANDARD_ATTENDANCE_PROBABILITY = 0.5;
+export const FEAST_LETHALITY_MULTIPLIER = 1.4;
 
 // ==========================================
-// 9. Combat Lethality Calibration Parameters
+// 9. Night Ambush & Exposure Constants
+// ==========================================
+
+export const NIGHT_AMBUSH_POWER_MULTIPLIER = 1.35;
+export const NIGHT_AMBUSH_CRITICAL_FATAL_BONUS = 0.35;
+
+// ==========================================
+// 10. Arena Hazard & Muttation Constants
+// ==========================================
+
+export const HAZARD_BASE_AOE_DAMAGE = 35;
+export const HAZARD_AGILITY_EVASION_SURVIVAL_THRESHOLD = 60;
+export const MUTT_SWARM_POWER_PER_MEMBER = 35;
+
+// ==========================================
+// 11. Combat Lethality Calibration Parameters
 // ==========================================
 
 export const LETHALITY_FACTORS = {
@@ -158,4 +183,5 @@ export const LETHALITY_FACTORS = {
     standoffProbability: 0.45,
   },
 } as const;
+
 

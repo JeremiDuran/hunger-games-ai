@@ -15,7 +15,7 @@ import {
   FEAST_STANDARD_ATTENDANCE_PROBABILITY,
 } from "../constants";
 import { synthesizeItem } from "../items/synthesizer";
-import { resolve1v1Clash } from "../combat/calculus";
+import { resolveFeastDuel } from "../combat/phase-calculus";
 import { claimItem, consumeItem } from "../items/lifecycle";
 import { syncDegradedAlliances } from "../alliances";
 
@@ -155,45 +155,27 @@ export class FeastPhaseResolver implements BasePhaseResolver {
           prng,
         });
 
-        const clashResult = resolve1v1Clash(t1, t2, {
+        const duelResult = resolveFeastDuel(t1, t2, backpackItem, {
           prng,
           lethality: settings.combatLethality,
         });
 
-        let updatedVictor = clashResult.updatedVictor;
-        const updatedLoser = clashResult.updatedLoser;
+        updatedTributes.set(duelResult.updatedVictor.id, duelResult.updatedVictor);
+        updatedTributes.set(duelResult.updatedLoser.id, duelResult.updatedLoser);
 
-        // Victor loots the feast backpack
-        updatedVictor = claimItem(backpackItem, updatedVictor);
-        if (backpackItem.category === "medical") {
-          const consumed = consumeItem(backpackItem.id, updatedVictor);
-          updatedVictor = consumed.updatedTribute;
-        }
-
-        updatedTributes.set(updatedVictor.id, updatedVictor);
-        updatedTributes.set(updatedLoser.id, updatedLoser);
-
-        const stateDeltas = { ...clashResult.stateDeltas };
-        if (stateDeltas[updatedVictor.id]) {
-          stateDeltas[updatedVictor.id].itemsGained = [
-            ...(stateDeltas[updatedVictor.id].itemsGained ?? []),
-            backpackItem.name,
-          ];
-        }
-
-        if (clashResult.isFatal) {
-          fallenTributeIds.push(updatedLoser.id);
+        if (duelResult.isFatal) {
+          fallenTributeIds.push(duelResult.updatedLoser.id);
         }
 
         events.push({
           eventId: `event-${gameId.slice(0, 6)}-feast-${eventCounter++}`,
           eventOrder: eventCounter,
           eventCategory: "combat",
-          outcomeType: clashResult.isFatal ? "death" : "wound",
+          outcomeType: duelResult.isFatal ? "death" : "wound",
           tributeIds: [t1.id, t2.id],
-          killerIds: clashResult.isFatal ? [updatedVictor.id] : null,
-          victimIds: clashResult.isFatal ? [updatedLoser.id] : null,
-          stateDeltas,
+          killerIds: duelResult.isFatal ? [duelResult.updatedVictor.id] : null,
+          victimIds: duelResult.isFatal ? [duelResult.updatedLoser.id] : null,
+          stateDeltas: duelResult.stateDeltas,
           thematicContext: {
             itemContested: backpackItem.name,
             locationDescription: `Fighting violently over the Feast backpacks on the Cornucopia table.`,

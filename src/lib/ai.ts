@@ -145,6 +145,22 @@ export function buildNarrativeUserPrompt(request: NarrativeRequest): string {
     thematicContext,
   } = request;
 
+  // Selectively include arena biome lore:
+  // - Critical for hazards, mutts, opening cornucopia clashes, and fatal climaxes.
+  // - Omitted for quick combat skirmishes, sponsor parachutes, and social pacts to prevent prompt clutter.
+  const shouldIncludeArenaLore = Boolean(
+    arenaLore &&
+      (eventCategory === "hazard" ||
+        eventCategory === "mutt" ||
+        Boolean(thematicContext?.cornucopiaDescription) ||
+        Boolean(thematicContext?.hazardName) ||
+        outcomeType === "death")
+  );
+
+  const arenaDisplay = shouldIncludeArenaLore
+    ? `${arenaName} (${arenaLore})`
+    : arenaName;
+
   const participantLines = participants
     .map((p) => {
       const roleStr = p.role ? ` [Role: ${p.role.toUpperCase()}]` : "";
@@ -152,7 +168,7 @@ export function buildNarrativeUserPrompt(request: NarrativeRequest): string {
         p.inventory && p.inventory.length > 0
           ? ` | Inventory: ${p.inventory.join(", ")}`
           : " | Inventory: none";
-      return `- ${p.name} (District ${p.district})${roleStr}: Vitality ${p.survival}/100 (${p.physicalTag}), Sanity ${p.sanity}/100 (${p.mentalTag})${invStr}`;
+      return `- ${p.name} (District ${p.district})${roleStr} | Condition: ${p.physicalTag}, ${p.mentalTag}${invStr}`;
     })
     .join("\n");
 
@@ -166,19 +182,25 @@ export function buildNarrativeUserPrompt(request: NarrativeRequest): string {
           .join(", ")
       : "None";
 
-  const hpDeltas = Object.entries(stateDelta.healthChanges || {})
+  const physicalUpdates = Object.entries(stateDelta.healthChanges || {})
     .map(([id, delta]) => {
       const found = participants.find((p) => p.id === id);
       const name = found ? found.name : id;
-      return `${name}: ${delta > 0 ? `+${delta}` : delta} HP`;
+      if (delta < 0) {
+        return `${name} sustains physical injury / wounds`;
+      }
+      return `${name} recovers physical stamina`;
     })
     .join("; ");
 
-  const sanityDeltas = Object.entries(stateDelta.sanityChanges || {})
+  const mentalUpdates = Object.entries(stateDelta.sanityChanges || {})
     .map(([id, delta]) => {
       const found = participants.find((p) => p.id === id);
       const name = found ? found.name : id;
-      return `${name}: ${delta > 0 ? `+${delta}` : delta} Sanity`;
+      if (delta < 0) {
+        return `${name} is psychologically shaken / distressed`;
+      }
+      return `${name} regains focus / morale`;
     })
     .join("; ");
 
@@ -209,7 +231,7 @@ export function buildNarrativeUserPrompt(request: NarrativeRequest): string {
 
   return `[SIMULATION CONTEXT]
 Match: ${simulationTitle}
-Arena: ${arenaName}${arenaLore ? ` (${arenaLore})` : ""}
+Arena: ${arenaDisplay}
 Event Category: ${eventCategory.toUpperCase()} | Outcome: ${outcomeType.toUpperCase()}
 
 [PARTICIPANTS]
@@ -217,8 +239,8 @@ ${participantLines}
 
 [DETERMINISTIC STATE OUTCOMES]
 Fatalities: ${fatalities}
-Vitality Changes: ${hpDeltas || "None"}
-Sanity Changes: ${sanityDeltas || "None"}
+Physical Condition Updates: ${physicalUpdates || "None"}
+Mental State Updates: ${mentalUpdates || "None"}
 ${contextItems.length > 0 ? `\n[ARENA THEMATIC CONTEXT]\n${contextItems.join("\n")}` : ""}
 ${stateDelta.narrativeNotes ? `\n[DIRECTIVE NOTES]\n${stateDelta.narrativeNotes}` : ""}
 

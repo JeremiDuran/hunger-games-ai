@@ -84,13 +84,16 @@ describe("AI Core Engine (src/lib/ai.ts)", () => {
       expect(prompt).toContain("Match: The 74th Hunger Games");
       expect(prompt).toContain("Arena: Alpine Woodlands");
       expect(prompt).toContain("Dense pine trees");
-      expect(prompt).toContain("Rue (District 11) [Role: VICTIM]");
-      expect(prompt).toContain("Marvel (District 1) [Role: KILLER]");
+      expect(prompt).toContain("Rue (District 11) [Role: VICTIM] | Condition: critically_injured, anxious");
+      expect(prompt).toContain("Marvel (District 1) [Role: KILLER] | Condition: unscathed, calm");
       expect(prompt).toContain("Fatalities: Rue (District 11)");
-      expect(prompt).toContain("Vitality Changes: Rue: -20 HP");
+      expect(prompt).toContain("Physical Condition Updates: Rue sustains physical injury / wounds");
+      expect(prompt).toContain("Mental State Updates: Marvel is psychologically shaken / distressed");
       expect(prompt).toContain(
         "Specific Location: Southern Clearing near Tracker Jacker Nest"
       );
+      expect(prompt).not.toContain("HP");
+      expect(prompt).not.toContain("/100");
     });
 
     it("handles zero fatalities and peaceful encounters cleanly", () => {
@@ -146,6 +149,52 @@ describe("AI Core Engine (src/lib/ai.ts)", () => {
       expect(prompt).toContain(
         "Specific Location: At the mouth of the Cornucopia horn."
       );
+    });
+
+    it("selectively omits arena lore for non-fatal combat and sponsor events to prevent clutter", () => {
+      const skirmishRequest: NarrativeRequest = {
+        ...sampleRequest,
+        eventCategory: "combat",
+        outcomeType: "wound",
+        stateDelta: { fatalities: [], healthChanges: { "t-1": -15 }, sanityChanges: {} },
+      };
+
+      const skirmishPrompt = buildNarrativeUserPrompt(skirmishRequest);
+      expect(skirmishPrompt).toContain("Arena: Alpine Woodlands\n");
+      expect(skirmishPrompt).not.toContain("Dense pine trees");
+
+      const sponsorRequest: NarrativeRequest = {
+        ...sampleRequest,
+        eventCategory: "sponsor",
+        outcomeType: "loot",
+        stateDelta: { fatalities: [], healthChanges: { "t-1": 15 }, sanityChanges: {} },
+      };
+
+      const sponsorPrompt = buildNarrativeUserPrompt(sponsorRequest);
+      expect(sponsorPrompt).toContain("Arena: Alpine Woodlands\n");
+      expect(sponsorPrompt).not.toContain("Dense pine trees");
+    });
+
+    it("includes arena lore for hazard and mutt events even when non-fatal", () => {
+      const hazardRequest: NarrativeRequest = {
+        ...sampleRequest,
+        eventCategory: "hazard",
+        outcomeType: "wound",
+        stateDelta: { fatalities: [], healthChanges: { "t-1": -10 }, sanityChanges: {} },
+      };
+
+      const hazardPrompt = buildNarrativeUserPrompt(hazardRequest);
+      expect(hazardPrompt).toContain("Arena: Alpine Woodlands (Dense pine trees, snowy ravines, icy streams)");
+
+      const muttRequest: NarrativeRequest = {
+        ...sampleRequest,
+        eventCategory: "mutt",
+        outcomeType: "wound",
+        stateDelta: { fatalities: [], healthChanges: { "t-1": -15 }, sanityChanges: {} },
+      };
+
+      const muttPrompt = buildNarrativeUserPrompt(muttRequest);
+      expect(muttPrompt).toContain("Arena: Alpine Woodlands (Dense pine trees, snowy ravines, icy streams)");
     });
   });
 
