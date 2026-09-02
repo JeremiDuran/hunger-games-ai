@@ -104,7 +104,7 @@ describe("Night Phase Resolver (Camps, Exposure, Betrayals, Fallen Anthem)", () 
       aliveTributes: [lone],
       allTributes: allMap,
       alliances: new Map(),
-      settings: defaultSettings,
+      settings: { ...defaultSettings, enableMuttations: false },
       prng,
       arenaName: "Cold Arena",
       arenaDescription: "Sub-zero tundra.",

@@ -17,6 +17,7 @@ import {
   MentalConditionTag,
   AllianceStatus,
   PhaseType,
+  CustomNPC,
 } from "./types";
 import {
   clampBiometric,
@@ -248,16 +249,27 @@ export function enginePhaseResultToDbPayloads(result: EnginePhaseResult): {
   return { phaseRow, eventRows };
 }
 
-/**
- * Reconstructs a complete EngineGameState from relational Supabase database rows.
- */
-export function dbGameStateToEngine(params: {
+export interface DbGameStateInput {
   gameRow: Tables<"games">;
   tributeRows: Tables<"tributes">[];
   allianceRows?: Tables<"game_alliances">[];
   latestPhaseRow?: Tables<"game_phases"> | null;
-}): EngineGameState {
-  const { gameRow, tributeRows, allianceRows = [], latestPhaseRow } = params;
+  hasFeastOccurred?: boolean;
+  phaseHistory?: Array<{ phase_type: string }>;
+}
+
+/**
+ * Reconstructs a complete EngineGameState from relational Supabase database rows.
+ */
+export function dbGameStateToEngine(params: DbGameStateInput): EngineGameState {
+  const {
+    gameRow,
+    tributeRows,
+    allianceRows = [],
+    latestPhaseRow,
+    hasFeastOccurred: explicitHasFeast,
+    phaseHistory,
+  } = params;
 
   const tributes = new Map<string, EngineTribute>();
   for (const tRow of tributeRows) {
@@ -275,6 +287,28 @@ export function dbGameStateToEngine(params: {
   const phaseOrder = latestPhaseRow ? latestPhaseRow.phase_order : 0;
   const currentPhaseType = (gameRow.current_phase_type as PhaseType) || "bloodbath";
   const currentDay = gameRow.current_day ?? 0;
+
+  // Derive hasFeastOccurred from explicit flag, phaseHistory, or latest phase
+  const hasFeastOccurred =
+    explicitHasFeast ??
+    (phaseHistory
+      ? phaseHistory.some((p) => p.phase_type === "feast")
+      : latestPhaseRow?.phase_type === "feast" || currentPhaseType === "feast");
+
+  // Derive current diurnal slot (day vs night)
+  const isBloodbath = currentPhaseType === "bloodbath";
+  const currentDiurnalSlot: "day" | "night" =
+    isBloodbath || currentPhaseType === "day" || currentPhaseType === "feast"
+      ? "day"
+      : currentPhaseType === "night"
+      ? "night"
+      : settings.enableBloodbath
+      ? phaseOrder % 2 === 0
+        ? "day"
+        : "night"
+      : phaseOrder % 2 === 1
+      ? "day"
+      : "night";
 
   // Simple deterministic seed derived from game ID
   let seed = 42;
@@ -296,6 +330,8 @@ export function dbGameStateToEngine(params: {
     alliances,
     settings,
     seed,
+    hasFeastOccurred,
+    currentDiurnalSlot,
   };
 }
 
@@ -312,6 +348,8 @@ export function dbGameSettingsToEngine(
       enableDisasters: true,
       enableSponsorDrops: true,
       enableMidGameFeast: DEFAULT_RULES_STATE.enableMidGameFeast,
+      enableSpecialEvents: DEFAULT_RULES_STATE.enableSpecialEvents,
+      customNpcs: [],
       pacing: DEFAULT_RULES_STATE.pacing,
       turnGranularity: DEFAULT_RULES_STATE.turnGranularity,
       combatLethality: DEFAULT_RULES_STATE.combatLethality,
@@ -332,6 +370,8 @@ export function dbGameSettingsToEngine(
     enableDisasters: typeof s.enable_disasters === "boolean" ? s.enable_disasters : true,
     enableSponsorDrops: typeof s.enable_sponsor_drops === "boolean" ? s.enable_sponsor_drops : true,
     enableMidGameFeast: typeof s.enable_mid_game_feast === "boolean" ? s.enable_mid_game_feast : true,
+    enableSpecialEvents: typeof s.enable_special_events === "boolean" ? s.enable_special_events : true,
+    customNpcs: Array.isArray(s.custom_npcs) ? (s.custom_npcs as CustomNPC[]) : [],
     pacing: typeof s.pacing === "string" ? (s.pacing as EngineGameSettings["pacing"]) : "cinematic",
     turnGranularity:
       typeof s.turn_granularity === "string"

@@ -395,6 +395,7 @@ describe("Rules & Protocol Setup Schema (Step 3)", () => {
       expect(result.data.disasterFrequency).toBe("moderate");
       expect(result.data.allianceDynamic).toBe("dynamic_pacts");
       expect(result.data.enableMidGameFeast).toBe(true);
+      expect(result.data.enableSpecialEvents).toBe(true);
       expect(result.data.narrativeVoice).toBe("novel_cinematic");
       expect(result.data.victoryCondition).toBe("sole_victor");
     }
@@ -410,6 +411,7 @@ describe("Rules & Protocol Setup Schema (Step 3)", () => {
       disasterFrequency: "frequent",
       allianceDynamic: "career_pack",
       enableMidGameFeast: false,
+      enableSpecialEvents: false,
       narrativeVoice: "capitol_broadcast",
       victoryCondition: "district_duo_twist",
     };

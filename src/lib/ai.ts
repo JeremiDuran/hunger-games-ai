@@ -437,6 +437,9 @@ export function synthesizeCornucopiaDescription(
   if (/desert|sand|dune|arid|wasteland|badland|scorched|sahara/.test(combined)) {
     return "A sun-bleached golden alloy horn rising like a desert monument from shifting dunes, radiating scorching heat across the ring of metal pedestals.";
   }
+  if (/sawmill|logging|lumber|timber|sawdust/.test(combined)) {
+    return "A colossal horn of rough-hewn heavy timber banded with rusted steel saw blades, towering above drifts of fragrant sawdust surrounded by numbered launch pedestals mounted on giant tree stumps.";
+  }
   if (/jungle|rainforest|forest|wood|swamp|marsh|bog|canopy|grove/.test(combined)) {
     return "A towering burnished bronze horn half-swallowed by ancient moss and thick vines, resting on a muddy clearing beneath towering canopy trees.";
   }

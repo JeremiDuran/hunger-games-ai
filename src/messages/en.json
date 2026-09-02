@@ -363,6 +363,10 @@
         "title": "Mid-Game Cornucopia Feast",
         "desc": "Gamemakers summon remaining tributes to the Cornucopia with vital medicine and weapons when the roster dwindles."
       },
+      "specialEvents": {
+        "title": "Special Arena Events (Cataclysms & Mutts)",
+        "desc": "Rare, spontaneous Gamemaker interventions (environmental disasters or apex mutt swarms) that replace Day or Night phases starting from Day 3."
+      },
       "hazardsBound": {
         "inactiveInArena": "Inactive in Arena Protocol",
         "enableShortcut": "Enable in Arena",
@@ -444,6 +448,9 @@
       "feastLabel": "Mid-Game Feast",
       "feastActive": "Enabled",
       "feastInactive": "Disabled",
+      "specialEventsLabel": "Special Events",
+      "specialEventsActive": "Enabled",
+      "specialEventsInactive": "Disabled",
       "editArena": "Edit Arena",
       "editTributes": "Edit Roster",
       "editRules": "Edit Rules",

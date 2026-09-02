@@ -9,7 +9,9 @@ import {
   EngineEventOutcome,
   TributeStateDelta,
   EngineAlliance,
+  CustomNPC,
 } from "../types";
+import { synthesizeSingleNpcFromDescription } from "../thematics/npc-generator";
 import {
   NIGHT_CAMP_SANITY_RECOVERY,
 } from "../constants";
@@ -38,6 +40,8 @@ export class NightPhaseResolver implements BasePhaseResolver {
       alliances,
       settings,
       prng,
+      arenaName,
+      arenaDescription,
       priorFallenTributeIds = [],
     } = context;
 
@@ -197,10 +201,29 @@ export class NightPhaseResolver implements BasePhaseResolver {
       processedTributeIds.add(tribute.id);
 
       // Check for Night Mutt Stalker Attack
-      if (prng.nextBoolean(0.2)) {
+      const canMuttAttack =
+        settings.enableMuttations &&
+        (settings.muttationTiming === "night_stalkers" || livingTributes.length <= 3);
+
+      if (canMuttAttack && prng.nextBoolean(0.2)) {
+        let mutt: CustomNPC;
+        const customNpcs = settings.customNpcs ?? [];
+        if (customNpcs.length > 0 && prng.nextBoolean(0.5)) {
+          mutt = prng.pickOne(customNpcs);
+        } else {
+          mutt = synthesizeSingleNpcFromDescription({
+            arenaName,
+            arenaDescription,
+            prng,
+            existingNames: customNpcs.map((n) => n.name),
+          });
+          if (!settings.customNpcs) settings.customNpcs = [];
+          settings.customNpcs.push(mutt);
+        }
+
         const stalkerResult = resolvePvEClash(
           [tribute],
-          { name: "Nocturnal Shadow Mutt", power: 50, threatLevel: "moderate" },
+          { name: mutt.name, power: 50, threatLevel: "moderate" },
           { prng }
         );
 
@@ -223,8 +246,10 @@ export class NightPhaseResolver implements BasePhaseResolver {
           victimIds: stalkerResult.fallenTributeIds.length > 0 ? stalkerResult.fallenTributeIds : null,
           stateDeltas: stalkerResult.stateDeltas,
           thematicContext: {
-            npcName: "Nocturnal Shadow Mutt",
-            locationDescription: "Stalked by predator mutts in pitch darkness.",
+            npcName: mutt.name,
+            locationDescription: mutt.description
+              ? `Stalked in the pitch darkness by ${mutt.name}: ${mutt.description}`
+              : `Stalked by ${mutt.name} in pitch darkness.`,
           },
         });
         continue;

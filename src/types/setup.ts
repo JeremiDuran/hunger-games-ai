@@ -84,6 +84,8 @@ export interface RulesSetupState {
   disasterFrequency: DisasterFrequency;
   allianceDynamic: AllianceDynamic;
   enableMidGameFeast: boolean;
+  enableSpecialEvents: boolean;
+  customNpcs?: Array<{ name: string; description: string }>;
   narrativeVoice: NarrativeVoice;
   victoryCondition: VictoryCondition;
 }

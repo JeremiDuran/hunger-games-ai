@@ -86,7 +86,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       );
     }
 
-    // 3. Fetch tributes, active alliances, and latest recorded phase
+    // 3. Fetch tributes, active alliances, and recorded phases
     const [tributesRes, alliancesRes, phasesRes] = await Promise.all([
       supabase.from("tributes").select("*").eq("game_id", gameId),
       supabase.from("game_alliances").select("*").eq("game_id", gameId),
@@ -94,8 +94,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
         .from("game_phases")
         .select("*")
         .eq("game_id", gameId)
-        .order("phase_order", { ascending: false })
-        .limit(1),
+        .order("phase_order", { ascending: false }),
     ]);
 
     if (tributesRes.error || !tributesRes.data) {
@@ -108,6 +107,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
     const tributeRows = tributesRes.data;
     const allianceRows = alliancesRes.data ?? [];
     const latestPhaseRow = phasesRes.data?.[0] ?? null;
+    const hasFeastOccurred = phasesRes.data?.some((p) => p.phase_type === "feast") ?? false;
 
     // 4. Reconstruct in-memory EngineGameState
     const currentGameState = dbGameStateToEngine({
@@ -115,6 +115,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       tributeRows,
       allianceRows,
       latestPhaseRow,
+      hasFeastOccurred,
     });
 
     // 5. Execute pure deterministic phase advancement
@@ -172,12 +173,17 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
     // E. Update public.games state
     const isFinished = nextGameState.status === "finished";
+    const existingSettings = (gameRow.settings as Record<string, unknown>) ?? {};
     const gameUpdatePayload = {
       current_day: nextGameState.currentDay,
       current_phase_type: nextGameState.currentPhaseType,
       status: nextGameState.status,
       winner_id: phaseResult.winnerIds?.[0] ?? null,
       ended_at: isFinished ? new Date().toISOString() : null,
+      settings: {
+        ...existingSettings,
+        custom_npcs: nextGameState.settings.customNpcs ?? [],
+      },
     };
 
     await supabase.from("games").update(gameUpdatePayload).eq("id", gameId);

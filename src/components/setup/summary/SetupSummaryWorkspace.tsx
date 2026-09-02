@@ -19,6 +19,8 @@ import {
   Home,
   ChevronDown,
   ChevronUp,
+  UtensilsCrossed,
+  CloudLightning,
 } from "lucide-react";
 import { useSetup } from "@/lib/setup/setup-context";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -348,7 +350,7 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
           {/* Turn Mode */}
           <div className="p-3 clip-chamfer-xs bg-background/80 border border-border/70 space-y-1">
             <div className="flex items-center gap-1 text-primary">
@@ -424,6 +426,40 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
             </div>
             <p className="text-xs font-mono font-bold text-foreground capitalize">
               {rulesState.victoryCondition.replace(/_/g, " ")}
+            </p>
+          </div>
+
+          {/* Mid-Game Feast */}
+          <div className="p-3 clip-chamfer-xs bg-background/80 border border-border/70 space-y-1">
+            <div className="flex items-center gap-1 text-yellow-400">
+              <UtensilsCrossed className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground">
+                {t("feastLabel")}
+              </span>
+            </div>
+            <p
+              className={`text-xs font-mono font-bold ${
+                rulesState.enableMidGameFeast ? "text-yellow-400" : "text-muted-foreground"
+              }`}
+            >
+              {rulesState.enableMidGameFeast ? t("feastActive") : t("feastInactive")}
+            </p>
+          </div>
+
+          {/* Special Events */}
+          <div className="p-3 clip-chamfer-xs bg-background/80 border border-border/70 space-y-1">
+            <div className="flex items-center gap-1 text-red-400">
+              <CloudLightning className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground">
+                {t("specialEventsLabel")}
+              </span>
+            </div>
+            <p
+              className={`text-xs font-mono font-bold ${
+                rulesState.enableSpecialEvents ? "text-red-400" : "text-muted-foreground"
+              }`}
+            >
+              {rulesState.enableSpecialEvents ? t("specialEventsActive") : t("specialEventsInactive")}
             </p>
           </div>
         </div>

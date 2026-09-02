@@ -22,6 +22,8 @@ export const DEFAULT_RULES_STATE: RulesSetupState = {
   disasterFrequency: "moderate",
   allianceDynamic: "dynamic_pacts",
   enableMidGameFeast: true,
+  enableSpecialEvents: true,
+  customNpcs: [],
   narrativeVoice: "novel_cinematic",
   victoryCondition: "sole_victor",
 };
@@ -49,6 +51,15 @@ export const rulesSetupSchema = z.object({
     .enum(["dynamic_pacts", "lone_wolves", "career_pack"] as const satisfies readonly [AllianceDynamic, ...AllianceDynamic[]])
     .default("dynamic_pacts"),
   enableMidGameFeast: z.boolean().default(true),
+  enableSpecialEvents: z.boolean().default(true),
+  customNpcs: z
+    .array(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+      })
+    )
+    .default([]),
   narrativeVoice: z
     .enum(["novel_cinematic", "capitol_broadcast", "gamemaker_log"] as const satisfies readonly [NarrativeVoice, ...NarrativeVoice[]])
     .default("novel_cinematic"),
@@ -171,6 +182,8 @@ export function toGameDbPayload(
       disaster_frequency: validated.hazards.enableDisasters ? validatedRules.disasterFrequency : "disabled",
       alliance_dynamic: validatedRules.allianceDynamic,
       enable_mid_game_feast: validatedRules.enableMidGameFeast,
+      enable_special_events: validatedRules.enableSpecialEvents,
+      custom_npcs: validatedRules.customNpcs ?? [],
       narrative_voice: validatedRules.narrativeVoice,
       victory_condition: validatedRules.victoryCondition,
     },

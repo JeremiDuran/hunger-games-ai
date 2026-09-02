@@ -50,6 +50,11 @@ export function GamemakerDirectives() {
     updateRules({ enableMidGameFeast: !rulesState.enableMidGameFeast });
   }, [rulesState.enableMidGameFeast, updateRules, isEditable]);
 
+  const handleSpecialEventsToggle = useCallback(() => {
+    if (!isEditable) return;
+    updateRules({ enableSpecialEvents: !rulesState.enableSpecialEvents });
+  }, [rulesState.enableSpecialEvents, updateRules, isEditable]);
+
   const handleSponsorSelect = useCallback(
     (sponsorGenerosity: SponsorGenerosity) => {
       if (!isEditable) return;
@@ -533,9 +538,48 @@ export function GamemakerDirectives() {
             </p>
           </div>
         </div>
+
+        {/* 7. Special Arena Events (Cataclysms & Mutts) Toggle */}
+        <div
+          onClick={handleSpecialEventsToggle}
+          className={`p-4 sm:p-5 clip-chamfer-sm border transition-all duration-200 cursor-pointer flex items-start gap-3.5 select-none ${
+            rulesState.enableSpecialEvents
+              ? "bg-card/85 border-primary/80 shadow-xs"
+              : "bg-card/40 border-border/50 opacity-70"
+          }`}
+        >
+          <div
+            className={`mt-0.5 p-2 clip-chamfer-xs transition-colors ${
+              rulesState.enableSpecialEvents
+                ? "bg-red-500/20 text-red-400 border border-red-500/40"
+                : "bg-muted text-muted-foreground border border-border"
+            }`}
+          >
+            <CloudLightning className="h-4 w-4" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs sm:text-sm font-serif font-bold text-foreground">
+                {t("specialEvents.title")}
+              </span>
+              <div
+                className={`h-4 w-4 rounded-xs border flex items-center justify-center transition-colors ${
+                  rulesState.enableSpecialEvents
+                    ? "bg-primary border-primary text-black"
+                    : "border-border bg-background"
+                }`}
+              >
+                {rulesState.enableSpecialEvents && <Check className="h-3 w-3 stroke-[3]" />}
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {t("specialEvents.desc")}
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* 7. Victory Condition Twist */}
+      {/* 8. Victory Condition Twist */}
       <div className="p-4 sm:p-5 clip-chamfer-sm bg-card/85 border border-border/80 space-y-3">
         <div className="flex items-center gap-2 text-foreground font-serif font-bold text-sm">
           <Crown className="h-4 w-4 text-primary" />

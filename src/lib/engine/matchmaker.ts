@@ -14,7 +14,9 @@ import {
   EventCategory,
   MatchmakerContext,
   MatchmakerPartitionResult,
+  CustomNPC,
 } from "./types";
+import { synthesizeSingleNpcFromDescription } from "./thematics/npc-generator";
 import {
   getTributeAlliance,
   calculateTributeAffinity,
@@ -66,6 +68,8 @@ export function partitionTributesIntoEncounters(
     alliances,
     settings,
     prng,
+    arenaName,
+    arenaDescription,
   } = context;
 
   // Filter strictly to alive tributes
@@ -139,6 +143,8 @@ export function partitionTributesIntoEncounters(
       alliances,
       settings,
       prng,
+      arenaName,
+      arenaDescription,
     });
     encounters.push(formation);
   }
@@ -390,6 +396,8 @@ interface BuildFormationParams {
   alliances: Map<string, EngineAlliance>;
   settings: MatchmakerContext["settings"];
   prng: PRNG;
+  arenaName?: string;
+  arenaDescription?: string;
 }
 
 function buildEncounterFormation(params: BuildFormationParams): EncounterSlotFormation {
@@ -829,8 +837,37 @@ function buildEncounterFormation(params: BuildFormationParams): EncounterSlotFor
 // Helper: NPC Generation Evaluation
 // ==========================================
 
+function resolveThematicMuttNpc(params: {
+  settings: MatchmakerContext["settings"];
+  arenaName?: string;
+  arenaDescription?: string;
+  prng: PRNG;
+}): CustomNPC {
+  const { settings, arenaName, arenaDescription, prng } = params;
+  const customNpcs = settings.customNpcs ?? [];
+
+  // 50% chance to pull from existing custom npcs (if available)
+  if (customNpcs.length > 0 && prng.nextBoolean(0.5)) {
+    return prng.pickOne(customNpcs);
+  }
+
+  // Otherwise (or if empty), create a single NPC using arena description
+  const newNpc = synthesizeSingleNpcFromDescription({
+    arenaName,
+    arenaDescription,
+    prng,
+    existingNames: customNpcs.map((n) => n.name),
+  });
+
+  if (!settings.customNpcs) {
+    settings.customNpcs = [];
+  }
+  settings.customNpcs.push(newNpc);
+  return newNpc;
+}
+
 function evaluateNPCGeneration(params: BuildFormationParams): NPCCombatant[] {
-  const { phaseType, totalAliveCount, settings, prng } = params;
+  const { phaseType, totalAliveCount, settings, prng, arenaName, arenaDescription } = params;
 
   if (!settings.enableMuttations && !settings.enableDisasters) {
     return [];
@@ -844,12 +881,13 @@ function evaluateNPCGeneration(params: BuildFormationParams): NPCCombatant[] {
     settings.muttationTiming === "climax_only" &&
     totalAliveCount <= CLIMAX_MUTTATION_TRIGGER_COUNT
   ) {
-    const sample = prng.pickOne(SAMPLE_MUTTS);
+    const mutt = resolveThematicMuttNpc({ settings, arenaName, arenaDescription, prng });
     npcs.push({
       id: `npc-climax-${prng.nextInt(100, 999)}`,
-      name: `Alpha ${sample.name}`,
+      name: `Alpha ${mutt.name}`,
       type: "mutt",
       threatLevel: "lethal",
+      description: mutt.description,
     });
     return npcs;
   }
@@ -861,12 +899,13 @@ function evaluateNPCGeneration(params: BuildFormationParams): NPCCombatant[] {
   ) {
     const muttProb = phaseType === "night" ? 0.45 : 0.15;
     if (prng.nextBoolean(muttProb)) {
-      const sample = prng.pickOne(SAMPLE_MUTTS);
+      const mutt = resolveThematicMuttNpc({ settings, arenaName, arenaDescription, prng });
       npcs.push({
         id: `npc-mutt-${prng.nextInt(100, 999)}`,
-        name: sample.name,
-        type: sample.type,
-        threatLevel: sample.threatLevel,
+        name: mutt.name,
+        type: "mutt",
+        threatLevel: "moderate",
+        description: mutt.description,
       });
     }
   }

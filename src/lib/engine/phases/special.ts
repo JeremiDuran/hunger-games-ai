@@ -12,14 +12,24 @@ import {
   resolveArenaHazardAoE,
   resolveMuttationSwarm,
 } from "../combat/phase-calculus";
+import {
+  CATACLYSM_BASE_DAMAGE,
+  CATACLYSM_DAMAGE_MULTIPLIER,
+} from "../constants";
+import {
+  synthesizeArenaCataclysm,
+  synthesizeThemedArenaNpcs,
+} from "../thematics/arena-synthesizer";
+import { synthesizeNpcBatchFromDescription } from "../thematics/npc-generator";
 
 // ==========================================
-// 1. Generic NPC Overload Resolver
+// 1. Themed NPC Overload Resolver
 // ==========================================
 
 /**
- * NPC Overload Phase: Every single encounter in this phase is guaranteed
- * to feature 1 to 2 hostile NPCs (mutts, beasts, mechanical drones, apex predators).
+ * NPC Overload Phase: Synthesizes an in-memory batch of themed apex predators/mutts
+ * tailored to the arena description. Every single encounter in this phase is guaranteed
+ * to feature these themed beasts.
  */
 export class NpcOverloadResolver implements BasePhaseResolver {
   readonly phaseType = "npc_overload" as const;
@@ -29,7 +39,10 @@ export class NpcOverloadResolver implements BasePhaseResolver {
       gameId,
       allTributes,
       alliances,
+      settings,
       prng,
+      arenaName,
+      arenaDescription,
     } = context;
 
     const updatedTributes = new Map<string, EngineTribute>(allTributes);
@@ -46,7 +59,27 @@ export class NpcOverloadResolver implements BasePhaseResolver {
       return { events, fallenTributeIds, updatedTributes, updatedAlliances };
     }
 
-    // Partition living tributes into groups of 1 to 4
+    // 1. Synthesize themed batch of mutts in memory for this phase
+    const existingNames = (settings.customNpcs ?? []).map((n) => n.name);
+    const themedNpcBatch = synthesizeNpcBatchFromDescription({
+      arenaName,
+      arenaDescription,
+      prng,
+      count: 4,
+      existingNames,
+    });
+
+    // Save batch to settings.customNpcs so they persist and can recur in future phases
+    if (!settings.customNpcs) {
+      settings.customNpcs = [];
+    }
+    for (const item of themedNpcBatch) {
+      if (!settings.customNpcs.some((c) => c.name === item.name)) {
+        settings.customNpcs.push(item);
+      }
+    }
+
+    // 2. Partition living tributes into groups of 1 to 4
     const shuffled = prng.shuffle([...livingTributes]);
     const groups: EngineTribute[][] = [];
 
@@ -58,7 +91,7 @@ export class NpcOverloadResolver implements BasePhaseResolver {
       } else if (shuffled.length === 2) {
         groups.push([shuffled.pop()!, shuffled.pop()!]);
       } else {
-        // 1 tribute remaining
+        // 1 tribute remaining: attach to previous group if small, else solo
         if (groups.length > 0 && groups[0].length < 4) {
           groups[0].push(shuffled.pop()!);
         } else {
@@ -67,21 +100,14 @@ export class NpcOverloadResolver implements BasePhaseResolver {
       }
     }
 
-    // Resolve each group against a guaranteed hostile NPC encounter
+    // 3. Resolve each encounter against a themed NPC from the batch
     for (const group of groups) {
-      const npcNames = [
-        "Capitol Alpha Predator Mutt",
-        "Swarms of Carnivorous Hornets",
-        "Armored Mechanical Stalker Drones",
-        "Venomous Shadow Reptiles",
-        "Genetically Engineered Frost Beasts",
-      ];
-      const npcName = prng.pickOne(npcNames);
-      const threatLevel = prng.pickWeighted(["moderate", "lethal"], [60, 40]) as "moderate" | "lethal";
+      const npc = prng.pickOne(themedNpcBatch);
+      const threatLevel = prng.pickWeighted(["moderate", "lethal"], [50, 50]) as "moderate" | "lethal";
 
       const swarmResult = resolveMuttationSwarm(
         group,
-        { name: npcName, threatLevel, powerMultiplier: 1.1 },
+        { name: npc.name, threatLevel, powerMultiplier: 1.25 },
         { prng }
       );
 
@@ -103,8 +129,10 @@ export class NpcOverloadResolver implements BasePhaseResolver {
         victimIds: swarmResult.fallenTributeIds.length > 0 ? swarmResult.fallenTributeIds : null,
         stateDeltas: swarmResult.stateDeltas,
         thematicContext: {
-          npcName,
-          locationDescription: `An overwhelming swarm of ${npcName} ambushes the tributes simultaneously!`,
+          npcName: npc.name,
+          locationDescription: npc.description
+            ? `[ARENA MUTTATION OVERLOAD]: ${npc.name} (${npc.description}) converges aggressively upon the sector!`
+            : `[ARENA MUTTATION OVERLOAD]: An apex pack of ${npc.name} converges aggressively upon the sector!`,
         },
       });
     }
@@ -119,13 +147,13 @@ export class NpcOverloadResolver implements BasePhaseResolver {
 }
 
 // ==========================================
-// 2. Arena Cataclysm Resolver
+// 2. Themed Arena Cataclysm Resolver
 // ==========================================
 
 /**
- * Cataclysm Phase: An arena-wide environmental disaster sweeps across the entire map
- * (e.g. Flash Tidal Surge, Corrosive Acid Fog, Wildfire Wall).
- * Every tribute must navigate the hazard; tools and armor mitigate damage.
+ * Cataclysm Phase: An arena-wide environmental disaster tailored to the arena description
+ * sweeps across the map with elevated lethality. Every tribute must navigate the hazard;
+ * tools and armor mitigate damage.
  */
 export class CataclysmResolver implements BasePhaseResolver {
   readonly phaseType = "cataclysm" as const;
@@ -136,6 +164,8 @@ export class CataclysmResolver implements BasePhaseResolver {
       allTributes,
       alliances,
       prng,
+      arenaName,
+      arenaDescription,
     } = context;
 
     const updatedTributes = new Map<string, EngineTribute>(allTributes);
@@ -152,19 +182,22 @@ export class CataclysmResolver implements BasePhaseResolver {
       return { events, fallenTributeIds, updatedTributes, updatedAlliances };
     }
 
-    const disasterNames = [
-      "Corrosive Acid Fog Wave",
-      "Massive Arena Wildfire Wall",
-      "Flash Tidal Surge Cataclysm",
-      "Toxic Smog Eruption",
-      "Sub-Zero Flash Blizzard",
-    ];
-    const disasterName = prng.pickOne(disasterNames);
+    // 1. Procedurally synthesize arena disaster from arena lore
+    const cataclysm = synthesizeArenaCataclysm({
+      arenaName,
+      arenaDescription,
+      prng,
+    });
 
-    // Resolve all living tributes with Arena Hazard AoE calculus
+    // 2. Resolve all living tributes with elevated Cataclysm damage
+    const cataclysmBaseDamage = Math.round(CATACLYSM_BASE_DAMAGE * CATACLYSM_DAMAGE_MULTIPLIER);
     const hazardResult = resolveArenaHazardAoE(
       livingTributes,
-      { name: disasterName, description: `Caught in the center of ${disasterName}` },
+      {
+        name: cataclysm.name,
+        description: cataclysm.description,
+        baseDamage: cataclysmBaseDamage,
+      },
       { prng }
     );
 
@@ -192,8 +225,8 @@ export class CataclysmResolver implements BasePhaseResolver {
           [tribute.id]: delta,
         },
         thematicContext: {
-          hazardName: disasterName,
-          locationDescription: `Caught in the center of the ${disasterName}.`,
+          hazardName: cataclysm.name,
+          locationDescription: `[ARENA CATACLYSM]: ${cataclysm.name} sweeps the sector. ${cataclysm.description}`,
         },
       });
     }
@@ -215,8 +248,14 @@ export class ArenaEventResolver implements BasePhaseResolver {
   readonly phaseType = "arena_event" as const;
 
   resolvePhase(context: PhaseContext): PhaseResolutionOutput {
-    // Delegates to Cataclysm by default
-    const cataclysm = new CataclysmResolver();
-    return cataclysm.resolvePhase(context);
+    // Alternate between Cataclysm or NPC Overload
+    const chooseCataclysm = context.prng.nextBoolean(0.5);
+    if (chooseCataclysm) {
+      const cataclysm = new CataclysmResolver();
+      return cataclysm.resolvePhase(context);
+    } else {
+      const npcOverload = new NpcOverloadResolver();
+      return npcOverload.resolvePhase(context);
+    }
   }
 }

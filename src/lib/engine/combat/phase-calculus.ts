@@ -482,7 +482,7 @@ export function resolveFeastDuel(
   // If backpack contains medical item and victor is injured, consume it immediately!
   if (backpackItem.category === "medical" && updatedVictor.biometrics.survival < 80) {
     const consumeRes = consumeItem(backpackItem.id, updatedVictor);
-    if (consumeRes.consumed) {
+    if (consumeRes.consumedItem) {
       updatedVictor = consumeRes.updatedTribute;
     }
   }

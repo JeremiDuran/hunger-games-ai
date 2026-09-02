@@ -12,6 +12,12 @@ import {
 } from "./types";
 import { createPRNG, PRNG } from "./prng";
 import { getPhaseResolver } from "./phases";
+import {
+  FEAST_MIN_LIVING_TRIBUTES,
+  FEAST_EARLIEST_DAY,
+  FEAST_HARD_CAP_DAY,
+  FEAST_HALFWAY_RATIO,
+} from "./constants";
 
 export interface PhaseCoverageValidationResult {
   isValid: boolean;
@@ -257,6 +263,27 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
     winnerIds,
   };
 
+  const hasFeastOccurred =
+    gameState.hasFeastOccurred === true ||
+    nextPhaseType === "feast" ||
+    gameState.currentPhaseType === "feast";
+
+  // Determine if this outgoing phase was daytime or nighttime
+  const wasDaytime =
+    gameState.currentPhaseType === "bloodbath"
+      ? false
+      : gameState.currentPhaseType === "day" || gameState.currentPhaseType === "feast"
+      ? true
+      : gameState.currentPhaseType === "night"
+      ? false
+      : gameState.currentDiurnalSlot !== undefined
+      ? gameState.currentDiurnalSlot === "day"
+      : gameState.settings.enableBloodbath
+      ? gameState.phaseOrder % 2 === 0
+      : gameState.phaseOrder % 2 === 1;
+
+  const nextDiurnalSlot: "day" | "night" = wasDaytime ? "night" : "day";
+
   const nextGameState: EngineGameState = {
     ...gameState,
     currentDay: nextDayNumber,
@@ -266,6 +293,8 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
     winnerIds,
     tributes: updatedTributes,
     alliances: resolution.updatedAlliances,
+    hasFeastOccurred,
+    currentDiurnalSlot: nextDiurnalSlot,
   };
 
   return {
@@ -305,41 +334,115 @@ export function computeNextPhaseStep(params: ComputePhaseStepParams): {
     return { nextPhaseType: "day", nextDayNumber: 1 };
   }
 
-  // Ongoing transitions
-  switch (gameState.currentPhaseType) {
-    case "bloodbath":
-      return { nextPhaseType: "day", nextDayNumber: 1 };
+  const aliveCount = Array.from(gameState.tributes.values()).filter(
+    (t) => t.status === "alive"
+  ).length;
 
-    case "day":
-      return { nextPhaseType: "night", nextDayNumber: gameState.currentDay };
+  // Determine whether current outgoing phase was in the Daytime or Nighttime slot
+  const wasDaytime =
+    gameState.currentPhaseType === "bloodbath"
+      ? false
+      : gameState.currentPhaseType === "day" || gameState.currentPhaseType === "feast"
+      ? true
+      : gameState.currentPhaseType === "night"
+      ? false
+      : gameState.currentDiurnalSlot !== undefined
+      ? gameState.currentDiurnalSlot === "day"
+      : gameState.settings.enableBloodbath
+      ? gameState.phaseOrder % 2 === 0
+      : gameState.phaseOrder % 2 === 1;
 
-    case "night": {
-      const nextDay = gameState.currentDay + 1;
-      const aliveCount = Array.from(gameState.tributes.values()).filter(
-        (t) => t.status === "alive"
-      ).length;
+  // =========================================================================
+  // Case A: Daytime Phase Just Concluded -> Transition to Nighttime Slot
+  // =========================================================================
+  if (wasDaytime) {
+    const nextDayNumber = gameState.currentDay;
 
-      // Check for scheduled mid-game feast
-      if (
-        gameState.settings.enableMidGameFeast &&
-        nextDay >= 3 &&
-        aliveCount >= 4 &&
-        aliveCount <= 8
-      ) {
-        return { nextPhaseType: "feast", nextDayNumber: nextDay };
+    // Special Events (Cataclysms & NPC Overloads):
+    // Can be switched off by user (enableSpecialEvents === false).
+    // Distinct from Feast: Do NOT appear until Day 3, are relatively rare (~10% flat chance),
+    // and do NOT scale with days passing or tribute casualties.
+    const specialEventsEnabled = gameState.settings.enableSpecialEvents !== false;
+
+    if (specialEventsEnabled && nextDayNumber >= 3 && aliveCount >= 2) {
+      // 1. Rare Themed NPC Overload (if muttations enabled)
+      if (gameState.settings.enableMuttations) {
+        const muttPrng = createPRNG(`${gameState.gameId}-night-mutt-eval-${nextDayNumber}-${gameState.seed}`);
+        if (muttPrng.nextBoolean(0.10)) {
+          return { nextPhaseType: "npc_overload", nextDayNumber };
+        }
       }
 
-      return { nextPhaseType: "day", nextDayNumber: nextDay };
+      // 2. Rare Arena Cataclysm (if disasters enabled)
+      if (gameState.settings.enableDisasters) {
+        const disasterPrng = createPRNG(`${gameState.gameId}-night-cataclysm-eval-${nextDayNumber}-${gameState.seed}`);
+        if (disasterPrng.nextBoolean(0.10)) {
+          return { nextPhaseType: "cataclysm", nextDayNumber };
+        }
+      }
     }
 
-    case "feast":
-    case "cataclysm":
-    case "npc_overload":
-    case "arena_event":
-      // Special phases occurring during the day transition to night
-      return { nextPhaseType: "night", nextDayNumber: gameState.currentDay };
-
-    default:
-      return { nextPhaseType: "day", nextDayNumber: gameState.currentDay + 1 };
+    // Default Nighttime Phase
+    return { nextPhaseType: "night", nextDayNumber };
   }
+
+  // =========================================================================
+  // Case B: Nighttime Phase Just Concluded -> Transition to Daytime Slot
+  // =========================================================================
+  const nextDayNumber = gameState.currentPhaseType === "bloodbath" ? 1 : gameState.currentDay + 1;
+
+  // 1. Procedural Mid-Game Feast Scheduling (one-time, halfway soft cap, Day 14 hard cap)
+  if (
+    gameState.settings.enableMidGameFeast &&
+    !gameState.hasFeastOccurred &&
+    aliveCount >= FEAST_MIN_LIVING_TRIBUTES &&
+    nextDayNumber >= FEAST_EARLIEST_DAY
+  ) {
+    if (nextDayNumber >= FEAST_HARD_CAP_DAY) {
+      return { nextPhaseType: "feast", nextDayNumber };
+    }
+
+    const dayProgress = (nextDayNumber - 1) / (FEAST_HARD_CAP_DAY - 1);
+    const totalTributes = gameState.tributes.size || 24;
+    const casualtyRatio = (totalTributes - aliveCount) / totalTributes;
+    const tributeProgress = Math.min(1.0, casualtyRatio / FEAST_HALFWAY_RATIO);
+    const halfwayBonus = casualtyRatio >= FEAST_HALFWAY_RATIO ? 0.10 : 0.0;
+
+    const rawProbability = (0.45 * dayProgress) + (0.45 * tributeProgress) + halfwayBonus;
+    const feastProbability = Math.min(0.95, Math.max(0.05, rawProbability));
+
+    const feastPrng = createPRNG(
+      `${gameState.gameId}-feast-eval-day-${nextDayNumber}-${gameState.seed}`
+    );
+    if (feastPrng.nextBoolean(feastProbability)) {
+      return { nextPhaseType: "feast", nextDayNumber };
+    }
+  }
+
+  // 2. Special Events (Cataclysms & NPC Overloads):
+  // Can be switched off by user (enableSpecialEvents === false).
+  // Distinct from Feast: Do NOT appear until Day 3, are relatively rare (~10% flat chance),
+  // and do NOT scale with days passing or tribute casualties.
+  const specialEventsEnabled = gameState.settings.enableSpecialEvents !== false;
+
+  if (specialEventsEnabled && nextDayNumber >= 3 && aliveCount >= 2) {
+    // Rare Themed NPC Overload (if muttations enabled)
+    if (gameState.settings.enableMuttations) {
+      const muttPrng = createPRNG(`${gameState.gameId}-day-mutt-eval-${nextDayNumber}-${gameState.seed}`);
+      if (muttPrng.nextBoolean(0.10)) {
+        return { nextPhaseType: "npc_overload", nextDayNumber };
+      }
+    }
+
+    // Rare Arena Cataclysm (if disasters enabled)
+    if (gameState.settings.enableDisasters) {
+      const disasterPrng = createPRNG(`${gameState.gameId}-day-cataclysm-eval-${nextDayNumber}-${gameState.seed}`);
+      if (disasterPrng.nextBoolean(0.10)) {
+        return { nextPhaseType: "cataclysm", nextDayNumber };
+      }
+    }
+  }
+
+  // Default Daytime Phase
+  return { nextPhaseType: "day", nextDayNumber };
 }

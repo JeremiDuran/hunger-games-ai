@@ -227,7 +227,9 @@ export class DayPhaseResolver implements BasePhaseResolver {
           stateDeltas: pveResult.stateDeltas,
           thematicContext: {
             npcName: npc.name,
-            locationDescription: `Navigating territory near ${npc.name}.`,
+            locationDescription: npc.description
+              ? `Navigating territory near ${npc.name}: ${npc.description}`
+              : `Navigating territory near ${npc.name}.`,
           },
         };
       }
@@ -354,7 +356,9 @@ export class DayPhaseResolver implements BasePhaseResolver {
           stateDeltas: pveResult.stateDeltas,
           thematicContext: {
             npcName: npc.name,
-            locationDescription: `Fighting together against ${npc.name}.`,
+            locationDescription: npc.description
+              ? `Fighting together against ${npc.name}: ${npc.description}`
+              : `Fighting together against ${npc.name}.`,
           },
         };
       }
@@ -559,7 +563,9 @@ export class DayPhaseResolver implements BasePhaseResolver {
         stateDeltas: pveResult.stateDeltas,
         thematicContext: {
           npcName: npc.name,
-          locationDescription: `Multi-tribute confrontation against ${npc.name}.`,
+          locationDescription: npc.description
+            ? `Multi-tribute confrontation against ${npc.name}: ${npc.description}`
+            : `Multi-tribute confrontation against ${npc.name}.`,
         },
       };
     }

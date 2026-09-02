@@ -52,6 +52,17 @@ const THEMATIC_VOCABULARIES: Array<{
     },
   },
   {
+    triggers: ["sawmill", "logging", "lumber", "saw", "timber", "woodcut", "carpenter", "log"],
+    lexicon: {
+      materials: ["Cast-Iron", "Toothed Steel", "Oiled Hardwood", "Heavy Pine", "Reinforced Timber", "Industrial"],
+      weaponNouns: ["Double-Bit Felling Axe", "Serrated Crosscut Saw", "Timber Cant Hook", "Log-Peeling Drawknife", "Splitting Maul"],
+      armorNouns: ["Heavy Leather Logger Apron", "Steel-Toed Logger Boots", "Reinforced Hardhat with Mesh Visor", "Sawdust Canvas Gaiters"],
+      medicalNouns: ["Pine Pitch Antiseptic", "Sawmill Tourniquet & Splints", "Hemostatic Sawdust Styptic", "Deep Laceration Suture Pack"],
+      sustenanceNouns: ["Hardtack Lumberjack Biscuit", "Smoked Pork Slab", "Blackstrap Molasses Ration", "Insulated Coffee Thermos"],
+      toolNouns: ["Heavy Timber Winch Cable", "Choker Hook & Pulley", "Sharpening Axe Stone", "Heavy Cant Lever"],
+    },
+  },
+  {
     triggers: ["jungle", "forest", "woodland", "tree", "canopy", "rainforest", "bamboo", "swamp", "pine"],
     lexicon: {
       materials: ["Bamboo", "Hardwood", "Vine-Wrapped", "Venom-Tipped", "Obsidian", "Camouflaged"],

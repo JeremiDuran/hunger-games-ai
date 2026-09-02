@@ -363,6 +363,10 @@
         "title": "Banquete de la Cornucopia a Mitad de Juego",
         "desc": "Los Creadores convocan a los tributos sobrevivientes a la Cornucopia con medicinas y armas vitales cuando el grupo disminuye."
       },
+      "specialEvents": {
+        "title": "Eventos Especiales de Arena (Cataclismos y Mutaciones)",
+        "desc": "Intervenciones raras y espontáneas de los Creadores (desastres ambientales o hordas de bestias) que reemplazan fases de Día o Noche a partir del Día 3."
+      },
       "hazardsBound": {
         "inactiveInArena": "Inactivo en el Protocolo de Arena",
         "enableShortcut": "Activar en Arena",
@@ -444,6 +448,9 @@
       "feastLabel": "Banquete en la Cornucopia",
       "feastActive": "Habilitado",
       "feastInactive": "Deshabilitado",
+      "specialEventsLabel": "Eventos Especiales",
+      "specialEventsActive": "Habilitado",
+      "specialEventsInactive": "Deshabilitado",
       "editArena": "Editar Arena",
       "editTributes": "Editar Lista",
       "editRules": "Editar Reglas",

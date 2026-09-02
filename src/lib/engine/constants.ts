@@ -147,6 +147,15 @@ export const FEAST_DESPERATE_ATTENDANCE_PROBABILITY = 0.85;
 export const FEAST_STANDARD_ATTENDANCE_PROBABILITY = 0.5;
 export const FEAST_LETHALITY_MULTIPLIER = 1.4;
 
+/** Minimum living combatants required for a Feast (1-2 is final climax duel) */
+export const FEAST_MIN_LIVING_TRIBUTES = 3;
+/** Earliest arena day a Feast can spawn (Day 0 is Bloodbath, Day 1 is morning scatter) */
+export const FEAST_EARLIEST_DAY = 2;
+/** Hard cap day: 100% forced Feast spawn if it has not occurred yet */
+export const FEAST_HARD_CAP_DAY = 14;
+/** Soft cap ratio: 50% casualty threshold providing elevated probability boost */
+export const FEAST_HALFWAY_RATIO = 0.5;
+
 // ==========================================
 // 9. Night Ambush & Exposure Constants
 // ==========================================
@@ -161,6 +170,10 @@ export const NIGHT_AMBUSH_CRITICAL_FATAL_BONUS = 0.35;
 export const HAZARD_BASE_AOE_DAMAGE = 35;
 export const HAZARD_AGILITY_EVASION_SURVIVAL_THRESHOLD = 60;
 export const MUTT_SWARM_POWER_PER_MEMBER = 35;
+
+/** Elevated damage parameters for whole-phase Cataclysms */
+export const CATACLYSM_BASE_DAMAGE = 35;
+export const CATACLYSM_DAMAGE_MULTIPLIER = 1.25;
 
 // ==========================================
 // 11. Combat Lethality Calibration Parameters

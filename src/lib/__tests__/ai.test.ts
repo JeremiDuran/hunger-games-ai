@@ -233,6 +233,15 @@ describe("AI Core Engine (src/lib/ai.ts)", () => {
       expect(desc).toContain("burnished bronze horn");
     });
 
+    it("synthesizes sawmill horn for industrial timber logging sites", () => {
+      const desc = synthesizeCornucopiaDescription(
+        "Sawmill Complex",
+        "An massive industrial logging site with sawdust and logs"
+      );
+      expect(desc).toContain("rough-hewn heavy timber");
+      expect(desc).toContain("saw blades");
+    });
+
     it("synthesizes urban horn for city ruins", () => {
       const desc = synthesizeCornucopiaDescription(
         "Metro Ruin",

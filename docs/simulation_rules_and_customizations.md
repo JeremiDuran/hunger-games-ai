@@ -67,7 +67,8 @@ Step 3 fine-tunes turn execution, combat probability distributions, hazard timin
 | :--- | :--- | :--- | :--- |
 | `combatLethality` | • `balanced`<br>• `high_bloodbath`<br>• `gritty_survival` | `balanced` | • **`balanced`**: Standard survival distribution resulting in 6–8 arena days.<br>• **`high_bloodbath`**: Elevated critical hit and lethal clash probabilities resulting in fast 3–4 day matches.<br>• **`gritty_survival`**: Tributes prioritize foraging, concealment, and shelter over combat, resulting in longer 8–10 day games. |
 | `allianceDynamic` | • `dynamic_pacts`<br>• `lone_wolves`<br>• `career_pack` | `dynamic_pacts` | • **`dynamic_pacts`**: Alliances form organically and fracture over resource scarcity or sleep ambushes.<br>• **`lone_wolves`**: Zero alliance formation; pure 100% individual free-for-all.<br>• **`career_pack`**: Tributes from Districts 1, 2, and 4 form cohesive hunting packs early on. |
-| `enableMidGameFeast` | Boolean (`true`/`false`) | `true` | When enabled, Gamemakers summon remaining tributes to the Cornucopia with vital medicine and weapons when the tribute count drops low, triggering high-stakes confrontations. |
+| `enableMidGameFeast` | Boolean (`true`/`false`) | `true` | When enabled, Gamemakers summon remaining tributes to the Cornucopia with vital medicine and weapons when the tribute count drops low, triggering high-stakes confrontations. Escalates with days and casualties. |
+| `enableSpecialEvents` | Boolean (`true`/`false`) | `true` | **Special Arena Events (Cataclysms & Mutt Surges)**: When enabled, spontaneous high-stakes special events (Arena Cataclysms and Apex Mutt Overloads) can procedurally replace standard Day or Night phases starting from Day 3. Unlike the Mid-Game Feast, special events do not scale with tribute casualties or elapsed days—they occur as relatively rare (~10% flat base rate), unannounced Gamemaker interventions. When disabled, the game adheres strictly to standard Day and Night cycles (plus the Mid-Game Feast if enabled). |
 
 ---
 
@@ -117,6 +118,7 @@ All Step 1 hazards and Step 3 rule directives are serialized into the `settings`
   "disaster_frequency": "moderate",
   "alliance_dynamic": "dynamic_pacts",
   "enable_mid_game_feast": true,
+  "enable_special_events": true,
   "narrative_voice": "novel_cinematic",
   "victory_condition": "sole_victor"
 }

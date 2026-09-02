@@ -80,6 +80,8 @@ export interface EngineGameSettings {
   enableDisasters: boolean;
   enableSponsorDrops: boolean;
   enableMidGameFeast: boolean;
+  enableSpecialEvents?: boolean;
+  customNpcs?: CustomNPC[];
   pacing: GamePacing;
   turnGranularity: TurnGranularity;
   combatLethality: CombatLethality;
@@ -89,6 +91,11 @@ export interface EngineGameSettings {
   allianceDynamic: AllianceDynamic;
   narrativeVoice: NarrativeVoice;
   victoryCondition: VictoryCondition;
+}
+
+export interface CustomNPC {
+  name: string;
+  description: string;
 }
 
 // ==========================================
@@ -204,6 +211,8 @@ export interface EngineGameState {
   alliances: Map<string, EngineAlliance>;
   settings: EngineGameSettings;
   seed: number;
+  hasFeastOccurred?: boolean;
+  currentDiurnalSlot?: "day" | "night";
 }
 
 // ==========================================
@@ -246,6 +255,7 @@ export interface NPCCombatant {
   name: string;
   type: NPCType;
   threatLevel: ThreatLevel;
+  description?: string;
 }
 
 export interface EncounterFaction {

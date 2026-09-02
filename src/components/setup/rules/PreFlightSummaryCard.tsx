@@ -179,10 +179,20 @@ export function PreFlightSummaryCard() {
             </p>
           </div>
 
-          <div className="pt-1 flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
+          <div className="pt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
             <span className="px-1.5 py-0.5 clip-chamfer-xs bg-muted/60 border border-border capitalize">
               {rulesState.narrativeVoice.replace(/_/g, " ")}
             </span>
+            {rulesState.enableMidGameFeast && (
+              <span className="px-1.5 py-0.5 clip-chamfer-xs bg-yellow-500/15 border border-yellow-500/40 text-yellow-400 font-bold">
+                Feast
+              </span>
+            )}
+            {rulesState.enableSpecialEvents && (
+              <span className="px-1.5 py-0.5 clip-chamfer-xs bg-red-500/15 border border-red-500/40 text-red-400 font-bold">
+                Special Events
+              </span>
+            )}
           </div>
         </div>
       </div>

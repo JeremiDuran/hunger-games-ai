@@ -39,9 +39,6 @@ const mockSword: EngineItem = {
   name: "Glacial Broadsword",
   category: "weapon",
   tier: "rare",
-  effectType: "lethal",
-  effectValue: 35,
-  isConsumable: false,
 };
 
 const mockMedkit: EngineItem = {
@@ -49,9 +46,7 @@ const mockMedkit: EngineItem = {
   name: "Capitol Trauma Kit",
   category: "medical",
   tier: "legendary",
-  effectType: "healing",
-  effectValue: 50,
-  isConsumable: true,
+  durability: 1,
 };
 
 describe("Phase-Specific Combat & Event Calculus", () => {
