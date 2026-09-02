@@ -51,6 +51,22 @@ This project operates with two isolated Supabase environments:
 - **Strictly one step at a time**: Focus exclusively on the immediate task at hand. Do NOT bundle unrelated tasks, over-engineer future features prematurely, or extrapolate beyond the immediate scope.
 - **Verify and checkpoint**: Complete the single task, test/verify it against skills/tools, update docs, and pause for review before proceeding to the next step.
 
+### 5. Live Database Testing & Benchmark Simulation Protocol
+- **Zero Database Residue (Create -> Execute -> Cleanup)**: Every test or verification script interacting with Supabase MUST follow the strict lifecycle pattern:
+  1. Create test match in `public.games` (with `status: "setup"`).
+  2. Insert tributes and bootstrap starting alliances.
+  3. Transition match to `status: "in_progress"` and execute simulation steps.
+  4. Assert mathematical & relational database invariants.
+  5. **Unconditional Cleanup (`finally`)**: Always delete the test match in a `finally` block via `await supabase.from("games").delete().eq("id", gameId)` to cascade-purge all child records.
+- **Canonical Benchmark Match Roster**:
+  - **Arena**: `"The Floor is Lava Caldera"` (custom volcanic arena, non-preset).
+  - **Roster**: **26 Tributes across 13 Districts** (24 Canon 74th tributes + District 13 custom entries: `'Larry the Evil Cat'` [Chaotic predator] and `'Sentient Plastic Chair'` [Stoic indestructible monobloc]).
+  - **Settings**: Default rules (`enableBloodbath: true`, `enableMuttations: true`, `enableDisasters: true`, `enableSponsorDrops: true`, `combatLethality: "balanced"`, `pacing: "cinematic"`).
+- **Granularity Testing Behavior**:
+  - `event_by_event`: Simulates opening phase, executes and streams/generates narrative for Event #1 via OpenRouter, caches to `game_phase_events.narrative_text`, and stops after Event #1.
+  - `whole_day`: Simulates complete multi-phase cycle (Day 0 Bloodbath -> Day 1 -> Night 1 with Capitol Fallen Anthem broadcast), checks 15/15 invariants, and purges.
+  - `autoplay` / `end_to_end`: Simulates continuously from Day 0 to final crowned Victor.
+
 **Coding standards** (read the relevant skill before starting any UI or feature work):
 - Skill files live in `.agents/skills/` — each has a `SKILL.md` with rules and examples
 - `no-slop` — TypeScript quality, error handling, React/Next.js patterns (read at start of any task)

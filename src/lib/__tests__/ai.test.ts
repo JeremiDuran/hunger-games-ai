@@ -176,14 +176,22 @@ describe("AI Core Engine (src/lib/ai.ts)", () => {
   });
 
   describe("OpenRouter Provider Configuration", () => {
-    it("initializes client with default model slug openrouter/free", () => {
-      expect(DEFAULT_OPENROUTER_MODEL).toBe("openrouter/free");
+    it("initializes client with default curated storytelling model", () => {
+      expect(DEFAULT_OPENROUTER_MODEL).toBe("meta-llama/llama-3.3-70b-instruct:free");
       const provider = getOpenRouterProvider("mock-api-key");
       expect(provider).toBeDefined();
     });
 
     it("returns storytelling model instance without errors", () => {
-      const model = getStorytellingModel("openrouter/free", "mock-api-key");
+      const model = getStorytellingModel(undefined, "mock-api-key");
+      expect(model).toBeDefined();
+    });
+
+    it("returns storytelling model with provider ignore and fallback models", () => {
+      const model = getStorytellingModel(undefined, "mock-api-key", {
+        ignoreProviders: ["InclusionAI", "liquid"],
+        models: ["meta-llama/llama-3.3-70b-instruct:free", "google/gemini-2.0-flash-exp:free"],
+      });
       expect(model).toBeDefined();
     });
   });

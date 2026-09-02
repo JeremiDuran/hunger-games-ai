@@ -14,7 +14,13 @@ import { NarrativeRequest } from "./schemas/narrative";
 // 1. Constants & Model Configuration
 // ==========================================
 
-export const DEFAULT_OPENROUTER_MODEL = "openrouter/free";
+export const CURATED_FREE_STORYTELLING_MODELS = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "minimax/minimax-m2.7:free",
+  "liquid/lfm-2.5-2.6b:free",
+] as const;
+
+export const DEFAULT_OPENROUTER_MODEL = CURATED_FREE_STORYTELLING_MODELS[0];
 
 export const NARRATIVE_SYSTEM_PROMPTS = {
   novel_cinematic: `You are the official author and narrator of the Hunger Games arena.
@@ -60,19 +66,63 @@ export function getOpenRouterProvider(apiKey?: string) {
   });
 }
 
+export interface StorytellingModelOptions {
+  model?: string;
+  apiKey?: string;
+  models?: string[];
+  ignoreProviders?: string[];
+}
+
 /**
- * Gets a LanguageModel instance for the specified model slug.
+ * Gets a LanguageModel instance for the specified model slug with provider filtering and fallback models.
  */
 export function getStorytellingModel(
   modelSlug?: string,
-  apiKey?: string
+  apiKey?: string,
+  options?: StorytellingModelOptions
 ): LanguageModel {
   const openrouter = getOpenRouterProvider(apiKey);
   const selectedSlug =
     modelSlug ||
+    options?.model ||
     process.env.OPENROUTER_DEFAULT_MODEL ||
     DEFAULT_OPENROUTER_MODEL;
-  return openrouter(selectedSlug);
+
+  const envIgnoreProviders = process.env.OPENROUTER_IGNORE_PROVIDERS
+    ? process.env.OPENROUTER_IGNORE_PROVIDERS.split(",").map((s) => s.trim().toLowerCase())
+    : [];
+
+  const ignoreProviders = [
+    ...new Set([
+      ...envIgnoreProviders,
+      ...(options?.ignoreProviders || []).map((s) => s.trim().toLowerCase()),
+    ]),
+  ];
+
+  const envModels = process.env.OPENROUTER_MODELS
+    ? process.env.OPENROUTER_MODELS.split(",").map((s) => s.trim())
+    : undefined;
+
+  const candidateModels =
+    options?.models ||
+    envModels ||
+    (selectedSlug === CURATED_FREE_STORYTELLING_MODELS[0]
+      ? CURATED_FREE_STORYTELLING_MODELS.slice(1)
+      : undefined);
+
+  const settings: Record<string, unknown> = {};
+  if (ignoreProviders.length > 0) {
+    settings.provider = {
+      ignore: ignoreProviders,
+      allow_fallbacks: true,
+    };
+  }
+  if (candidateModels && candidateModels.length > 0) {
+    // OpenRouter enforces that the 'models' fallback array must contain 3 items or fewer
+    settings.models = candidateModels.slice(0, 3);
+  }
+
+  return openrouter(selectedSlug, Object.keys(settings).length > 0 ? settings : undefined);
 }
 
 // ==========================================
@@ -215,16 +265,25 @@ export function generateBarebonesFallback(request: NarrativeRequest): string {
 // 5. Streaming & Generation Operations
 // ==========================================
 
+export interface NarrativeGenerationResult {
+  text: string;
+  modelId: string;
+  finishReason?: string;
+  rawFinishReason?: string;
+  warnings?: unknown[];
+}
+
 /**
  * Initiates streaming text generation for an arena event.
  */
 export function streamNarrative(
   request: NarrativeRequest,
-  options?: { apiKey?: string; model?: string }
+  options?: StorytellingModelOptions
 ) {
   const model = getStorytellingModel(
     request.model || options?.model,
-    options?.apiKey
+    options?.apiKey,
+    options
   );
   const systemPrompt =
     NARRATIVE_SYSTEM_PROMPTS[request.narrativeVoice] ||
@@ -240,21 +299,25 @@ export function streamNarrative(
 }
 
 /**
- * Generates non-streaming narrative text for an arena event.
+ * Generates narrative text for an arena event along with model metadata.
  */
-export async function generateNarrative(
+export async function generateNarrativeWithMetadata(
   request: NarrativeRequest,
-  options?: { apiKey?: string; model?: string }
-): Promise<string> {
+  options?: StorytellingModelOptions
+): Promise<NarrativeGenerationResult> {
   const apiKey = options?.apiKey || process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return generateBarebonesFallback(request);
+    return {
+      text: generateBarebonesFallback(request),
+      modelId: "fallback-no-key",
+    };
   }
 
   try {
     const model = getStorytellingModel(
       request.model || options?.model,
-      apiKey
+      apiKey,
+      options
     );
     const systemPrompt =
       NARRATIVE_SYSTEM_PROMPTS[request.narrativeVoice] ||
@@ -266,11 +329,62 @@ export async function generateNarrative(
       system: systemPrompt,
       prompt: userPrompt,
       temperature: 0.7,
+      maxRetries: 1,
+      timeout: 15000,
     });
 
-    return result.text.trim() || generateBarebonesFallback(request);
+    const modelId =
+      result.response?.modelId ||
+      request.model ||
+      options?.model ||
+      DEFAULT_OPENROUTER_MODEL;
+
+    const rawText = result.text.trim();
+
+    // Check if the response was flagged by content filter, classifier model, or returned a safety refusal token (e.g., 'User:safety', 'User Safety: safe')
+    const isSafetyRefusal =
+      result.finishReason === "content-filter" ||
+      /^user\s*(safety|:)/i.test(rawText) ||
+      /user safety:\s*(safe|unsafe)/i.test(rawText) ||
+      /nvidia\/.*content-safety/i.test(modelId) ||
+      rawText.length === 0;
+
+    if (isSafetyRefusal) {
+      console.warn(
+        `[narrative] Content filtered, classifier output, or model refusal from '${modelId}' (finishReason: ${result.finishReason}, text: "${rawText}"). Applying barebones fallback.`
+      );
+      return {
+        text: generateBarebonesFallback(request),
+        modelId,
+        finishReason: result.finishReason,
+        rawFinishReason: result.rawFinishReason,
+        warnings: result.warnings,
+      };
+    }
+
+    return {
+      text: rawText,
+      modelId,
+      finishReason: result.finishReason,
+      rawFinishReason: result.rawFinishReason,
+      warnings: result.warnings,
+    };
   } catch (err) {
     console.error("[narrative] failed to generate via OpenRouter:", err);
-    return generateBarebonesFallback(request);
+    return {
+      text: generateBarebonesFallback(request),
+      modelId: "fallback-error",
+    };
   }
+}
+
+/**
+ * Generates non-streaming narrative text for an arena event.
+ */
+export async function generateNarrative(
+  request: NarrativeRequest,
+  options?: StorytellingModelOptions
+): Promise<string> {
+  const result = await generateNarrativeWithMetadata(request, options);
+  return result.text;
 }

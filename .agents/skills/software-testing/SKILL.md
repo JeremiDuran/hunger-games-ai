@@ -1,4 +1,4 @@
-﻿---
+---
 name: software-testing
 description: >-
   Use this skill when implementing new features, after a code-review flagged
@@ -156,17 +156,27 @@ it('LLM response matches NarrativeSchema contract', async () => {
 });
 ```
 
-### LLM / AI Calls: Always Mock the Model
+#### Supabase Live DB Benchmark Test Protocol (Zero Residue)
+When executing live database test scripts against the DEV Supabase environment (`scripts/test-*.ts`):
+1. **Canonical Benchmark Match**:
+   - **Arena**: `"The Floor is Lava Caldera"` (custom volcanic arena, non-preset).
+   - **Roster**: **26 Tributes across 13 Districts** (24 Canon 74th tributes + District 13: `'Larry the Evil Cat'` and `'Sentient Plastic Chair'`).
+   - **Lifecycle**: Create game in `status: "setup"` $\rightarrow$ insert tributes in `public.tributes` $\rightarrow$ bootstrap alliances in `public.game_alliances` $\rightarrow$ update game to `status: "in_progress"` $\rightarrow$ advance procedural phases.
+2. **Strict Invariant Verification**:
+   - Check $\text{Living} + \text{Dead} = \text{Total Roster}$ (26).
+   - Check all dead tributes have valid placements ($2..26$) and `death_phase_id`.
+   - Check all active survivors have `placement === null`.
+   - Check looted item ownership and auto-consumed items in tribute inventory.
+   - Check sequential `phase_order` (#1, #2, #3...).
+3. **Mandatory `finally` Cleanup**:
+   - **Always** delete the test game in a `finally` block:
+     `await supabase.from("games").delete().eq("id", testGameId);`
+   - Never leave orphaned rows or test debris in the live database.
 
-- **Never call OpenRouter in tests.** It costs money, is slow, and is non-deterministic.
-- Mock at the `generateText` / `streamText` boundary from Vercel AI SDK.
-- Test the wrapper logic (prompt construction, response parsing, error handling) — not the model itself.
+### LLM / AI Calls: Mocking vs Live Scripts
 
-```ts
-vi.mock('ai', () => ({
-  generateText: vi.fn().mockResolvedValue({ text: 'Katniss kills the beast.' }),
-}));
-```
+- **Vitest Unit/Integration Tests (`__tests__/*.test.ts`)**: Always mock AI SDK models.
+- **Standalone Verification Scripts (`scripts/test-openrouter-narrative.ts`, `scripts/test-*.ts`)**: Use live OpenRouter to verify prompt formatting and sensory narrative generation.
 
 ---
 
