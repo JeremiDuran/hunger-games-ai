@@ -145,4 +145,33 @@ describe("Bloodbath Phase Resolver (Day 0 Cornucopia Clash vs Fleeing)", () => {
 
     expect(highCasualties).toBeGreaterThan(grittyCasualties);
   });
+
+  it("attaches arena-tailored cornucopiaDescription to every generated bloodbath event", () => {
+    const prng = createPRNG(999);
+    const tributes = Array.from({ length: 6 }, (_, i) =>
+      createMockTribute(`t-${i}`, i + 1)
+    );
+    const allMap = new Map(tributes.map((t) => [t.id, t]));
+
+    const result = resolver.resolvePhase({
+      gameId: "game-lava",
+      dayNumber: 0,
+      phaseType: "bloodbath",
+      phaseOrder: 1,
+      aliveTributes: tributes,
+      allTributes: allMap,
+      alliances: new Map(),
+      settings: defaultSettings,
+      prng,
+      arenaName: "The Floor is Lava Caldera",
+      arenaDescription: "Obsidian spires over boiling magma rivers.",
+    });
+
+    expect(result.events.length).toBeGreaterThan(0);
+    for (const event of result.events) {
+      expect(event.thematicContext?.cornucopiaDescription).toBeDefined();
+      expect(event.thematicContext?.cornucopiaDescription).toContain("titanium");
+      expect(event.thematicContext?.cornucopiaDescription).toContain("obsidian");
+    }
+  });
 });

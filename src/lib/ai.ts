@@ -8,6 +8,7 @@
 
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { streamText, generateText, LanguageModel } from "ai";
+import { NarrativeVoice } from "@/types/setup";
 import { NarrativeRequest } from "./schemas/narrative";
 
 // ==========================================
@@ -182,6 +183,9 @@ export function buildNarrativeUserPrompt(request: NarrativeRequest): string {
     .join("; ");
 
   const contextItems: string[] = [];
+  if (thematicContext?.cornucopiaDescription) {
+    contextItems.push(`Cornucopia Structure: ${thematicContext.cornucopiaDescription}`);
+  }
   if (thematicContext?.itemContested) {
     contextItems.push(`Contested Item: ${thematicContext.itemContested}`);
   }
@@ -387,4 +391,100 @@ export async function generateNarrative(
 ): Promise<string> {
   const result = await generateNarrativeWithMetadata(request, options);
   return result.text;
+}
+
+// ==========================================
+// 6. Cornucopia Synthesis & Generation
+// ==========================================
+
+/**
+ * Procedural deterministic fallback synthesizer for the Cornucopia structure based on arena lore.
+ */
+export function synthesizeCornucopiaDescription(
+  arenaName: string,
+  arenaLore?: string
+): string {
+  const combined = `${arenaName} ${arenaLore || ""}`.toLowerCase();
+
+  if (/volcan|lava|magma|caldera|fire|ash|obsidian|pyroclastic/.test(combined)) {
+    return "A colossal horn of heat-tempered blackened titanium, perched on an obsidian rock shelf surrounded by glowing fissures and rising sulfur vents.";
+  }
+  if (/snow|ice|arctic|blizzard|frozen|tundra|glaci|frost|sub-zero/.test(combined)) {
+    return "A frosted crystalline metallic horn encrusted with jagged rime, standing atop a treacherous frozen ice sheet surrounded by razor-sharp icicles.";
+  }
+  if (/desert|sand|dune|arid|wasteland|badland|scorched|sahara/.test(combined)) {
+    return "A sun-bleached golden alloy horn rising like a desert monument from shifting dunes, radiating scorching heat across the ring of metal pedestals.";
+  }
+  if (/jungle|rainforest|forest|wood|swamp|marsh|bog|canopy|grove/.test(combined)) {
+    return "A towering burnished bronze horn half-swallowed by ancient moss and thick vines, resting on a muddy clearing beneath towering canopy trees.";
+  }
+  if (/ruin|city|urban|concrete|skyscraper|industrial|factory|decay|asphalt/.test(combined)) {
+    return "A battered industrial steel horn anchored amidst cracked asphalt and rusted rebar, shadowed by decaying concrete monoliths.";
+  }
+  if (/ocean|water|island|aquatic|beach|coast|reef|sea|lake/.test(combined)) {
+    return "A polished coralline horn looming on a raised sandbar spit, battered by swirling tides with launching pedestals submerged in knee-deep water.";
+  }
+  if (/cave|underground|subterranean|mine|chasm|abyss|tunnel/.test(combined)) {
+    return "A dark basalt-carved horn looming under towering stalactites in a cavernous chamber, lit only by eerie luminescent moss.";
+  }
+  if (/cyber|holo|neon|tech|digital|simulation|virtual|quantum/.test(combined)) {
+    return "A geometric prism-faceted horn pulsing with neon conduits and digital telemetry grids, flanked by luminescent glass launch plates.";
+  }
+
+  return "A massive golden horn of plenty resting on a circular stone dais, surrounded by the ring of numbered launch pedestals.";
+}
+
+export interface CornucopiaGenerationOptions extends StorytellingModelOptions {
+  arenaName: string;
+  arenaDescription?: string;
+  narrativeVoice?: NarrativeVoice;
+}
+
+/**
+ * Generates an evocative 1-2 sentence description of the arena's custom Cornucopia horn, pedestals, and launch ring.
+ */
+export async function generateCornucopiaDescription(
+  options: CornucopiaGenerationOptions
+): Promise<string> {
+  const { arenaName, arenaDescription = "", narrativeVoice = "novel_cinematic" } = options;
+  const apiKey = options.apiKey || process.env.OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    return synthesizeCornucopiaDescription(arenaName, arenaDescription);
+  }
+
+  try {
+    const model = getStorytellingModel(options.model, apiKey, options);
+    const systemPrompt = `You are the lead Gamemaker architect designing the Cornucopia for the Hunger Games arena.
+Describe the central Cornucopia horn, its unique construction/materials, and the surrounding tribute launch pedestals in 1 to 2 evocative, sensory sentences (20 to 45 words).
+Tailor the materials, appearance, and hazards directly to the arena's specific biome and theme.
+Do NOT include preamble, markdown headers, or quotes. Output ONLY the description.`;
+
+    const userPrompt = `Arena: ${arenaName}
+Lore: ${arenaDescription || "Standard Capitol Arena"}
+Voice Style: ${narrativeVoice}
+
+Describe the Cornucopia structure and opening launch ring for this arena.`;
+
+    const result = await generateText({
+      model,
+      system: systemPrompt,
+      prompt: userPrompt,
+      temperature: 0.7,
+      maxRetries: 1,
+      timeout: 10000,
+    });
+
+    const text = result.text.trim();
+    if (!text || /^user\s*(safety|:)/i.test(text)) {
+      return synthesizeCornucopiaDescription(arenaName, arenaDescription);
+    }
+    return text;
+  } catch (err) {
+    console.warn(
+      "[ai] Failed to generate custom Cornucopia description with LLM, using procedural synthesizer:",
+      err
+    );
+    return synthesizeCornucopiaDescription(arenaName, arenaDescription);
+  }
 }

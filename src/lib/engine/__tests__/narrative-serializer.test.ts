@@ -192,4 +192,38 @@ describe("AI Storyteller Payload Serializer", () => {
     expect(payload.thematicContext?.npcName).toBe("Tracker Jacker Swarm");
     expect(() => narrativeRequestSchema.parse(payload)).not.toThrow();
   });
+
+  it("serializes bloodbath events with cornucopiaDescription into valid NarrativeRequest", () => {
+    const event: EngineEventOutcome = {
+      eventId: "e-bb-1",
+      eventOrder: 1,
+      eventCategory: "forage",
+      outcomeType: "loot",
+      tributeIds: ["t1"],
+      killerIds: null,
+      victimIds: null,
+      stateDeltas: {
+        t1: {
+          tributeId: "t1",
+          survivalDelta: 0,
+          sanityDelta: 5,
+          itemsGained: ["Bow and Arrows"],
+        },
+      },
+      thematicContext: {
+        cornucopiaDescription:
+          "A towering burnished bronze horn half-swallowed by ancient moss.",
+        itemContested: "Bow and Arrows",
+        locationDescription: "At the mouth of the Cornucopia horn.",
+      },
+    };
+
+    const payload = serializeEventToNarrativePayload(event, context);
+
+    expect(payload.thematicContext?.cornucopiaDescription).toBe(
+      "A towering burnished bronze horn half-swallowed by ancient moss."
+    );
+    expect(payload.thematicContext?.itemContested).toBe("Bow and Arrows");
+    expect(() => narrativeRequestSchema.parse(payload)).not.toThrow();
+  });
 });

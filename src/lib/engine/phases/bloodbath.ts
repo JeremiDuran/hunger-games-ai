@@ -20,6 +20,7 @@ import { synthesizeItem } from "../items/synthesizer";
 import { resolve1v1Clash } from "../combat/calculus";
 import { applyBiometricDelta } from "../biometrics";
 import { claimItem } from "../items/lifecycle";
+import { synthesizeCornucopiaDescription } from "@/lib/ai";
 
 export type BloodbathTactic = "rush_horn" | "scavenge_periphery" | "flee_wilderness";
 
@@ -42,6 +43,10 @@ export class BloodbathResolver implements BasePhaseResolver {
       arenaName,
       arenaDescription,
     } = context;
+
+    const cornucopiaDescription =
+      context.cornucopiaDescription ||
+      synthesizeCornucopiaDescription(arenaName, arenaDescription);
 
     const updatedTributes = new Map<string, EngineTribute>(allTributes);
     const updatedAlliances = new Map(alliances);
@@ -128,6 +133,7 @@ export class BloodbathResolver implements BasePhaseResolver {
           victimIds: null,
           stateDeltas: stateDelta,
           thematicContext: {
+            cornucopiaDescription,
             itemContested: weapon.name,
             locationDescription: "At the mouth of the Cornucopia horn.",
           },
@@ -182,6 +188,7 @@ export class BloodbathResolver implements BasePhaseResolver {
           victimIds: clashResult.isFatal ? [updatedLoser.id] : null,
           stateDeltas,
           thematicContext: {
+            cornucopiaDescription,
             itemContested: contestedItem.name,
             locationDescription: "Contesting weapons at the Cornucopia horn.",
           },
@@ -229,6 +236,7 @@ export class BloodbathResolver implements BasePhaseResolver {
         victimIds: null,
         stateDeltas: stateDelta,
         thematicContext: {
+          cornucopiaDescription,
           itemContested: lootedItem.name,
           locationDescription: "Along the outer periphery of the Cornucopia circle.",
         },
@@ -261,6 +269,7 @@ export class BloodbathResolver implements BasePhaseResolver {
         victimIds: null,
         stateDeltas: stateDelta,
         thematicContext: {
+          cornucopiaDescription,
           locationDescription: "Fleeing into the dense tree line away from the Cornucopia.",
         },
       });

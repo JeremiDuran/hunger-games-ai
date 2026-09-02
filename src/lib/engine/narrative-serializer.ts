@@ -198,6 +198,9 @@ export function serializeEventToNarrativePayload(
   let thematicContext: NarrativeThematicContext | undefined = undefined;
   if (event.thematicContext) {
     thematicContext = {
+      ...(event.thematicContext.cornucopiaDescription
+        ? { cornucopiaDescription: event.thematicContext.cornucopiaDescription }
+        : {}),
       ...(event.thematicContext.itemContested
         ? { itemContested: event.thematicContext.itemContested }
         : {}),

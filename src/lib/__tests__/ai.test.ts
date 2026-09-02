@@ -7,6 +7,8 @@ import {
   getOpenRouterProvider,
   getStorytellingModel,
   generateNarrative,
+  synthesizeCornucopiaDescription,
+  generateCornucopiaDescription,
 } from "../ai";
 import { NarrativeRequest } from "../schemas/narrative";
 
@@ -125,6 +127,89 @@ describe("AI Core Engine (src/lib/ai.ts)", () => {
       const prompt = buildNarrativeUserPrompt(peacefulRequest);
       expect(prompt).toContain("Fatalities: None");
       expect(prompt).toContain("Discovered Item: Nightlock Berries");
+    });
+
+    it("renders Cornucopia Structure when provided in thematic context", () => {
+      const bloodbathRequest: NarrativeRequest = {
+        ...sampleRequest,
+        thematicContext: {
+          cornucopiaDescription:
+            "A colossal horn of heat-tempered blackened titanium on an obsidian rock shelf.",
+          locationDescription: "At the mouth of the Cornucopia horn.",
+        },
+      };
+
+      const prompt = buildNarrativeUserPrompt(bloodbathRequest);
+      expect(prompt).toContain(
+        "Cornucopia Structure: A colossal horn of heat-tempered blackened titanium on an obsidian rock shelf."
+      );
+      expect(prompt).toContain(
+        "Specific Location: At the mouth of the Cornucopia horn."
+      );
+    });
+  });
+
+  describe("synthesizeCornucopiaDescription", () => {
+    it("synthesizes volcanic horn for caldera/lava arenas", () => {
+      const desc = synthesizeCornucopiaDescription(
+        "The Floor is Lava Caldera",
+        "Active volcanic craters and obsidian cliffs"
+      );
+      expect(desc).toContain("blackened titanium");
+      expect(desc).toContain("obsidian");
+    });
+
+    it("synthesizes frozen horn for arctic/ice arenas", () => {
+      const desc = synthesizeCornucopiaDescription(
+        "Glacial Abyss",
+        "Sub-zero temperatures and blizzard snowdrifts"
+      );
+      expect(desc).toContain("crystalline metallic horn");
+      expect(desc).toContain("frozen ice sheet");
+    });
+
+    it("synthesizes desert horn for wasteland/dunes", () => {
+      const desc = synthesizeCornucopiaDescription(
+        "Sahara Wastes",
+        "Scorched desert dunes"
+      );
+      expect(desc).toContain("sun-bleached golden alloy");
+    });
+
+    it("synthesizes jungle horn for rainforest/swamp", () => {
+      const desc = synthesizeCornucopiaDescription(
+        "Verdant Canopy",
+        "Dense rainforest jungle"
+      );
+      expect(desc).toContain("burnished bronze horn");
+    });
+
+    it("synthesizes urban horn for city ruins", () => {
+      const desc = synthesizeCornucopiaDescription(
+        "Metro Ruin",
+        "Decaying concrete skyscrapers and asphalt"
+      );
+      expect(desc).toContain("industrial steel horn");
+    });
+
+    it("synthesizes default golden horn when no biome matches", () => {
+      const desc = synthesizeCornucopiaDescription("Generic Meadow");
+      expect(desc).toContain("massive golden horn of plenty");
+    });
+  });
+
+  describe("generateCornucopiaDescription", () => {
+    it("falls back to procedural synthesis when no API key is provided", async () => {
+      const originalKey = process.env.OPENROUTER_API_KEY;
+      delete process.env.OPENROUTER_API_KEY;
+
+      const desc = await generateCornucopiaDescription({
+        arenaName: "Volcano Valley",
+        arenaDescription: "Molten magma rivers",
+      });
+      expect(desc).toContain("blackened titanium");
+
+      process.env.OPENROUTER_API_KEY = originalKey;
     });
   });
 

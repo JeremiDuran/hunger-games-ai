@@ -24,6 +24,7 @@ export interface PhaseContext {
   prng: PRNG;
   arenaName: string;
   arenaDescription: string;
+  cornucopiaDescription?: string;
   priorFallenTributeIds?: string[];
 }
 

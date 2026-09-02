@@ -144,6 +144,7 @@ export interface EngineEventOutcome {
   stateDeltas: Record<string, TributeStateDelta>;
   narrativeText?: string;
   thematicContext?: {
+    cornucopiaDescription?: string;
     itemContested?: string;
     itemDiscovered?: string;
     npcName?: string;
@@ -193,6 +194,7 @@ export interface EngineGameState {
   title: string;
   arenaName: string;
   arenaDescription: string;
+  cornucopiaDescription?: string;
   currentDay: number;
   currentPhaseType: PhaseType;
   phaseOrder: number;

@@ -103,6 +103,7 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
     prng,
     arenaName: gameState.arenaName,
     arenaDescription: gameState.arenaDescription,
+    cornucopiaDescription: gameState.cornucopiaDescription,
   });
 
   // 5. Update placement and deathPhaseId for any tributes who fell in this phase

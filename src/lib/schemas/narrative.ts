@@ -63,6 +63,7 @@ export type NarrativeStateDelta = z.infer<typeof narrativeStateDeltaSchema>;
 // ==========================================
 
 export const narrativeThematicContextSchema = z.object({
+  cornucopiaDescription: z.string().optional(),
   itemContested: z.string().optional(),
   itemDiscovered: z.string().optional(),
   npcName: z.string().optional(),
