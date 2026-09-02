@@ -1,8 +1,8 @@
 # Hunger Games AI — Live Arena Simulation View (`/game/[id]`) Design Specification
 
 > **Document Status**: Approved UI/UX & Data Architecture Specification  
-> **Last Updated**: 2026-08-31  
-> **Related Documents**: [`routes_and_ux_flow.md`](./routes_and_ux_flow.md), [`database_schema.md`](./database_schema.md), [`simulation_rules_and_customizations.md`](./simulation_rules_and_customizations.md), [`technical_stack.md`](./technical_stack.md)
+> **Last Updated**: 2026-09-02  
+> **Related Documents**: [`simulation_engine_reference.md`](./simulation_engine_reference.md), [`routes_and_ux_flow.md`](./routes_and_ux_flow.md), [`database_schema.md`](./database_schema.md), [`simulation_rules_and_customizations.md`](./simulation_rules_and_customizations.md), [`technical_stack.md`](./technical_stack.md)
 
 ---
 
@@ -125,9 +125,9 @@ Centered bottom controls for smooth forward and backward reading:
 
 ---
 
-### B. Required Database Schema Extensions for Phase & Event Tracking
-
-To persist procedural phases and event narratives cleanly in Supabase, we introduce two relational tables:
+### B. Relational Schema for Phase & Event Tracking
+ 
+To persist procedural phases and event narratives cleanly in Supabase, the following relational tables are implemented:
 
 ```mermaid
 erDiagram

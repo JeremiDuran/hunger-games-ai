@@ -1,5 +1,9 @@
 # Database Schema Design (Supabase / PostgreSQL)
-
+ 
+> **Document Status**: Approved Technical Specification  
+> **Last Updated**: 2026-09-02  
+> **Related Documents**: [`simulation_engine_reference.md`](./simulation_engine_reference.md), [`technical_stack.md`](./technical_stack.md), [`auth_architecture.md`](./auth_architecture.md), [`routes_and_ux_flow.md`](./routes_and_ux_flow.md)
+ 
 This document outlines the database architecture for the Hunger Games AI Simulator. Built on Supabase (PostgreSQL), we leverage relational tables with strict Row-Level Security (RLS) and optimized subquery evaluation.
 
 ---
@@ -10,6 +14,7 @@ This document outlines the database architecture for the Hunger Games AI Simulat
 Stores user citizenship, token quota for AI generation, and display metadata for both Guest (anonymous) and Registered accounts.
 - `id` (`UUID`, PK, `REFERENCES auth.users(id) ON DELETE CASCADE`)
 - `username` (`TEXT`, e.g., `"Gamemaker-9a4f21"`)
+- `role` (`user_role` ENUM: `'user'`, `'admin'`, default: `'user'`)
 - `avatar_url` (`TEXT`, nullable)
 - `tokens_balance` (`INTEGER`, default: `50`, `CHECK >= 0`)
 - `created_at` (`TIMESTAMPTZ`, default: `now()`)
@@ -65,7 +70,7 @@ Represents an individual chronological round/phase within a match timeline.
 - `id` (`UUID`, PK, default: `gen_random_uuid()`)
 - `game_id` (`UUID`, FK `-> games.id ON DELETE CASCADE`)
 - `day_number` (`INTEGER`, e.g., `0` for Bloodbath, `1`, `2`, `3`...)
-- `phase_type` (`TEXT`, check in `'bloodbath'`, `'day'`, `'night'`, `'feast'`)
+- `phase_type` (`TEXT`, check in `'bloodbath'`, `'day'`, `'night'`, `'feast'`, `'cataclysm'`, `'npc_overload'`, `'arena_event'`)
 - `phase_order` (`INTEGER`, sequential index: 0, 1, 2, 3...)
 - `fallen_tribute_ids` (`UUID[]`, default: `'{}'`)
 - `status` (`TEXT`, default: `'completed'`, check in `'pending'`, `'simulating'`, `'completed'`)
@@ -99,7 +104,28 @@ Tracks dynamic pacts and hunting packs across the match timeline.
 
 ---
 
-## 3. Row-Level Security (RLS) & Performance Standards
+## 3. Database State Immutability Triggers
+
+To guarantee match integrity and prevent retro-active tampering during simulations, PostgreSQL triggers enforce strict lifecycle immutability:
+
+1. **`trigger_validate_game_state_update`**:
+   - `id`, `user_id`, and `created_at` are strictly immutable.
+   - When a game is `in_progress` or `finished`, its core setup parameters (`title`, `arena_name`, `arena_description`, `settings`, `tribute_count`) are locked and cannot be updated.
+   - When a game is `finished`, outcome fields (`winner_id`, `current_day`, `current_phase_type`, `ended_at`) cannot be modified.
+2. **`trigger_validate_tribute_state_mutation`**:
+   - Tributes can only be inserted or deleted when the parent game is in `'setup'` or `'archived'` status. Adding or removing tributes from an active or finished match throws an exception.
+
+---
+
+## 4. Maintenance Stored Procedures
+
+### `cleanup_stale_anonymous_users(p_older_than interval)`
+- **Security**: Restricted to caller with `role = 'admin'` in `public.profiles` (`SECURITY DEFINER`).
+- **Function**: Safely cascades deletions for stale guest users (`is_anonymous = true` or `email is null`) older than the threshold (default: `24 hours`), automatically cascading deletion of their associated `games`, `tributes`, and event rows.
+
+---
+
+## 5. Row-Level Security (RLS) & Performance Standards
 
 All tables enforce Row-Level Security:
 1. **Profiles**: Users can SELECT and UPDATE only their own profile (`(select auth.uid()) = id`).

@@ -1,8 +1,8 @@
 # Hunger Games AI — Simulation Engine & Master Event Architecture
 
 > **Document Status**: Approved Technical & Gameplay Architecture Specification  
-> **Last Updated**: 2026-08-31  
-> **Related Documents**: [`live_arena_design.md`](./live_arena_design.md), [`database_schema.md`](./database_schema.md), [`simulation_rules_and_customizations.md`](./simulation_rules_and_customizations.md), [`routes_and_ux_flow.md`](./routes_and_ux_flow.md)
+> **Last Updated**: 2026-09-02  
+> **Related Documents**: [`simulation_engine_reference.md`](./simulation_engine_reference.md), [`live_arena_design.md`](./live_arena_design.md), [`database_schema.md`](./database_schema.md), [`simulation_rules_and_customizations.md`](./simulation_rules_and_customizations.md), [`routes_and_ux_flow.md`](./routes_and_ux_flow.md)
 
 ---
 

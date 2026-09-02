@@ -27,7 +27,7 @@ We will use the `@supabase/ssr` package to manage sessions securely using cookie
 ### A. The PKCE Flow
 Because Next.js SSR requires the server to read tokens, we must use the **PKCE (Proof Key for Code Exchange)** flow. 
 1. Client initiates sign-in/sign-up.
-2. Supabase redirects to our `/auth/callback` route with an auth code.
+2. Supabase redirects to our `/api/auth/callback` route with an auth code.
 3. Our Route Handler (`/api/auth/callback/route.ts`) exchanges the code for an Access Token and Refresh Token, writing them to secure `HttpOnly` cookies via `@supabase/ssr`'s `setAll` configuration.
 
 ### B. Security & Validation (`getUser` vs `getSession`)
@@ -54,7 +54,7 @@ The Next.js Proxy (`src/proxy.ts`, formerly `middleware.ts` prior to Next.js 16)
 
 | Route Level | Paths | Proxy Logic |
 | :--- | :--- | :--- |
-| **Public / Intro** | `/`, `/login`, `/auth/callback` | Accessible to all. (If already logged in as a permanent user, `/login` redirects to `/lobby`). |
+| **Public / Intro** | `/`, `/login`, `/api/auth/callback` | Accessible to all. (If already logged in as a permanent user, `/login` redirects to `/lobby`). |
 | **Guest / Active Game** | `/lobby`, `/setup`, `/game/[id]` | Requires the `hg_entered` cookie (otherwise redirects to `/`). If no active session exists, the client/server seamlessly initializes an anonymous session via `signInAnonymously()`. |
 | **Permanent Only** | `/archives`, `/profile` | Requires a permanent user session (`is_anonymous === false`). If anonymous or unauthenticated, redirects to `/login?next=...`. |
 
@@ -128,4 +128,4 @@ Once the Email/Password and Anonymous core is stable, Google OAuth requires:
 1.  Enabling the Google Provider in the Supabase Dashboard.
 2.  Using `supabase.auth.linkIdentity({ provider: 'google' })` for logged-in guests to upgrade.
 3.  Using `supabase.auth.signInWithOAuth({ provider: 'google' })` for standard login.
-4.  Ensuring the `redirectTo` points to our existing PKCE `/auth/callback` handler, so the cookies are set exactly the same way as Email flows.
+4.  Ensuring the `redirectTo` points to our existing PKCE `/api/auth/callback` handler, so the cookies are set exactly the same way as Email flows.

@@ -1,8 +1,8 @@
 # Hunger Games AI — Routes, UX Flow & Auth Architecture
 
-> **Document Status**: Approved Architecture Draft  
-> **Last Updated**: 2026-08-25  
-> **Related Documents**: [`technical_stack.md`](./technical_stack.md), [`database_schema.md`](./database_schema.md), [`live_arena_design.md`](./live_arena_design.md)
+> **Document Status**: Approved Architecture Specification  
+> **Last Updated**: 2026-09-02  
+> **Related Documents**: [`simulation_engine_reference.md`](./simulation_engine_reference.md), [`technical_stack.md`](./technical_stack.md), [`database_schema.md`](./database_schema.md), [`live_arena_design.md`](./live_arena_design.md)
 
 ---
 
@@ -43,7 +43,7 @@ flowchart TD
 | `/` | Page (Client) | Public | **Hunger Games Ad-Infinitum Landing**: Introductory landing page with 3 brainstorm drafts, GSAP background visuals, and Account vs. Guest onboarding cards. |
 | `/lobby` | Page (RSC + Client) | Public / Guest | **Capitol Command Hub**: Central menu to launch a new simulation, resume in-progress games, view guest vs. member perks, and access lore/archives. |
 | `/login` | Page (Client) | Public | **Dedicated Auth Portal**: Full-screen Capitol Terminal authentication with Google OAuth, Discord, and Email Magic Links. |
-| `/auth/callback` | Route Handler | Public | **OAuth PKCE Exchange**: Server-side endpoint handling OAuth redirects from Supabase Auth and setting session cookies. |
+| `/api/auth/callback` | Route Handler | Public | **OAuth PKCE Exchange**: Server-side endpoint handling OAuth redirects from Supabase Auth and setting session cookies. |
 | `/setup` | Page (Client) | Public / Guest | **3-Step Game Setup Wizard**: Arena and lore configurator, rules/hazard toggles, and interactive District tribute roster editor with randomizers. |
 | `/game/[id]` | Page (Client + Streaming) | Public / Guest | **Live Arena Orchestrator**: The main game interface displaying real-time events, health/status monitors, LLM-streamed flavor narratives, and phase transitions. |
 | `/game/[id]/summary` | Page (RSC + Client) | Public / Guest | **Victor's Hall & Statistics**: Post-game report detailing the winner, kill counts, lethal events timeline, and full narrative chronicle. |

@@ -79,6 +79,7 @@ This project operates with two isolated Supabase environments:
 - `gsap-react` / `gsap-scrolltrigger` / `gsap-timeline` — animation (read before any GSAP work)
 - `shadcn` — component library usage and composition
 - `code-review` / `software-testing` — audit and test standards
+- `simulation-engine` — procedural engine mechanics, phase lifecycle, combat formulas, matchmaking, biometrics, and deterministic PRNG (read before any engine or simulation work)
 
 ---
 

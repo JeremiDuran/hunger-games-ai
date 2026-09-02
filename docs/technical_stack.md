@@ -1,8 +1,8 @@
 # Hunger Games AI — Technical Stack & Framework Architecture
 
 > **Document Status**: Approved Technical Specification  
-> **Last Updated**: 2026-08-31  
-> **Related Documents**: [`database_schema.md`](./database_schema.md), [`auth_architecture.md`](./auth_architecture.md), [`routes_and_ux_flow.md`](./routes_and_ux_flow.md), [`live_arena_design.md`](./live_arena_design.md)
+> **Last Updated**: 2026-09-02  
+> **Related Documents**: [`simulation_engine_reference.md`](./simulation_engine_reference.md), [`database_schema.md`](./database_schema.md), [`auth_architecture.md`](./auth_architecture.md), [`routes_and_ux_flow.md`](./routes_and_ux_flow.md), [`live_arena_design.md`](./live_arena_design.md)
 
 ---
 
@@ -68,6 +68,7 @@ hg-ai/
 │   ├── lib/
 │   │   ├── a11y/                     # Accessibility context
 │   │   ├── auth/                     # Supabase auth context & hooks
+│   │   ├── engine/                   # Deterministic simulation engine (combat, biometrics, matchmaking, items, PRNG)
 │   │   ├── schemas/                  # Zod validation schemas (setup, game, api)
 │   │   ├── setup/                    # Setup wizard state machine context
 │   │   ├── supabase/                 # Browser, server, and proxy Supabase clients
