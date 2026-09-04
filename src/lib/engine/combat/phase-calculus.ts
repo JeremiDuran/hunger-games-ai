@@ -123,16 +123,26 @@ export function resolveBloodbathHornClash(
   const scaledDamage = Math.round(baseDamage * BLOODBATH_CHAOS_DAMAGE_MULTIPLIER * (victorPower / loserPower));
   const finalDamageToLoser = scaleDamageByLethality(scaledDamage, lethality);
 
-  // Minor retaliatory scratch to victor
-  const finalDamageToVictor = Math.max(0, Math.round(10 * (loserPower / victorPower)));
+  // Minor retaliatory scratch to victor (cannot be fatal - capped to leave at least 1 survival)
+  const rawDamageToVictor = Math.round(10 * (loserPower / victorPower));
+  const finalDamageToVictor = Math.min(
+    Math.max(0, rawDamageToVictor),
+    Math.max(0, updatedVictor.biometrics.survival - 1)
+  );
 
   // 5. Evaluate Bloodbath fatality
-  const remainingLoserSurvival = rawLoser.biometrics.survival - finalDamageToLoser;
-  const criticalFatalProb = getCriticalFatalProbability(lethality) + 0.3; // Bloodbath lethality boost
+  // Procedural Philosophy: Survival and gear influence probability rather than directly triggering death
+  const baseFatalProb = getCriticalFatalProbability(lethality) + 0.25;
+  const powerFactor = Math.min(2.0, Math.max(0.6, victorPower / loserPower));
+  const survivalVulnerability = (100 - rawLoser.biometrics.survival) / 100;
+  const weaponLethality =
+    contestedWeapon.tier === "legendary" ? 0.25 : contestedWeapon.tier === "rare" ? 0.15 : 0.05;
 
-  const isFatal =
-    remainingLoserSurvival <= 0 ||
-    (isTributeCriticallyInjured(remainingLoserSurvival) && prng.nextBoolean(criticalFatalProb));
+  const fatalProb = Math.min(
+    0.90,
+    (baseFatalProb + weaponLethality) * powerFactor * (1 + survivalVulnerability)
+  );
+  const isFatal = prng.nextBoolean(fatalProb);
 
   // 6. Update victor and loser state
   updatedVictor = applyBiometricDelta(updatedVictor, {
@@ -141,13 +151,17 @@ export function resolveBloodbathHornClash(
   });
 
   if (isFatal) {
-    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1 };
+    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1, status: "alive" };
   }
 
-  let updatedLoser = applyBiometricDelta(rawLoser, {
-    survivalDelta: isFatal ? -rawLoser.biometrics.survival : -finalDamageToLoser,
-    sanityDelta: -30,
-  });
+  let updatedLoser: EngineTribute = {
+    ...applyBiometricDelta(rawLoser, {
+      survivalDelta: isFatal ? -(rawLoser.biometrics.survival - 1) : -finalDamageToLoser,
+      sanityDelta: -30,
+      overridePhysicalTag: isFatal ? "fatal" : undefined,
+    }),
+    status: isFatal ? "dead" : rawLoser.status,
+  };
 
   const stateDeltas: Record<string, TributeStateDelta> = {
     [updatedVictor.id]: {
@@ -158,7 +172,7 @@ export function resolveBloodbathHornClash(
     },
     [updatedLoser.id]: {
       tributeId: updatedLoser.id,
-      survivalDelta: isFatal ? -rawLoser.biometrics.survival : -finalDamageToLoser,
+      survivalDelta: isFatal ? -(rawLoser.biometrics.survival - 1) : -finalDamageToLoser,
       sanityDelta: -30,
       isFatal,
       killerId: isFatal ? updatedVictor.id : undefined,
@@ -183,8 +197,8 @@ export function resolveBloodbathHornClash(
     claimedWeapon: contestedWeapon,
     stateDeltas,
     narrativeNotes: isFatal
-      ? `${updatedVictor.name} claimed the ${contestedWeapon.name} and dealt a fatal blow to ${updatedLoser.name} at the Cornucopia horn.`
-      : `${updatedVictor.name} seized the ${contestedWeapon.name} and wounded ${updatedLoser.name}, who fled into the perimeter.`,
+      ? `${updatedVictor.name} seized the ${contestedWeapon.name} and struck down ${rawLoser.name} at the Cornucopia horn.`
+      : `${updatedVictor.name} snatched the ${contestedWeapon.name} and wounded ${rawLoser.name}, driving them back into the fray.`,
   };
 }
 
@@ -214,11 +228,23 @@ export function resolveBloodbathCareerSweep(
   const weaponDamageBase = victorWeapon ? 40 : 20;
   const rawDamage = Math.round(weaponDamageBase * (victorPower / loserPower) * 1.3);
   const finalDamageToLoser = scaleDamageByLethality(rawDamage, lethality);
-  const finalDamageToVictor = Math.max(0, Math.round(8 * (loserPower / victorPower)));
+  // Minor retaliatory scratch to victor (cannot be fatal - capped to leave at least 1 survival)
+  const rawDamageToVictor = Math.round(8 * (loserPower / victorPower));
+  const finalDamageToVictor = Math.min(
+    Math.max(0, rawDamageToVictor),
+    Math.max(0, victor.biometrics.survival - 1)
+  );
 
-  const remainingSurvival = loser.biometrics.survival - finalDamageToLoser;
-  const critProb = getCriticalFatalProbability(lethality) + (hunterWins ? 0.25 : 0.1);
-  const isFatal = remainingSurvival <= 0 || (isTributeCriticallyInjured(remainingSurvival) && prng.nextBoolean(critProb));
+  // Procedural Philosophy: Survival influences fatality probability rather than directly triggering death
+  const baseFatalProb = getCriticalFatalProbability(lethality) + (hunterWins ? 0.25 : 0.1);
+  const powerFactor = Math.min(2.0, Math.max(0.6, victorPower / loserPower));
+  const sweepSurvivalVulnerability = (100 - loser.biometrics.survival) / 100;
+
+  const fatalProb = Math.min(
+    0.90,
+    baseFatalProb * powerFactor * (1 + sweepSurvivalVulnerability)
+  );
+  const isFatal = prng.nextBoolean(fatalProb);
 
   let updatedVictor = applyBiometricDelta(victor, {
     survivalDelta: -finalDamageToVictor,
@@ -226,13 +252,17 @@ export function resolveBloodbathCareerSweep(
   });
 
   if (isFatal) {
-    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1 };
+    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1, status: "alive" };
   }
 
-  let updatedLoser = applyBiometricDelta(loser, {
-    survivalDelta: isFatal ? -loser.biometrics.survival : -finalDamageToLoser,
-    sanityDelta: -25,
-  });
+  let updatedLoser: EngineTribute = {
+    ...applyBiometricDelta(loser, {
+      survivalDelta: isFatal ? -(loser.biometrics.survival - 1) : -finalDamageToLoser,
+      sanityDelta: -25,
+      overridePhysicalTag: isFatal ? "fatal" : undefined,
+    }),
+    status: isFatal ? "dead" : loser.status,
+  };
 
   const stateDeltas: Record<string, TributeStateDelta> = {
     [victor.id]: {
@@ -242,7 +272,7 @@ export function resolveBloodbathCareerSweep(
     },
     [loser.id]: {
       tributeId: loser.id,
-      survivalDelta: isFatal ? -loser.biometrics.survival : -finalDamageToLoser,
+      survivalDelta: isFatal ? -(loser.biometrics.survival - 1) : -finalDamageToLoser,
       sanityDelta: -25,
       isFatal,
       killerId: isFatal ? victor.id : undefined,
@@ -314,9 +344,13 @@ export function resolveNightAmbush(
   const rawDamage = Math.round(weaponDamageBase * (victorPower / loserPower) * 1.35);
   const finalDamage = scaleDamageByLethality(rawDamage, lethality);
 
-  const remaining = loser.biometrics.survival - finalDamage;
-  const critProb = getCriticalFatalProbability(lethality) + NIGHT_AMBUSH_CRITICAL_FATAL_BONUS;
-  const isFatal = remaining <= 0 || (isTributeCriticallyInjured(remaining) && prng.nextBoolean(critProb));
+  // Procedural Philosophy: Survival influences fatality probability rather than directly triggering death
+  const baseFatalProb = getCriticalFatalProbability(lethality) + NIGHT_AMBUSH_CRITICAL_FATAL_BONUS;
+  const powerFactor = Math.min(2.0, Math.max(0.6, victorPower / loserPower));
+  const betrayalSurvivalVulnerability = (100 - loser.biometrics.survival) / 100;
+
+  const fatalProb = Math.min(0.85, baseFatalProb * powerFactor * (1 + betrayalSurvivalVulnerability));
+  const isFatal = prng.nextBoolean(fatalProb);
 
   let updatedVictor = applyBiometricDelta(victor, {
     survivalDelta: 0,
@@ -324,13 +358,17 @@ export function resolveNightAmbush(
   });
 
   if (isFatal) {
-    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1 };
+    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1, status: "alive" };
   }
 
-  let updatedLoser = applyBiometricDelta(loser, {
-    survivalDelta: isFatal ? -loser.biometrics.survival : -finalDamage,
-    sanityDelta: -30,
-  });
+  let updatedLoser: EngineTribute = {
+    ...applyBiometricDelta(loser, {
+      survivalDelta: isFatal ? -(loser.biometrics.survival - 1) : -finalDamage,
+      sanityDelta: -30,
+      overridePhysicalTag: isFatal ? "fatal" : undefined,
+    }),
+    status: isFatal ? "dead" : loser.status,
+  };
 
   const stateDeltas: Record<string, TributeStateDelta> = {
     [victor.id]: {
@@ -340,7 +378,7 @@ export function resolveNightAmbush(
     },
     [loser.id]: {
       tributeId: loser.id,
-      survivalDelta: isFatal ? -loser.biometrics.survival : -finalDamage,
+      survivalDelta: isFatal ? -(loser.biometrics.survival - 1) : -finalDamage,
       sanityDelta: -30,
       isFatal,
       killerId: isFatal ? victor.id : undefined,
@@ -380,7 +418,7 @@ export function resolveNightExposure(
   tribute: EngineTribute,
   context: { prng: PRNG; isCampedWithAllies: boolean }
 ): NightExposureResult {
-  const { isCampedWithAllies } = context;
+  const { prng, isCampedWithAllies } = context;
 
   // Check if tribute has warm insulation (coat, blanket, thermal tent)
   const hasWarmth = tribute.inventory.some((item) => {
@@ -408,19 +446,26 @@ export function resolveNightExposure(
   const survivalPenalty = hasWarmth ? Math.round(NIGHT_LONE_EXPOSURE_SURVIVAL_PENALTY * 0.4) : NIGHT_LONE_EXPOSURE_SURVIVAL_PENALTY;
   const sanityPenalty = NIGHT_LONE_ISOLATION_SANITY_PENALTY;
 
-  const remainingSurvival = tribute.biometrics.survival + survivalPenalty;
-  const isFatal = remainingSurvival <= 0;
+  // Procedural fatality: Survival influences the exposure vulnerability
+  const baseExposureFatalProb = hasWarmth ? 0.03 : 0.12;
+  const exposureSurvivalVulnerability = (100 - tribute.biometrics.survival) / 100;
+  const exposureFatalProb = Math.min(0.70, baseExposureFatalProb * (1 + exposureSurvivalVulnerability * 2.5));
+  const isFatal = prng.nextBoolean(exposureFatalProb);
 
-  const updated = applyBiometricDelta(tribute, {
-    survivalDelta: isFatal ? -tribute.biometrics.survival : survivalPenalty,
-    sanityDelta: sanityPenalty,
-  });
+  const updated: EngineTribute = {
+    ...applyBiometricDelta(tribute, {
+      survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : survivalPenalty,
+      sanityDelta: sanityPenalty,
+      overridePhysicalTag: isFatal ? "fatal" : undefined,
+    }),
+    status: isFatal ? "dead" : tribute.status,
+  };
 
   return {
     updatedTribute: updated,
     stateDelta: {
       tributeId: tribute.id,
-      survivalDelta: isFatal ? -tribute.biometrics.survival : survivalPenalty,
+      survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : survivalPenalty,
       sanityDelta: sanityPenalty,
       isFatal,
       narrativeNotes: isFatal
@@ -473,9 +518,13 @@ export function resolveFeastDuel(
   const rawDamage = Math.round(weaponDamageBase * (victorPower / loserPower) * FEAST_LETHALITY_MULTIPLIER);
   const finalDamage = scaleDamageByLethality(rawDamage, lethality);
 
-  const remaining = loser.biometrics.survival - finalDamage;
-  const critProb = getCriticalFatalProbability(lethality) + 0.25;
-  const isFatal = remaining <= 0 || (isTributeCriticallyInjured(remaining) && prng.nextBoolean(critProb));
+  // Procedural Philosophy: Survival influences fatality probability rather than directly triggering death
+  const baseFatalProb = getCriticalFatalProbability(lethality) + 0.20;
+  const powerFactor = Math.min(2.0, Math.max(0.6, victorPower / loserPower));
+  const feastSurvivalVulnerability = (100 - loser.biometrics.survival) / 100;
+
+  const fatalProb = Math.min(0.85, baseFatalProb * powerFactor * (1 + feastSurvivalVulnerability));
+  const isFatal = prng.nextBoolean(fatalProb);
 
   let updatedVictor = claimItem(backpackItem, victor);
 
@@ -493,13 +542,17 @@ export function resolveFeastDuel(
   });
 
   if (isFatal) {
-    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1 };
+    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1, status: "alive" };
   }
 
-  let updatedLoser = applyBiometricDelta(loser, {
-    survivalDelta: isFatal ? -loser.biometrics.survival : -finalDamage,
-    sanityDelta: -35,
-  });
+  let updatedLoser: EngineTribute = {
+    ...applyBiometricDelta(loser, {
+      survivalDelta: isFatal ? -(loser.biometrics.survival - 1) : -finalDamage,
+      sanityDelta: -35,
+      overridePhysicalTag: isFatal ? "fatal" : undefined,
+    }),
+    status: isFatal ? "dead" : loser.status,
+  };
 
   const stateDeltas: Record<string, TributeStateDelta> = {
     [victor.id]: {
@@ -510,7 +563,7 @@ export function resolveFeastDuel(
     },
     [loser.id]: {
       tributeId: loser.id,
-      survivalDelta: isFatal ? -loser.biometrics.survival : -finalDamage,
+      survivalDelta: isFatal ? -(loser.biometrics.survival - 1) : -finalDamage,
       sanityDelta: -35,
       isFatal,
       killerId: isFatal ? victor.id : undefined,
@@ -571,13 +624,20 @@ export function resolveArenaHazardAoE(
     const rawDamage = evasionSuccess ? Math.round(baseDamage * 0.4) : baseDamage;
     const finalDamage = Math.max(5, Math.round(rawDamage * (1 - armorMitigation)));
 
-    const remaining = tribute.biometrics.survival - finalDamage;
-    const isFatal = remaining <= 0;
+    // Procedural Fatality: Survival score, evasion success, and hazard intensity scale the fatal roll
+    const survivalVulnerability = (100 - tribute.biometrics.survival) / 100;
+    const baseHazardFatalProb = evasionSuccess ? 0.10 : 0.35;
+    const fatalProb = Math.min(0.85, baseHazardFatalProb * (1 + survivalVulnerability * 1.5));
+    const isFatal = prng.nextBoolean(fatalProb);
 
-    const updated = applyBiometricDelta(tribute, {
-      survivalDelta: isFatal ? -tribute.biometrics.survival : -finalDamage,
-      sanityDelta: isFatal ? -50 : -25,
-    });
+    const updated: EngineTribute = {
+      ...applyBiometricDelta(tribute, {
+        survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : -finalDamage,
+        sanityDelta: isFatal ? -50 : -25,
+        overridePhysicalTag: isFatal ? "fatal" : undefined,
+      }),
+      status: isFatal ? "dead" : tribute.status,
+    };
 
     updatedTributes.set(tribute.id, updated);
     if (isFatal) {
@@ -586,7 +646,7 @@ export function resolveArenaHazardAoE(
 
     stateDeltas[tribute.id] = {
       tributeId: tribute.id,
-      survivalDelta: isFatal ? -tribute.biometrics.survival : -finalDamage,
+      survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : -finalDamage,
       sanityDelta: isFatal ? -50 : -25,
       isFatal,
       narrativeNotes: isFatal
@@ -630,13 +690,27 @@ export function resolveMuttationSwarm(
       : (swarm.threatLevel === "lethal" ? 55 : 30);
 
     const damage = Math.max(5, Math.round(baseDamage * (1 - armorMitigation)));
-    const remainingSurvival = tribute.biometrics.survival - damage;
-    const isFatal = remainingSurvival <= 0;
 
-    const updated = applyBiometricDelta(tribute, {
-      survivalDelta: isFatal ? -tribute.biometrics.survival : -damage,
-      sanityDelta: tributesWin ? 10 : -25,
-    });
+    // Procedural Fatality: Swarm threat, win status, and survival vulnerability scale the roll
+    const baseFatalProb = tributesWin
+      ? swarm.threatLevel === "lethal"
+        ? 0.08
+        : 0.02
+      : swarm.threatLevel === "lethal"
+      ? 0.45
+      : 0.20;
+    const survivalVulnerability = (100 - tribute.biometrics.survival) / 100;
+    const fatalProb = Math.min(0.85, baseFatalProb * (1 + survivalVulnerability * 1.8));
+    const isFatal = prng.nextBoolean(fatalProb);
+
+    const updated: EngineTribute = {
+      ...applyBiometricDelta(tribute, {
+        survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : -damage,
+        sanityDelta: tributesWin ? 10 : -25,
+        overridePhysicalTag: isFatal ? "fatal" : undefined,
+      }),
+      status: isFatal ? "dead" : tribute.status,
+    };
 
     updatedTributes.set(tribute.id, updated);
     if (isFatal) {
@@ -645,7 +719,7 @@ export function resolveMuttationSwarm(
 
     stateDeltas[tribute.id] = {
       tributeId: tribute.id,
-      survivalDelta: isFatal ? -tribute.biometrics.survival : -damage,
+      survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : -damage,
       sanityDelta: tributesWin ? 10 : -25,
       isFatal,
     };

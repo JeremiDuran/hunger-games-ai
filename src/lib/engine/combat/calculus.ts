@@ -171,17 +171,32 @@ export function resolve1v1Clash(
   const mitigatedDamageToLoser = Math.max(10, Math.round(rawDamageToLoser * (1 - loserArmorMitigation)));
   const finalDamageToLoser = scaleDamageByLethality(mitigatedDamageToLoser, lethality);
 
-  // Minor scratch counter-damage to victor
+  // Minor scratch counter-damage to victor (cannot be fatal - capped to leave at least 1 survival)
   const rawDamageToVictor = Math.round(10 * (loserPower / victorPower));
-  const finalDamageToVictor = Math.max(0, Math.round(rawDamageToVictor * (1 - victorArmorMitigation)));
+  const mitigatedDamageToVictor = Math.max(0, Math.round(rawDamageToVictor * (1 - victorArmorMitigation)));
+  const finalDamageToVictor = Math.min(
+    mitigatedDamageToVictor,
+    Math.max(0, victor.biometrics.survival - 1)
+  );
 
   // 4. Fatality evaluation
-  const remainingLoserSurvival = loser.biometrics.survival - finalDamageToLoser;
-  const criticalFatalProb = getCriticalFatalProbability(lethality);
+  // Procedural Philosophy: Survival influences fatality probability rather than directly setting death
+  const baseFatalProb = getCriticalFatalProbability(lethality);
+  const powerFactor = Math.min(2.0, Math.max(0.5, victorPower / loserPower));
+  const survivalVulnerability = (100 - loser.biometrics.survival) / 100;
+  const weaponLethalityBonus = victorWeapon
+    ? victorWeapon.tier === "legendary"
+      ? 0.25
+      : victorWeapon.tier === "rare"
+      ? 0.15
+      : 0.08
+    : 0;
 
-  const isFatal =
-    remainingLoserSurvival <= 0 ||
-    (isTributeCriticallyInjured(remainingLoserSurvival) && prng.nextBoolean(criticalFatalProb));
+  const fatalProb = Math.min(
+    0.85,
+    (baseFatalProb + weaponLethalityBonus) * powerFactor * (1 + survivalVulnerability)
+  );
+  const isFatal = prng.nextBoolean(fatalProb);
 
   // 5. Apply state changes
   let updatedVictor = applyBiometricDelta(victor, {
@@ -190,13 +205,17 @@ export function resolve1v1Clash(
   });
 
   if (isFatal) {
-    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1 };
+    updatedVictor = { ...updatedVictor, killCount: updatedVictor.killCount + 1, status: "alive" };
   }
 
-  let updatedLoser = applyBiometricDelta(loser, {
-    survivalDelta: isFatal ? -loser.biometrics.survival : -finalDamageToLoser,
-    sanityDelta: -25, // Fear & shock
-  });
+  let updatedLoser: EngineTribute = {
+    ...applyBiometricDelta(loser, {
+      survivalDelta: isFatal ? -(loser.biometrics.survival - 1) : -finalDamageToLoser,
+      sanityDelta: -25, // Fear & shock
+      overridePhysicalTag: isFatal ? "fatal" : undefined,
+    }),
+    status: isFatal ? "dead" : loser.status,
+  };
 
   const stateDeltas: Record<string, TributeStateDelta> = {
     [victor.id]: {
@@ -208,7 +227,7 @@ export function resolve1v1Clash(
     },
     [loser.id]: {
       tributeId: loser.id,
-      survivalDelta: isFatal ? -loser.biometrics.survival : -finalDamageToLoser,
+      survivalDelta: isFatal ? -(loser.biometrics.survival - 1) : -finalDamageToLoser,
       sanityDelta: -25,
       isFatal,
       killerId: isFatal ? victor.id : undefined,
@@ -300,13 +319,27 @@ export function resolvePvEClash(
       : (beastThreat.threatLevel === "lethal" ? 60 : 30);
 
     const damage = Math.max(5, Math.round(baseDamage * (1 - armorMitigation)));
-    const remainingSurvival = tribute.biometrics.survival - damage;
-    const isFatal = remainingSurvival <= 0;
 
-    const updated = applyBiometricDelta(tribute, {
-      survivalDelta: isFatal ? -tribute.biometrics.survival : -damage,
-      sanityDelta: tributesWin ? 10 : -20,
-    });
+    // Procedural Fatality: Threat level, win status, and survival vulnerability determine fatal probability
+    const baseFatalChance = tributesWin
+      ? beastThreat.threatLevel === "lethal"
+        ? 0.08
+        : 0.02
+      : beastThreat.threatLevel === "lethal"
+      ? 0.45
+      : 0.20;
+    const survivalVulnerability = (100 - tribute.biometrics.survival) / 100;
+    const fatalProb = Math.min(0.85, baseFatalChance * (1 + survivalVulnerability * 1.8));
+    const isFatal = prng.nextBoolean(fatalProb);
+
+    const updated: EngineTribute = {
+      ...applyBiometricDelta(tribute, {
+        survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : -damage,
+        sanityDelta: tributesWin ? 10 : -20,
+        overridePhysicalTag: isFatal ? "fatal" : undefined,
+      }),
+      status: isFatal ? "dead" : tribute.status,
+    };
 
     updatedTributes.set(tribute.id, updated);
     if (isFatal) {
@@ -315,7 +348,7 @@ export function resolvePvEClash(
 
     stateDeltas[tribute.id] = {
       tributeId: tribute.id,
-      survivalDelta: isFatal ? -tribute.biometrics.survival : -damage,
+      survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : -damage,
       sanityDelta: tributesWin ? 10 : -20,
       isFatal,
     };

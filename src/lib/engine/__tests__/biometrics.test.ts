@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   clampBiometric,
+  clampSurvival,
+  clampSanity,
   evaluatePhysicalTag,
   evaluateMentalTag,
   createInitialBiometrics,
@@ -14,6 +16,25 @@ import {
 import { EngineTribute } from "../types";
 
 describe("Biometric State Machine & Tag Evaluator", () => {
+  describe("clampSurvival", () => {
+    it("clamps values below 1 to 1 (survival minimum is strictly 1, never 0)", () => {
+      expect(clampSurvival(-10)).toBe(1);
+      expect(clampSurvival(0)).toBe(1);
+      expect(clampSurvival(0.9)).toBe(1);
+    });
+
+    it("clamps values above 100 to 100", () => {
+      expect(clampSurvival(110)).toBe(100);
+      expect(clampSurvival(100.5)).toBe(100);
+    });
+
+    it("preserves valid values between 1 and 100 with 1 decimal precision", () => {
+      expect(clampSurvival(50)).toBe(50);
+      expect(clampSurvival(1)).toBe(1);
+      expect(clampSurvival(72.34)).toBe(72.3);
+    });
+  });
+
   describe("clampBiometric", () => {
     it("clamps values below 0 to 0", () => {
       expect(clampBiometric(-10)).toBe(0);
@@ -131,15 +152,15 @@ describe("Biometric State Machine & Tag Evaluator", () => {
       expect(updated.status).toBe("alive");
     });
 
-    it("applies negative damage deltas and transitions to dead status when survival reaches 0", () => {
+    it("applies negative damage deltas and clamps survival to minimum 1 (never 0, status remains alive)", () => {
       const updated = applyBiometricDelta(mockTribute, {
-        survivalDelta: -60, // 50 - 60 = -10 -> clamped 0 (fatal)
+        survivalDelta: -60, // 50 - 60 = -10 -> clamped to 1 (critically_injured)
         sanityDelta: -40,   // 50 - 40 = 10 (manic)
       });
 
-      expect(updated.biometrics.survival).toBe(0);
-      expect(updated.biometrics.physicalTag).toBe("fatal");
-      expect(updated.status).toBe("dead");
+      expect(updated.biometrics.survival).toBe(1);
+      expect(updated.biometrics.physicalTag).toBe("critically_injured");
+      expect(updated.status).toBe("alive");
     });
 
     it("supports manual override tags (e.g. specific lore wounds)", () => {

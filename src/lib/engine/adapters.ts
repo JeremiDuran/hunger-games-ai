@@ -21,6 +21,8 @@ import {
 } from "./types";
 import {
   clampBiometric,
+  clampSurvival,
+  clampSanity,
   createInitialBiometrics,
   evaluatePhysicalTag,
   evaluateMentalTag,
@@ -44,8 +46,8 @@ export function parseDbTributeStats(rawStats: unknown): TributeBiometrics {
     typeof statsObj.survival === "number" &&
     typeof statsObj.sanity === "number"
   ) {
-    const survival = clampBiometric(statsObj.survival);
-    const sanity = clampBiometric(statsObj.sanity);
+    const survival = clampSurvival(statsObj.survival);
+    const sanity = clampSanity(statsObj.sanity);
 
     const physicalTag =
       typeof statsObj.physical_tag === "string"

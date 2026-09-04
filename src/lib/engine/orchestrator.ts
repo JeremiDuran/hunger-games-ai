@@ -186,9 +186,21 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
   // 6. Update placement and deathPhaseId for any tributes who fell in this phase
   const updatedTributes = new Map<string, EngineTribute>(resolution.updatedTributes);
 
+  // Invariant Defense: Gather all fallen IDs, ensuring any tribute that transitioned
+  // to 'dead' or hit survival <= 0 during phase resolution is accounted for
+  const allFallenIds = [...resolution.fallenTributeIds];
+  for (const [id, tribute] of updatedTributes.entries()) {
+    if ((tribute.status === "dead" || tribute.biometrics.survival <= 0) && !allFallenIds.includes(id)) {
+      const prior = gameState.tributes.get(id);
+      if (prior && prior.status === "alive") {
+        allFallenIds.push(id);
+      }
+    }
+  }
+
   // Assign ordered placements to fallen tributes in reverse order of survival
-  for (let i = 0; i < resolution.fallenTributeIds.length; i++) {
-    const fallenId = resolution.fallenTributeIds[i];
+  for (let i = 0; i < allFallenIds.length; i++) {
+    const fallenId = allFallenIds[i];
     const fallen = updatedTributes.get(fallenId);
     if (fallen) {
       const calculatedPlacement = initialAliveCount - i;
@@ -224,7 +236,7 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
     isVictory = true;
     winnerIds = [];
     // Ensure all final fallen tributes have placement assigned
-    for (const fallenId of resolution.fallenTributeIds) {
+    for (const fallenId of allFallenIds) {
       const fallen = updatedTributes.get(fallenId);
       if (fallen && (fallen.placement === null || fallen.placement === 1)) {
         updatedTributes.set(fallenId, {
@@ -257,7 +269,7 @@ export function advanceGamePhase(input: AdvancePhaseInput): AdvancePhaseOutput {
     phaseType: nextPhaseType,
     phaseOrder: nextPhaseOrder,
     events: resolution.events,
-    fallenTributeIds: resolution.fallenTributeIds,
+    fallenTributeIds: allFallenIds,
     updatedTributes,
     isVictoryTriggered: isVictory,
     winnerIds,

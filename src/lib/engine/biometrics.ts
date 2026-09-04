@@ -7,6 +7,10 @@ import {
   MIN_BIOMETRIC,
   MAX_BIOMETRIC,
   BASELINE_BIOMETRIC,
+  MIN_SURVIVAL,
+  MAX_SURVIVAL,
+  MIN_SANITY,
+  MAX_SANITY,
   SURVIVAL_PRIME_THRESHOLD,
   SURVIVAL_SCRATCHED_THRESHOLD,
   SURVIVAL_WOUNDED_THRESHOLD,
@@ -24,6 +28,25 @@ import {
   TributeBiometrics,
   EngineTribute,
 } from "./types";
+
+/**
+ * Clamps a survival score strictly between MIN_SURVIVAL (1) and MAX_SURVIVAL (100).
+ * Survival never reaches 0 — low survival tributes are subjected to hazard death events instead.
+ */
+export function clampSurvival(value: number): number {
+  if (Number.isNaN(value)) return BASELINE_BIOMETRIC;
+  const clamped = Math.max(MIN_SURVIVAL, Math.min(MAX_SURVIVAL, value));
+  return Math.round(clamped * 10) / 10;
+}
+
+/**
+ * Clamps a sanity score strictly between MIN_SANITY (0) and MAX_SANITY (100).
+ */
+export function clampSanity(value: number): number {
+  if (Number.isNaN(value)) return BASELINE_BIOMETRIC;
+  const clamped = Math.max(MIN_SANITY, Math.min(MAX_SANITY, value));
+  return Math.round(clamped * 10) / 10;
+}
 
 /**
  * Clamps a biometric value strictly between MIN_BIOMETRIC (0) and MAX_BIOMETRIC (100).
@@ -94,6 +117,8 @@ export interface BiometricDeltaApplication {
 
 /**
  * Pure function to apply a biometric delta to a tribute and return the updated immutable clone.
+ * Enforces procedural philosophy: Survival is strictly clamped between 1 and 100 (never drops to 0).
+ * Status is never changed to 'dead' here; tributes only fall in explicit narrated events (combat, hazards, etc.).
  */
 export function applyBiometricDelta(
   tribute: EngineTribute,
@@ -105,18 +130,14 @@ export function applyBiometricDelta(
   const rawNewSurvival = currentSurvival + (delta.survivalDelta ?? 0);
   const rawNewSanity = currentSanity + (delta.sanityDelta ?? 0);
 
-  const newSurvival = clampBiometric(rawNewSurvival);
-  const newSanity = clampBiometric(rawNewSanity);
+  const newSurvival = clampSurvival(rawNewSurvival);
+  const newSanity = clampSanity(rawNewSanity);
 
-  const isFatal = newSurvival <= SURVIVAL_FATAL_THRESHOLD;
+  const physicalTag =
+    delta.overridePhysicalTag ?? evaluatePhysicalTag(newSurvival);
 
-  const physicalTag = isFatal
-    ? "fatal"
-    : delta.overridePhysicalTag ?? evaluatePhysicalTag(newSurvival);
-
-  const mentalTag = isFatal
-    ? tribute.biometrics.mentalTag
-    : delta.overrideMentalTag ?? evaluateMentalTag(newSanity);
+  const mentalTag =
+    delta.overrideMentalTag ?? evaluateMentalTag(newSanity);
 
   const newBiometrics: TributeBiometrics = {
     survival: newSurvival,
@@ -127,7 +148,6 @@ export function applyBiometricDelta(
 
   return {
     ...tribute,
-    status: isFatal ? "dead" : tribute.status,
     biometrics: newBiometrics,
   };
 }

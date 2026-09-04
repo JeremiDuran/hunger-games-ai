@@ -300,6 +300,52 @@ export class DayPhaseResolver implements BasePhaseResolver {
         };
       }
 
+      if (encounter.formationType === "solo_mishap") {
+        const hazardDamage = prng.nextInt(15, 30);
+        // Procedural fatality: Survival influences the probability of failing to survive the mishap
+        const survivalVulnerability = (100 - tribute.biometrics.survival) / 100;
+        const mishapFatalProb = Math.min(0.65, 0.10 + survivalVulnerability * 0.45);
+        const isFatal = prng.nextBoolean(mishapFatalProb);
+
+        const updated: EngineTribute = {
+          ...applyBiometricDelta(tribute, {
+            survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : -hazardDamage,
+            sanityDelta: -20,
+            overridePhysicalTag: isFatal ? "fatal" : undefined,
+          }),
+          status: isFatal ? "dead" : tribute.status,
+        };
+
+        updatedTributes.set(updated.id, updated);
+        if (isFatal) {
+          fallenTributeIds.push(tribute.id);
+        }
+
+        return {
+          eventId: `event-${gameId.slice(0, 6)}-d-${eventCounter}`,
+          eventOrder: eventCounter,
+          eventCategory: "hazard",
+          outcomeType: isFatal ? "death" : "wound",
+          tributeIds: [tribute.id],
+          killerIds: null,
+          victimIds: isFatal ? [tribute.id] : null,
+          stateDeltas: {
+            [tribute.id]: {
+              tributeId: tribute.id,
+              survivalDelta: isFatal ? -(tribute.biometrics.survival - 1) : -hazardDamage,
+              sanityDelta: -20,
+              isFatal,
+              narrativeNotes: isFatal
+                ? `${tribute.name} was caught in a lethal arena hazard trap and succumbed to their injuries.`
+                : `${tribute.name} triggered an environmental hazard in the arena and sustained severe injuries.`,
+            },
+          },
+          thematicContext: {
+            locationDescription: "Trapped amidst dangerous arena machinery, crumbling terrain, and environmental hazards.",
+          },
+        };
+      }
+
       // Default solo rest
       const updated = applyBiometricDelta(tribute, { survivalDelta: 5, sanityDelta: 8 });
       updatedTributes.set(updated.id, updated);

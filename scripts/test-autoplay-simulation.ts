@@ -158,10 +158,10 @@ async function runAutoplaySimulation(): Promise<void> {
   // Step 2: Create Canonical Benchmark Autoplay Game
   // ---------------------------------------------------------------------------
   const benchmarkConfig = {
-    title: "The 74th Hunger Games: The Floor is Lava Caldera (Autoplay Benchmark)",
-    arena_name: "The Floor is Lava Caldera",
+    title: "The 74th Hunger Games: Sawmill Complex (Autoplay Benchmark)",
+    arena_name: "Sawmill Complex",
     arena_description:
-      "A volatile subterranean caldera with shifting obsidian plates, rising rivers of incandescent molten magma, crumbling basalt pillars, and blinding sulfurous steam vents.",
+      "An massive industrial logging site, evyrthing is made wood, sawdust scatters all over the place, massive logs are everyhere on the ground, stacked in silos, or hanging by ropes attchd the sealing, most building are several stories high with opne windows.On the ground moving saws are prsent, unknow is their purpose.",
     tribute_count: 26,
     settings: {
       enable_bloodbath: true,
@@ -169,15 +169,16 @@ async function runAutoplaySimulation(): Promise<void> {
       enable_disasters: true,
       enable_sponsor_drops: true,
       enable_mid_game_feast: true,
+      enable_special_events: true,
       pacing: "cinematic" as const,
       turn_granularity: "autoplay" as const,
-      combat_lethality: "balanced" as const,
-      sponsor_generosity: "standard" as const,
+      combat_lethality: "gritty_survival" as const,
+      sponsor_generosity: "famine" as const,
       muttation_timing: "climax_only" as const,
       disaster_frequency: "moderate" as const,
-      alliance_dynamic: "dynamic_pacts" as const,
-      narrative_voice: "novel_cinematic" as const,
-      victory_condition: "sole_victor" as const,
+      alliance_dynamic: "lone_wolves" as const,
+      narrative_voice: "gamemaker_log" as const,
+      victory_condition: "district_duo_twist" as const,
     },
   };
 
@@ -289,7 +290,7 @@ async function runAutoplaySimulation(): Promise<void> {
 
   const initialAlliances = bootstrapInitialAlliances(
     engineRoster,
-    "dynamic_pacts",
+    benchmarkConfig.settings.alliance_dynamic,
     activeGameId,
     setupPrng
   );
@@ -463,7 +464,7 @@ async function runAutoplaySimulation(): Promise<void> {
         simulationTitle: benchmarkConfig.title,
         arenaName: benchmarkConfig.arena_name,
         arenaDescription: benchmarkConfig.arena_description,
-        narrativeVoice: "novel_cinematic",
+        narrativeVoice: benchmarkConfig.settings.narrative_voice,
         tributes: currentGameState.tributes,
       });
 
@@ -491,10 +492,10 @@ async function runAutoplaySimulation(): Promise<void> {
     if (isMatchConcluded) {
       isGameOver = true;
       console.log(`\n🎉 VICTORY ACHIEVED! Match concluded on Day ${nextGameState.currentDay} (${phaseResult.phaseType.toUpperCase()})!`);
-      const winnerName = nextGameState.winnerIds?.[0]
-        ? phaseResult.updatedTributes.get(nextGameState.winnerIds[0])?.name ?? nextGameState.winnerIds[0]
+      const winnerNames = nextGameState.winnerIds && nextGameState.winnerIds.length > 0
+        ? nextGameState.winnerIds.map((id) => phaseResult.updatedTributes.get(id)?.name ?? id).join(" & ")
         : "Mutual Annihilation";
-      console.log(`🏆 Victor of the 74th Hunger Games: ${winnerName.toUpperCase()}`);
+      console.log(`🏆 Victor(s) of the 74th Hunger Games: ${winnerNames.toUpperCase()}`);
     }
   }
 
@@ -532,16 +533,35 @@ async function runAutoplaySimulation(): Promise<void> {
   const livingTributes = (finalTributes ?? []).filter((t) => t.status === "alive");
   const deadTributes = (finalTributes ?? []).filter((t) => t.status === "dead");
 
-  assertInvariant(`Total tributes count remains exactly 26 (${(finalTributes ?? []).length})`, finalTributes?.length === 26);
-  assertInvariant(`Exactly 1 living Victor remains (${livingTributes.length})`, livingTributes.length === 1);
-  assertInvariant(`Exactly 25 fallen tributes recorded (${deadTributes.length})`, deadTributes.length === 25);
-  assertInvariant(`Victor placement is exactly 1`, livingTributes[0]?.placement === 1);
-  assertInvariant(`Victor ID matches games.winner_id`, livingTributes[0]?.id === finalGame?.winner_id);
+  const isDuoVictory =
+    livingTributes.length === 2 &&
+    livingTributes[0].district === livingTributes[1].district;
 
-  // Check dead placements are strictly valid and unique 2..26
+  assertInvariant(`Total tributes count remains exactly 26 (${(finalTributes ?? []).length})`, finalTributes?.length === 26);
+  assertInvariant(
+    `Valid Victor count (${livingTributes.length}): 1 sole victor or 2 district duo victors`,
+    livingTributes.length === 1 ||
+      (benchmarkConfig.settings.victory_condition === "district_duo_twist" && isDuoVictory)
+  );
+  assertInvariant(
+    `Total dead tributes is ${26 - livingTributes.length} (${deadTributes.length})`,
+    deadTributes.length === 26 - livingTributes.length
+  );
+  assertInvariant(
+    `Victor placement is exactly 1 for all surviving victors`,
+    livingTributes.every((t) => t.placement === 1)
+  );
+  assertInvariant(
+    `Victor ID matches games.winner_id`,
+    livingTributes.some((t) => t.id === finalGame?.winner_id)
+  );
+
+  // Check dead placements are strictly valid and unique
   const placements = new Set(deadTributes.map((t) => t.placement));
-  assertInvariant("All 25 dead tributes have distinct placements", placements.size === 25);
-  const allPlacementsInRange = deadTributes.every((t) => typeof t.placement === "number" && t.placement >= 2 && t.placement <= 26);
+  assertInvariant(`All ${deadTributes.length} dead tributes have distinct placements`, placements.size === deadTributes.length);
+  const allPlacementsInRange = deadTributes.every(
+    (t) => typeof t.placement === "number" && t.placement >= 2 && t.placement <= 26
+  );
   assertInvariant("All fallen placements are strictly between 2 and 26", allPlacementsInRange);
 
   // Check 100% of persisted events have narrative_text
@@ -565,16 +585,16 @@ async function runAutoplaySimulation(): Promise<void> {
   console.log(" 📊  HUNGER GAMES AI: FULL MATCH ANALYTICS & STUDY");
   console.log("=======================================================");
 
-  const victor = livingTributes[0];
-  const victorStats = victor?.stats as { survival?: number; sanity?: number; physical_tag?: string; mental_tag?: string } | undefined;
-  const victorInventory = Array.isArray(victor?.inventory) ? victor.inventory : [];
-
-  console.log(`\n👑 CROWNED VICTOR PROFILE:`);
-  console.log(`   • Name: ${victor?.name} (District ${victor?.district})`);
-  console.log(`   • Kill Count: ${victor?.kill_count}`);
-  console.log(`   • Final Survival: ${victorStats?.survival ?? "N/A"} (${victorStats?.physical_tag ?? "N/A"})`);
-  console.log(`   • Final Sanity: ${victorStats?.sanity ?? "N/A"} (${victorStats?.mental_tag ?? "N/A"})`);
-  console.log(`   • Final Inventory: ${victorInventory.length > 0 ? victorInventory.map((i: any) => typeof i === "string" ? i : i.name).join(", ") : "(None)"}`);
+  console.log(`\n👑 CROWNED VICTOR(S) PROFILE:`);
+  for (const victor of livingTributes) {
+    const victorStats = victor?.stats as { survival?: number; sanity?: number; physical_tag?: string; mental_tag?: string } | undefined;
+    const victorInventory = Array.isArray(victor?.inventory) ? victor.inventory : [];
+    console.log(`   • Name: ${victor?.name} (District ${victor?.district})`);
+    console.log(`   • Kill Count: ${victor?.kill_count}`);
+    console.log(`   • Final Survival: ${victorStats?.survival ?? "N/A"} (${victorStats?.physical_tag ?? "N/A"})`);
+    console.log(`   • Final Sanity: ${victorStats?.sanity ?? "N/A"} (${victorStats?.mental_tag ?? "N/A"})`);
+    console.log(`   • Final Inventory: ${victorInventory.length > 0 ? victorInventory.map((i: any) => typeof i === "string" ? i : i.name).join(", ") : "(None)"}`);
+  }
 
   console.log(`\n📅 MATCH PACING & CHRONOLOGY:`);
   console.log(`   • Total Arena Days: ${finalGame?.current_day}`);

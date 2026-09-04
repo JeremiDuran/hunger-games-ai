@@ -11,6 +11,12 @@ export const MIN_BIOMETRIC = 0;
 export const MAX_BIOMETRIC = 100;
 export const BASELINE_BIOMETRIC = 50;
 
+/** Survival minimum is strictly 1 (never 0). Low survival tributes face hazard death events. */
+export const MIN_SURVIVAL = 1;
+export const MAX_SURVIVAL = 100;
+export const MIN_SANITY = 0;
+export const MAX_SANITY = 100;
+
 // ==========================================
 // 2. Physical Vitality (Survival) Thresholds
 // ==========================================

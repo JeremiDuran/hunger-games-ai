@@ -439,15 +439,27 @@ function buildEncounterFormation(params: BuildFormationParams): EncounterSlotFor
   if (count === 1) {
     const tribute = group[0];
     const hasNpc = npcs.length > 0;
+
+    // Procedural Philosophy: Critically injured tributes with very low survival
+    // have a much higher chance to suffer an environmental mishap / hazard event
+    const isVeryLowSurvival = tribute.biometrics.survival <= 25;
+    const isCriticalSurvival = tribute.biometrics.survival <= 10;
+
     const formationType: EncounterType = hasNpc
       ? "solo_pve"
-      : prng.pickWeighted(
+      : (prng.pickWeighted(
           ["solo_forage", "solo_rest", "solo_mishap"],
-          [50, 35, 15]
-        ) as EncounterType;
+          isCriticalSurvival
+            ? [20, 15, 65]
+            : isVeryLowSurvival
+            ? [35, 25, 40]
+            : [50, 35, 15]
+        ) as EncounterType);
 
     const category: EventCategory = hasNpc
       ? (npcs[0].type === "mutt" ? "mutt" : "hazard")
+      : formationType === "solo_mishap"
+      ? "hazard"
       : formationType === "solo_forage"
       ? "forage"
       : "social";
@@ -912,12 +924,25 @@ function evaluateNPCGeneration(params: BuildFormationParams): NPCCombatant[] {
 
   // 3. Disaster / Environmental Hazard Check
   if (settings.enableDisasters && npcs.length < MAX_NPC_SLOTS_PER_EVENT) {
-    const disasterChance =
+    const baseDisasterChance =
       settings.disasterFrequency === "frequent"
         ? 0.35
         : settings.disasterFrequency === "moderate"
         ? 0.15
         : 0.05;
+
+    // Procedural Philosophy: Low survival tributes are significantly more vulnerable to arena hazards
+    const lowestSurvival = Math.min(...params.group.map((t) => t.biometrics.survival));
+    const vulnerabilityMultiplier =
+      lowestSurvival <= 10
+        ? 4.5
+        : lowestSurvival <= 25
+        ? 3.0
+        : lowestSurvival <= 40
+        ? 1.8
+        : 1.0;
+
+    const disasterChance = Math.min(0.85, baseDisasterChance * vulnerabilityMultiplier);
 
     if (prng.nextBoolean(disasterChance)) {
       const sample = prng.pickOne(SAMPLE_HAZARDS);
