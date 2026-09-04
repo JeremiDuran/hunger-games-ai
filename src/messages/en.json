@@ -475,5 +475,225 @@
         "archived": "ARCHIVED"
       }
     }
+  },
+  "arena": {
+    "header": {
+      "phases": {
+        "bloodbath": "Bloodbath",
+        "day": "Day Phase",
+        "night": "Night Phase",
+        "feast": "Cornucopia Feast"
+      }
+    },
+    "navigator": {
+      "title": "Phases",
+      "ariaLabel": "Chronological Phase Navigation Rail"
+    },
+    "viewModes": {
+      "narrative": "Narrative",
+      "telemetry": "Tactical JSON"
+    },
+    "rawStateDeltaHeading": "Raw Procedural Event Delta (Deterministic DB)",
+    "narrativeFallbackNotice": "AI Storyteller unavailable. Serving deterministic tactical telemetry.",
+    "surveillanceLock": "Capitol Surveillance Tracking",
+    "cannonAlert": {
+      "title": "CANNON FIRED • CASUALTY CONFIRMED",
+      "victim": "Capitol telemetry reports {name} has fallen in the arena."
+    },
+    "bottomBar": {
+      "prevPhase": "Prev Phase",
+      "nextPhase": "Next Phase",
+      "nextEvent": "Next Event ({current}/{total})",
+      "streamingNarrative": "Streaming Broadcast...",
+      "advanceSimulation": "Advance Simulation",
+      "simulatingNextRound": "Computing Round Outcomes...",
+      "eventsProgress": "{revealed} of {total} events revealed"
+    },
+    "hub": {
+      "title": "Capitol Gamehub",
+      "desc": "Full roster biometrics, inventory, and fallen tributes graveyard.",
+      "cta": "Go to Gamehub"
+    },
+    "telemetry": {
+      "title": "Arena Telemetry",
+      "alive": "Living",
+      "fallen": "Fallen"
+    },
+    "feed": {
+      "pastPhaseArchive": "Archived Phase Log",
+      "activePhaseBroadcast": "Live Arena Broadcast",
+      "encounters": "Encounters",
+      "noEvents": "No encounters recorded in this phase."
+    },
+    "status": {
+      "connectingTelemetry": "Connecting Capitol Surveillance Telemetry...",
+      "telemetryError": "Telemetry Feed Interrupted",
+      "returnLobby": "Return to Lobby"
+    }
+  },
+  "gamehub": {
+    "header": {
+      "title": "Capitol Tactical Observatory",
+      "subtitle": "Comprehensive match telemetry, biometrics, chronology, and combat analytics",
+      "statusLabel": "Status",
+      "status": {
+        "in_progress": "IN PROGRESS",
+        "finished": "CONCLUDED",
+        "archived": "ARCHIVED",
+        "setup": "STAGING"
+      },
+      "cta": {
+        "watchLive": "Live Broadcast",
+        "replay": "Replay from Start",
+        "setupNew": "Setup New Game",
+        "lobby": "Lobby"
+      }
+    },
+    "victorBanner": {
+      "heading": "CROWNED VICTOR OF THE ARENA",
+      "subtitle": "Sole survivor standing after enduring the brutal trials of the Capitol",
+      "victorOf": "Victor of the 74th Hunger Games",
+      "district": "District {district}",
+      "kills": "{count} Confirmed Kills",
+      "days": "{count} Days Endured",
+      "health": "Survival Health",
+      "sanity": "Mental Composure",
+      "inventory": "Final Loadout",
+      "emptyInventory": "No items retained"
+    },
+    "tabs": {
+      "tributes": "Tribute Dossier",
+      "leaderboards": "Leaderboards",
+      "calendar": "Calendar of Days",
+      "items": "Arena Items",
+      "mutts": "Mutts & Threats",
+      "alliances": "Alliances & Intel"
+    },
+    "tributes": {
+      "title": "Capitol Tribute Surveillance",
+      "subtitle": "Live biometric telemetry and mortality records for all deployed tributes",
+      "searchPlaceholder": "Search tributes by name or district...",
+      "filterAll": "All ({count})",
+      "filterLiving": "Still Standing ({count})",
+      "filterFallen": "Fallen ({count})",
+      "districtFilter": "District: All",
+      "districtFilterOption": "District {district}",
+      "noTributesFound": "No tributes match the specified query.",
+      "standingHeading": "Active Tributes Standing",
+      "fallenHeading": "Capitol Graveyard & Casualty Ledger",
+      "finishedHeading": "Official Final Standings",
+      "card": {
+        "district": "District {district}",
+          "alive": "ALIVE",
+          "fallen": "FALLEN",
+          "survival": "Survival",
+          "sanity": "Sanity",
+          "kills": "{count} Kills",
+          "inventory": "Inventory",
+          "emptyInventory": "Empty",
+          "diedIn": "Fell in Day {day} • {phase}",
+          "placement": "Rank #{placement}",
+          "allianceWith": "Allied with: {names}",
+          "physical": "Physical",
+          "mental": "Mental"
+        }
+      },
+      "leaderboards": {
+        "title": "Capitol Performance Leaderboards",
+        "subtitle": "Historical rankings and combat efficiency metrics across the simulation",
+        "tabKills": "Most Lethal",
+        "tabSurvival": "Highest Vitality",
+        "tabSanity": "Resolute Sanity",
+        "tabScavenger": "Master Scavenger",
+        "tabCombat": "Combat Veterans",
+        "rank": "Rank",
+        "tribute": "Tribute",
+        "district": "District",
+        "status": "Status",
+        "score": "Score",
+        "killsLabel": "Kills",
+        "survivalLabel": "Survival HP",
+        "sanityLabel": "Sanity %",
+        "itemsLabel": "Items Held",
+        "encountersLabel": "Encounters",
+        "empty": "No leaderboard telemetry available yet."
+      },
+      "calendar": {
+        "title": "Chronological Phase Calendar",
+        "subtitle": "Navigate all elapsed days and jump directly into any simulated phase",
+        "dayHeading": "Day {day}",
+        "dayZero": "Day 0 • Opening Bloodbath",
+        "phaseBloodbath": "The Bloodbath",
+        "phaseDay": "Day Phase",
+        "phaseNight": "Night Phase",
+        "phaseFeast": "The Feast",
+        "phaseCataclysm": "Cataclysm",
+        "phaseNpcOverload": "Mutt Overload",
+        "phaseArenaEvent": "Arena Event",
+        "casualties": "{count} Fallen",
+        "encounters": "{count} Encounters",
+        "watchPhase": "Watch Phase",
+        "currentBadge": "Active Now",
+        "completedBadge": "Archived",
+        "pendingBadge": "Pending"
+      },
+      "items": {
+        "title": "Arena Equipment & Supply Manifest",
+        "subtitle": "Real-time tracking of active inventories, battlefield salvage, and arena caches",
+        "activeTab": "Active Loadouts",
+        "historyTab": "Loot & Loss History",
+        "cacheTab": "Arena Thematic Arsenal",
+        "heldBy": "Held by {name}",
+        "districtLabel": "District {district}",
+        "tier": {
+          "common": "Common",
+          "uncommon": "Uncommon",
+          "rare": "Rare",
+          "legendary": "Legendary"
+        },
+        "category": {
+          "weapon": "Weapon",
+          "armor": "Armor",
+          "medical": "Medical",
+          "sustenance": "Sustenance",
+          "tool": "Tool"
+        },
+        "action": {
+          "gained": "Acquired",
+          "lost": "Lost",
+          "consumed": "Consumed",
+          "destroyed": "Destroyed",
+          "stolen": "Stolen"
+        },
+        "noItems": "No items recorded in this category."
+      },
+      "mutts": {
+        "title": "Arena Mutts & Environmental Hazards",
+        "subtitle": "Capitol-engineered bio-weapons, hazards, and encountered arena beasts",
+        "encounteredTab": "Encountered Threats",
+        "catalogTab": "Capitol Hazard Dossier",
+        "lethalEncounters": "Casualties Inflicted: {count}",
+        "threatTargets": "Targeted Tributes",
+        "threatOrigin": "Engineered for {arenaName}",
+        "noMuttsEncountered": "No mutt or hazard encounters have been recorded yet."
+      },
+      "alliances": {
+        "title": "Alliances & District Intel",
+        "subtitle": "Faction pacts, betrayal telemetry, and district mortality breakdown",
+        "activeAlliances": "Active Pacts ({count})",
+        "betrayals": "Betrayals & Dissolved Pacts",
+        "districtStanding": "District Casualties & Survival",
+        "members": "Members: {names}",
+        "formedIn": "Formed in {phase}",
+        "dissolvedIn": "Dissolved in {phase}",
+        "betrayedBy": "Betrayed by {name}",
+        "statusActive": "Active Pact",
+        "statusBetrayed": "Betrayed",
+        "statusDissolved": "Dissolved",
+        "noAlliances": "No alliances recorded in this match.",
+        "districtEliminated": "ELIMINATED",
+        "districtActive": "STANDING",
+        "livingOutOf": "{alive} / {total} alive"
+    }
   }
 }

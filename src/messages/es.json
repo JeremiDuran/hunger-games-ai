@@ -475,5 +475,225 @@
         "archived": "ARCHIVADO"
       }
     }
+  },
+  "arena": {
+    "header": {
+      "phases": {
+        "bloodbath": "Baño de Sangre",
+        "day": "Fase de Día",
+        "night": "Fase de Noche",
+        "feast": "Banquete de la Cornucopia"
+      }
+    },
+    "navigator": {
+      "title": "Fases",
+      "ariaLabel": "Riel de Navegación Cronológica de Fases"
+    },
+    "viewModes": {
+      "narrative": "Narrativa",
+      "telemetry": "JSON Táctico"
+    },
+    "rawStateDeltaHeading": "Delta de Evento Procedural Puro (BD Determinista)",
+    "narrativeFallbackNotice": "Narrador IA no disponible. Mostrando telemetría táctica determinista.",
+    "surveillanceLock": "Seguimiento de Vigilancia del Capitolio",
+    "cannonAlert": {
+      "title": "CAÑONAZO DISPARADO • BAJA CONFIRMADA",
+      "victim": "La telemetría del Capitolio informa que {name} ha caído en la arena."
+    },
+    "bottomBar": {
+      "prevPhase": "Fase Anterior",
+      "nextPhase": "Siguiente Fase",
+      "nextEvent": "Siguiente Evento ({current}/{total})",
+      "streamingNarrative": "Transmitiendo Narrativa...",
+      "advanceSimulation": "Avanzar Simulación",
+      "simulatingNextRound": "Calculando Resultados de la Ronda...",
+      "eventsProgress": "{revealed} de {total} eventos revelados"
+    },
+    "hub": {
+      "title": "Centro del Capitolio",
+      "desc": "Biometría completa del elenco, inventario y cementerio de caídos.",
+      "cta": "Ir al Centro"
+    },
+    "telemetry": {
+      "title": "Telemetría de la Arena",
+      "alive": "Vivos",
+      "fallen": "Caídos"
+    },
+    "feed": {
+      "pastPhaseArchive": "Registro de Fase Archivada",
+      "activePhaseBroadcast": "Transmisión en Vivo de la Arena",
+      "encounters": "Encuentros",
+      "noEvents": "No hay encuentros registrados en esta fase."
+    },
+    "status": {
+      "connectingTelemetry": "Conectando Telemetría de Vigilancia del Capitolio...",
+      "telemetryError": "Transmisión de Telemetría Interrumpida",
+      "returnLobby": "Volver al Lobby"
+    }
+  },
+  "gamehub": {
+    "header": {
+      "title": "Observatorio Táctico del Capitolio",
+      "subtitle": "Telemetría integral de la partida, biometría, cronología y análisis de combate",
+      "statusLabel": "Estado",
+      "status": {
+        "in_progress": "EN CURSO",
+        "finished": "CONCLUIDO",
+        "archived": "ARCHIVADO",
+        "setup": "PREPARACIÓN"
+      },
+      "cta": {
+        "watchLive": "Transmisión en Vivo",
+        "replay": "Repetir desde el Inicio",
+        "setupNew": "Configurar Nueva Partida",
+        "lobby": "Lobby"
+      }
+    },
+    "victorBanner": {
+      "heading": "VÍCTOR CORONADO DE LA ARENA",
+      "subtitle": "Único superviviente en pie tras superar las brutales pruebas del Capitolio",
+      "victorOf": "Víctor de los 74º Juegos del Hambre",
+      "district": "Distrito {district}",
+      "kills": "{count} Bajas Confirmadas",
+      "days": "{count} Días Soportados",
+      "health": "Salud de Supervivencia",
+      "sanity": "Compostura Mental",
+      "inventory": "Equipamiento Final",
+      "emptyInventory": "Sin objetos conservados"
+    },
+    "tabs": {
+      "tributes": "Dossier de Tributos",
+      "leaderboards": "Clasificaciones",
+      "calendar": "Calendario de Días",
+      "items": "Objetos de la Arena",
+      "mutts": "Mutaciones y Amenazas",
+      "alliances": "Alianzas e Información"
+    },
+    "tributes": {
+      "title": "Vigilancia de Tributos del Capitolio",
+      "subtitle": "Telemetría biométrica en vivo y registro de mortalidad de todos los tributos desplegados",
+      "searchPlaceholder": "Buscar tributos por nombre o distrito...",
+      "filterAll": "Todos ({count})",
+      "filterLiving": "En Pie ({count})",
+      "filterFallen": "Caídos ({count})",
+      "districtFilter": "Distrito: Todos",
+      "districtFilterOption": "Distrito {district}",
+      "noTributesFound": "Ningún tributo coincide con la búsqueda especificada.",
+      "standingHeading": "Tributos Activos en Pie",
+      "fallenHeading": "Cementerio del Capitolio y Registro de Bajas",
+      "finishedHeading": "Clasificación Oficial Definitiva",
+      "card": {
+        "district": "Distrito {district}",
+        "alive": "VIVO",
+        "fallen": "CAÍDO",
+        "survival": "Supervivencia",
+        "sanity": "Cordura",
+        "kills": "{count} Bajas",
+        "inventory": "Inventario",
+        "emptyInventory": "Vacío",
+        "diedIn": "Cayó en Día {day} • {phase}",
+        "placement": "Puesto #{placement}",
+        "allianceWith": "Aliado con: {names}",
+        "physical": "Físico",
+        "mental": "Mental"
+      }
+    },
+    "leaderboards": {
+      "title": "Clasificaciones de Rendimiento del Capitolio",
+      "subtitle": "Ránking histórico y métricas de eficiencia en combate a lo largo de la simulación",
+      "tabKills": "Más Letal",
+      "tabSurvival": "Mayor Vitalidad",
+      "tabSanity": "Cordura Inquebrantable",
+      "tabScavenger": "Maestro Saqueador",
+      "tabCombat": "Veteranos de Combate",
+      "rank": "Rango",
+      "tribute": "Tribute",
+      "district": "Distrito",
+      "status": "Estado",
+      "score": "Puntuación",
+      "killsLabel": "Bajas",
+      "survivalLabel": "HP Supervivencia",
+      "sanityLabel": "Cordura %",
+      "itemsLabel": "Objetos",
+      "encountersLabel": "Encuentros",
+      "empty": "No hay telemetría de clasificación disponible aún."
+    },
+    "calendar": {
+      "title": "Calendario Cronológico de Fases",
+      "subtitle": "Navega todos los días transcurridos y salta directamente a cualquier fase simulada",
+      "dayHeading": "Día {day}",
+      "dayZero": "Día 0 • Baño de Sangre Inicial",
+      "phaseBloodbath": "El Baño de Sangre",
+      "phaseDay": "Fase de Día",
+      "phaseNight": "Fase de Noche",
+      "phaseFeast": "El Banquete",
+      "phaseCataclysm": "Cataclismo",
+      "phaseNpcOverload": "Sobrecarga de Mutaciones",
+      "phaseArenaEvent": "Evento de la Arena",
+      "casualties": "{count} Caídos",
+      "encounters": "{count} Encuentros",
+      "watchPhase": "Ver Fase",
+      "currentBadge": "Activo Ahora",
+      "completedBadge": "Archivado",
+      "pendingBadge": "Pendiente"
+    },
+    "items": {
+      "title": "Manifiesto de Equipamiento y Suministros de la Arena",
+      "subtitle": "Seguimiento en tiempo real de inventarios activos, botín recuperado y arsenales",
+      "activeTab": "Equipamiento Activo",
+      "historyTab": "Historial de Botín y Pérdidas",
+      "cacheTab": "Arsenal Temático de la Arena",
+      "heldBy": "En posesión de {name}",
+      "districtLabel": "Distrito {district}",
+      "tier": {
+        "common": "Común",
+        "uncommon": "Poco común",
+        "rare": "Raro",
+        "legendary": "Legendario"
+      },
+      "category": {
+        "weapon": "Arma",
+        "armor": "Armadura",
+        "medical": "Médico",
+        "sustenance": "Sustento",
+        "tool": "Herramienta"
+      },
+      "action": {
+        "gained": "Obtenido",
+        "lost": "Perdido",
+        "consumed": "Consumido",
+        "destroyed": "Destruido",
+        "stolen": "Robado"
+      },
+      "noItems": "No hay objetos registrados en esta categoría."
+    },
+    "mutts": {
+      "title": "Mutaciones de la Arena y Amenazas Ambientales",
+      "subtitle": "Armas biológicas diseñadas por el Capitolio, peligros y bestias encontradas",
+      "encounteredTab": "Amenazas Enfrentadas",
+      "catalogTab": "Dossier de Peligros del Capitolio",
+      "lethalEncounters": "Bajas Causadas: {count}",
+      "threatTargets": "Tributos Afectados",
+      "threatOrigin": "Diseñado para {arenaName}",
+      "noMuttsEncountered": "Aún no se han registrado encuentros con mutaciones o peligros."
+    },
+    "alliances": {
+      "title": "Alianzas e Información de Distritos",
+      "subtitle": "Pactos entre facciones, telemetría de traiciones y bajas por distrito",
+      "activeAlliances": "Pactos Activos ({count})",
+      "betrayals": "Traiciones y Pactos Disueltos",
+      "districtStanding": "Bajas y Supervivencia por Distrito",
+      "members": "Miembros: {names}",
+      "formedIn": "Formada en {phase}",
+      "dissolvedIn": "Disuelta en {phase}",
+      "betrayedBy": "Traicionado por {name}",
+      "statusActive": "Pacto Activo",
+      "statusBetrayed": "Traicionado",
+      "statusDissolved": "Disuelto",
+      "noAlliances": "No hay alianzas registradas en esta partida.",
+      "districtEliminated": "ELIMINADO",
+      "districtActive": "EN PIE",
+      "livingOutOf": "{alive} / {total} vivos"
+    }
   }
 }

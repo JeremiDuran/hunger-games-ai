@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import {
   Trees,
@@ -48,10 +48,12 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
     validateArenaStep,
     validateTributesStep,
   } = useSetup();
-  const { isPermanent, user } = useAuth();
+  const { isPermanent, user, signInAnonymously } = useAuth();
   const { activePalette } = useThemeEngine();
   const [isLaunching, setIsLaunching] = useState(false);
+  const [launchError, setLaunchError] = useState<string | null>(null);
   const [showLore, setShowLore] = useState(false);
+  const router = useRouter();
   const isEditable = gameStatus === "setup" || gameStatus === "archived";
 
   const handleEditArena = useCallback(() => {
@@ -69,7 +71,7 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [setActiveTab]);
 
-  const handleLaunchClick = useCallback(() => {
+  const handleLaunchClick = useCallback(async () => {
     const isArenaOk = validateArenaStep();
     if (!isArenaOk) {
       setActiveTab("arena");
@@ -83,12 +85,23 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
     }
 
     setIsLaunching(true);
+    setLaunchError(null);
 
     try {
-      // Serialize game setup and tribute payload into local staging
-      const gamePayload = toGameDbPayload(arenaState, user?.id || "guest-session-id", tributes.length, rulesState);
-      const tributesPayload = toTributesDbPayload(tributes, "local-game-session");
+      // 1. Ensure user session exists (sign in anonymously if guest)
+      let activeUserId = user?.id;
+      if (!activeUserId) {
+        const anonRes = await signInAnonymously();
+        if (!anonRes.success) {
+          throw new Error(anonRes.error || "Failed to initialize guest session");
+        }
+      }
 
+      // 2. Prepare database payloads
+      const gamePayload = toGameDbPayload(arenaState, user?.id || "guest-session-id", tributes.length, rulesState);
+      const tributesPayload = toTributesDbPayload(tributes, "pending-game-id");
+
+      // 3. Stash in sessionStorage as backup
       if (typeof window !== "undefined") {
         window.sessionStorage.setItem(
           "hg_active_game_ready",
@@ -100,18 +113,42 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
         );
       }
 
+      // 4. Create game in Supabase via API
+      const res = await fetch("/api/game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game: gamePayload, tributes: tributesPayload }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.gameId) {
+        const errorMsg = data.details || data.error || "Failed to create game";
+        throw new Error(typeof errorMsg === "string" ? errorMsg : JSON.stringify(errorMsg));
+      }
+
       if (onLaunch) {
         onLaunch();
       }
 
-      // Smooth feedback
-      setTimeout(() => {
-        setIsLaunching(false);
-      }, 900);
-    } catch {
+      // 5. Navigate to Live Arena View
+      router.push(`/game/${data.gameId}`);
+    } catch (err) {
+      console.error("[SetupSummary] Launch error:", err);
+      setLaunchError(err instanceof Error ? err.message : "Failed to sound the cannon");
       setIsLaunching(false);
     }
-  }, [arenaState, user, tributes, rulesState, validateArenaStep, validateTributesStep, setActiveTab, onLaunch]);
+  }, [
+    arenaState,
+    user,
+    tributes,
+    rulesState,
+    validateArenaStep,
+    validateTributesStep,
+    setActiveTab,
+    signInAnonymously,
+    onLaunch,
+    router,
+  ]);
 
   const activeHazardsList = [
     {
@@ -176,6 +213,16 @@ export function SetupSummaryWorkspace({ onLaunch }: SetupSummaryWorkspaceProps) 
                 Fix Roster
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Launch Error Alert */}
+      {launchError && (
+        <div className="p-4 clip-chamfer-sm bg-red-950/40 border-2 border-red-500/80 text-red-200 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
+          <div className="text-xs sm:text-sm font-mono font-bold">
+            <span>{launchError}</span>
           </div>
         </div>
       )}

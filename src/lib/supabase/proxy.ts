@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import type { Database } from "@/types/database";
 
 function redirectWithCookies(
   url: URL | string,
@@ -31,7 +32,7 @@ export async function updateSession(
     return response;
   }
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -96,7 +97,31 @@ export async function updateSession(
   if (pathnameWithoutLocale === "/") {
     if (user) {
       if (user.is_anonymous) {
-        // Guest user with active session: direct to single-game arena setup
+        // Guest user can only have 1 game -> redirect to its gamehub (or /setup if no game created yet)
+        let guestGameId: string | null = null;
+        try {
+          const { data: guestGame } = await supabase
+            .from("games")
+            .select("id")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (guestGame?.id) {
+            guestGameId = guestGame.id;
+          }
+        } catch {
+          // Gracefully fallback to setup on query error
+        }
+
+        if (guestGameId) {
+          return redirectWithCookies(
+            new URL(`${localePrefix}/game/${guestGameId}/hub`, request.url),
+            response
+          );
+        }
+
         return redirectWithCookies(
           new URL(`${localePrefix}/setup`, request.url),
           response
