@@ -30,7 +30,9 @@ Focus on environmental details (weather, terrain, sounds), psychological tension
 Rules:
 1. All outcomes (deaths, injuries, items gained/lost, alliances) are 100% deterministic and provided in the prompt. NEVER contradict, alter, or invent extra deaths or health changes.
 2. Keep your prose concise and impactful: exactly 2 to 4 sentences (40 to 80 words).
-3. Do NOT include markdown headers, quotes around the whole text, or conversational preambles. Output ONLY the narrative prose.`,
+3. Do NOT include markdown headers, quotes around the whole text, or conversational preambles. Output ONLY the narrative prose.
+4. Refer to tributes by name only. Never append district, role, condition, or telemetry labels such as "(District 1)" or "(D1)".
+5. Recreate the pre-determined event faithfully using relevant arena materials, terrain, and participant traits. When a participant has a listed weapon or tool and the outcome supports it, show them using it; when unarmed, use the provided environment creatively.`,
 
   capitol_broadcast: `You are Caesar Flickerman and Claudius Templesmith broadcasting live from the Capitol studio.
 Your role is to provide sensationalized, theatrical, high-energy television commentary for the citizens of Panem.
@@ -38,15 +40,20 @@ Use dramatic rhetoric, Capitol enthusiasm, and iconic broadcasting flair ("Panem
 Rules:
 1. All outcomes (deaths, injuries, items gained/lost, alliances) are 100% deterministic and provided in the prompt. NEVER contradict, alter, or invent extra deaths or health changes.
 2. Keep your commentary concise: exactly 2 to 4 sentences (40 to 80 words).
-3. Do NOT include markdown headers, quotes around the whole text, or conversational preambles. Output ONLY the broadcast commentary.`,
+3. Do NOT include markdown headers, quotes around the whole text, or conversational preambles. Output ONLY the broadcast commentary.
+4. Refer to tributes by name only. Never append district, role, condition, or telemetry labels such as "(District 1)" or "(D1)".
+5. Recreate the pre-determined event faithfully using relevant arena materials, terrain, and participant traits. When a participant has a listed weapon or tool and the outcome supports it, show them using it; when unarmed, use the provided environment creatively.`,
 
-  gamemaker_log: `You are a Head Gamemaker monitoring the live Capitol surveillance telemetry.
-Your role is to log incident reports with cold, clinical, tactical military precision.
-Reference sector conditions, vital signs, physical damage assessments, and tactical engagements in concise log format.
+  gamemaker_log: `You are a Head Gamemaker recording the official event feed for the Hunger Games.
+Your role is to summarize exactly one pre-determined arena event in the direct, plain style of a Hunger Games simulator.
 Rules:
 1. All outcomes (deaths, injuries, items gained/lost, alliances) are 100% deterministic and provided in the prompt. NEVER contradict, alter, or invent extra deaths or health changes.
-2. Keep the report concise: exactly 2 to 4 sentences (40 to 80 words).
-3. Do NOT include markdown headers, quotes around the whole text, or conversational preambles. Output ONLY the incident log text.`,
+2. Write exactly one short third-person sentence, typically 8 to 20 words and never more than 32. State the decisive action and its result plainly.
+3. Use the participant names exactly as provided. Never append district, role, condition, or telemetry labels such as "(District 1)" or "(D1)".
+4. Recreate the pre-determined event faithfully using relevant arena materials, terrain, and participant traits. When a participant has a listed weapon or tool and the outcome supports it, show them using it; when unarmed, use the provided environment creatively.
+5. Make each sentence specific to its encounter by centering a concrete action, weapon, terrain feature, or character trait.
+6. Do not mention telemetry, sectors, vital signs, assessments, strategy, or the Gamemakers unless the deterministic event explicitly includes them.
+7. Do NOT include numbering, markdown, headers, quotes, or preambles. Output ONLY the event sentence.`,
 } as const;
 
 // ==========================================
@@ -229,6 +236,11 @@ export function buildNarrativeUserPrompt(request: NarrativeRequest): string {
     );
   }
 
+  const generationDirective =
+    request.narrativeVoice === "gamemaker_log"
+      ? "Generate one short, plain, event-specific event-feed sentence describing this exact encounter. Do not add district labels."
+      : "Generate a vivid, sensory narrative describing this exact encounter.";
+
   return `[SIMULATION CONTEXT]
 Match: ${simulationTitle}
 Arena: ${arenaDisplay}
@@ -244,7 +256,7 @@ Mental State Updates: ${mentalUpdates || "None"}
 ${contextItems.length > 0 ? `\n[ARENA THEMATIC CONTEXT]\n${contextItems.join("\n")}` : ""}
 ${stateDelta.narrativeNotes ? `\n[DIRECTIVE NOTES]\n${stateDelta.narrativeNotes}` : ""}
 
-Generate a vivid, sensory narrative describing this exact encounter.`;
+${generationDirective}`;
 }
 
 // ==========================================
@@ -256,8 +268,36 @@ Generate a vivid, sensory narrative describing this exact encounter.`;
  */
 export function generateBarebonesFallback(request: NarrativeRequest): string {
   const names = request.participants.map((p) => p.name).join(" and ");
+  const actionSuffix = request.participants.length === 1 ? "s" : "";
   const hasFatalities =
     request.stateDelta.fatalities && request.stateDelta.fatalities.length > 0;
+
+  if (request.narrativeVoice === "gamemaker_log") {
+    if (hasFatalities) {
+      const deadNames = request.stateDelta.fatalities
+        .map((id) => request.participants.find((p) => p.id === id)?.name || id)
+        .join(", ");
+      const fatalityVerb = request.stateDelta.fatalities.length === 1 ? "is" : "are";
+      return `${deadNames} ${fatalityVerb} eliminated during an encounter with ${names}.`;
+    }
+
+    switch (request.eventCategory) {
+      case "forage":
+        return `${names} gather${actionSuffix} supplies.`;
+      case "hazard":
+        return `${names} encounter${actionSuffix} an arena hazard.`;
+      case "sponsor":
+        return `${names} receive${actionSuffix} a sponsor parachute.`;
+      case "mutt":
+        return `${names} encounter${actionSuffix} muttations.`;
+      case "social":
+        return `${names} cross${actionSuffix} paths with other tributes.`;
+      case "combat":
+        return `${names} fight${actionSuffix} and disengage${actionSuffix}.`;
+      default:
+        return `${names} move${actionSuffix} through the arena.`;
+    }
+  }
 
   if (hasFatalities) {
     const deadNames = request.stateDelta.fatalities
@@ -320,7 +360,7 @@ export function streamNarrative(
     model,
     system: systemPrompt,
     prompt: userPrompt,
-    temperature: 0.7,
+    temperature: request.narrativeVoice === "gamemaker_log" ? 0.8 : 0.7,
   });
 }
 
@@ -354,7 +394,7 @@ export async function generateNarrativeWithMetadata(
       model,
       system: systemPrompt,
       prompt: userPrompt,
-      temperature: 0.7,
+      temperature: request.narrativeVoice === "gamemaker_log" ? 0.8 : 0.7,
       maxRetries: 1,
       timeout: 15000,
     });

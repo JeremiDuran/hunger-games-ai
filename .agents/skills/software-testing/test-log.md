@@ -31,6 +31,8 @@ Updated automatically after each session (pass, skip, or circuit break).
 | `scripts/test-openrouter-narrative.ts` | E2E / OpenRouter AI Storyteller | ✅ Passed | 1 | 2026-09-02 | Covers 5 live mockup scenarios against OpenRouter (Bloodbath combat, stealth foraging, Capitol TV commentary, Gamemaker log, and sponsor parachute drops). |
 | `scripts/test-custom-game-simulation.ts` | E2E / Live DB & Event-by-Event | ✅ Passed | 2 | 2026-09-02 | Covers custom 26-tribute game (24 Canon + District 13 Larry the Evil Cat & Sentient Plastic Chair), custom "Floor is Lava Caldera" arena, DB insertion, Bloodbath phase advancement, and Event 1 OpenRouter generation & caching. |
 | `scripts/test-whole-day-simulation.ts` | E2E / Whole Day & Invariant Audit | ✅ Passed | 2 | 2026-09-02 | Covers full multi-phase day cycle (Bloodbath -> Day 1 -> Night 1), 54 persisted events, 15/15 mathematical invariants (living+dead roster, casualty placement, inventory tracking, Fallen Anthem broadcast), zero state drift, and automatic DB cleanup. |
+| `scripts/test-whole-day-simulation.ts` | E2E / Whole Day Gamemaker Log | ✅ Passed | 2 | 2026-09-09 | Live DEV run: deleted the prior Sawmill test game, generated and cached 13 Gamemaker Log event sentences for the Day 0 bloodbath, passed 6/6 invariants, then cascade-purged the fresh test game. |
+| `src/lib/ai.ts` | Unit + E2E / Arena-Grounded Narratives | ✅ Passed | 5 | 2026-09-09 | Covers positive arena and character grounding for all three voices; 26 AI unit tests and a live 13-event Gamemaker Log bloodbath passed 6/6 invariants with zero database residue. |
 
 ---
 

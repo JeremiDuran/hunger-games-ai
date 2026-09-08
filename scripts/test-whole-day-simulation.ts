@@ -27,7 +27,153 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { CANON_74TH_TRIBUTES } from "../src/config/tribute-presets";
+interface CustomTributeDef {
+  name: string;
+  district: number;
+  gender: "male" | "female" | "non_binary" | "unspecified";
+  personality: string;
+  physicalAspect: string;
+}
+
+const CUSTOM_ROSTER: CustomTributeDef[] = [
+  // District 1
+  {
+    name: "Prince Herb",
+    district: 1,
+    gender: "male",
+    personality: "Fat man that has neurotic tendencies, multiple phobias but can survive getting hit by a car.",
+    physicalAspect: "Heavy-set build, neurotic demeanor, remarkably durable body capable of surviving vehicle impacts.",
+  },
+  {
+    name: "Murr",
+    district: 1,
+    gender: "male",
+    personality: "Ferret looking man that can act as human pinata.",
+    physicalAspect: "Ferret-like features, agile, surprisingly resilient under blunt force.",
+  },
+  {
+    name: "Q",
+    district: 1,
+    gender: "male",
+    personality: "Avid car enthusiast and ex firefighter and bouncer. Suffers from arachnophobia, which can be used against him.",
+    physicalAspect: "Burly ex-bouncer frame, firefighter stamina, visible dread around spiders.",
+  },
+
+  // District 2
+  {
+    name: "Ambatakum",
+    district: 2,
+    gender: "male",
+    personality: "Hero of the hood, he become one to avenge his brother Am Kaming.",
+    physicalAspect: "Athletic vigilante build, intense vengeful gaze.",
+  },
+  {
+    name: "Brandon Curington",
+    district: 2,
+    gender: "male",
+    personality: "He was known to be Captain Am Kaming's lost son during the fall of the Nazi Nowhere Islands. He is highly respected for his perfect barber cuts.",
+    physicalAspect: "Razor-sharp hairline, impeccable grooming, disciplined combat posture.",
+  },
+  {
+    name: "Yes King",
+    district: 2,
+    gender: "male",
+    personality: "Yes King Jr (aka Yes king) is the leader of the King Empire. Even though Yes King had a strong running empire he is still afraid of lions, pizzas, and chickens.",
+    physicalAspect: "Regal imperial swagger, easily startled by poultry, pizza, or predators.",
+  },
+
+  // District 3
+  {
+    name: "Evil Larry",
+    district: 3,
+    gender: "male",
+    personality: "Black cat that will try to steal your soul.",
+    physicalAspect: "Midnight black feline fur, sinister glowing sulfur-yellow eyes, razor-sharp claws.",
+  },
+  {
+    name: "Uncanny Cat",
+    district: 3,
+    gender: "male",
+    personality: "He is the Dark side of Canny Cat, His Dark aura covering all over his body, He can't escape from the darkness, He is permanently UNCANNY.",
+    physicalAspect: "Disturbing feline silhouette shrouded in an ominous, dark aura.",
+  },
+  {
+    name: "SneedCat",
+    district: 3,
+    gender: "male",
+    personality: "Cat that guards Sneed's Feed and Seed and manages its Whole budget. Can solve the most complex math equations in hours.",
+    physicalAspect: "Calculating farmstead cat with an analytical gaze and meticulous poise.",
+  },
+
+  // District 4
+  {
+    name: "Waltuh",
+    district: 4,
+    gender: "male",
+    personality: "Also known as Heisenburger, he makes the best burgers. His pimento sandwich was shown to be stronger than a miltary base firearms.",
+    physicalAspect: "Bald man with a goatee and porkpie hat, clutching legendary pimento sandwiches.",
+  },
+  {
+    name: "Finger",
+    district: 4,
+    gender: "male",
+    personality: "A ex cop and marine that now acts as an assasin, he posses both brain and brawn.",
+    physicalAspect: "Grizzled bald veteran with a deadpan stare, lethal tactical efficiency.",
+  },
+  {
+    name: "Jesse Pinkman(God Ki)",
+    district: 4,
+    gender: "male",
+    personality: "He has trained with gods and now has red hair and godly strenght.",
+    physicalAspect: "Radiant divine aura, spiky crimson red hair, supernatural strength.",
+  },
+
+  // District 5
+  {
+    name: "The Demiurge",
+    district: 5,
+    gender: "non_binary",
+    personality: "this being half lion half snake has come to mocks the mortals about their free will. He needs to stay though, to prevent them from escaping to the spiritual realm.",
+    physicalAspect: "Roaring golden lion head attached to a massive coiled serpentine body.",
+  },
+  {
+    name: "Stickman",
+    district: 5,
+    gender: "male",
+    personality: "Duelist, fisherman, sniper, war master. He has seen it all.",
+    physicalAspect: "Minimalist two-dimensional stick figure silhouette with uncanny combat reflexes.",
+  },
+  {
+    name: "Spooky Skeleton",
+    district: 5,
+    gender: "non_binary",
+    personality: "A very, very, very spooky skeletal that will spook you.",
+    physicalAspect: "Bleached calcium skeleton clacking audibly, radiating pure eerie energy.",
+  },
+
+  // District 6
+  {
+    name: "Soap Monster",
+    district: 6,
+    gender: "non_binary",
+    personality: "A monster that eats soap or other soapy products, whenever he goes places, they will stay dirty.",
+    physicalAspect: "Grubby creature leaving trails of grime while perpetually munching bars of soap.",
+  },
+  {
+    name: "Golden Tom Pearl",
+    district: 6,
+    gender: "male",
+    personality: "A man with a yellow skin that can eat anything.",
+    physicalAspect: "Striking yellow skin, insatiable iron-lined jaw capable of consuming any matter.",
+  },
+  {
+    name: "Elspeth",
+    district: 6,
+    gender: "female",
+    personality: "A shadowy witch who brews potent potions and casts curses under the moonlight, her dark magic both feared and sought.",
+    physicalAspect: "Robed witch draped in midnight silk, eyes glimmering with forbidden arcane brew.",
+  },
+];
 import { advanceGamePhase } from "../src/lib/engine/orchestrator";
 import {
   dbGameStateToEngine,
@@ -148,17 +294,18 @@ async function runWholeDaySimulation(): Promise<void> {
     // Step 1: Clean Stale Previous Test Games & Create Canonical Match
     // -------------------------------------------------------------
     const benchmarkConfig = {
-      title: "The 74th Hunger Games: The Floor is Lava Caldera",
-      arena_name: "The Floor is Lava Caldera",
+      title: "The 74th Hunger Games: Sawmill Complex",
+      arena_name: "Sawmill Complex",
       arena_description:
-        "A volatile subterranean caldera with shifting obsidian plates, rising rivers of incandescent molten magma, crumbling basalt pillars, and blinding sulfurous steam vents.",
-      tribute_count: 26,
+        "An massive industrial logging site, evyrthing is made wood, sawdust scatters all over the place, massive logs are everyhere on the ground, stacked in silos, or hanging by ropes attchd the sealing, most building are several stories high with opne windows.On the ground moving saws are prsent, unknow is their purpose.",
+      tribute_count: CUSTOM_ROSTER.length,
       settings: {
         enable_bloodbath: true,
         enable_muttations: true,
         enable_disasters: true,
         enable_sponsor_drops: true,
         enable_mid_game_feast: true,
+        enable_special_events: true,
         pacing: "cinematic",
         turn_granularity: "whole_day",
         combat_lethality: "balanced",
@@ -166,7 +313,7 @@ async function runWholeDaySimulation(): Promise<void> {
         muttation_timing: "climax_only",
         disaster_frequency: "moderate",
         alliance_dynamic: "dynamic_pacts",
-        narrative_voice: "novel_cinematic",
+        narrative_voice: "gamemaker_log",
         victory_condition: "sole_victor",
       },
     };
@@ -177,7 +324,7 @@ async function runWholeDaySimulation(): Promise<void> {
       .eq("title", benchmarkConfig.title);
 
     if (oldGames && oldGames.length > 0) {
-      console.log(`🧹 Purging ${oldGames.length} stale benchmark test game run(s)...`);
+      console.log(`🧹 Purging ${oldGames.length} stale run(s) of "${benchmarkConfig.title}"...`);
       for (const old of oldGames) {
         await supabase.from("games").delete().eq("id", old.id);
       }
@@ -212,60 +359,32 @@ async function runWholeDaySimulation(): Promise<void> {
     console.log(`✅ Match created successfully! ID: ${activeGameId}`);
 
     // -------------------------------------------------------------
-    // Step 2: Insert Canonical 26-Tribute Roster
+    // Step 2: Insert Custom 18-Tribute Roster
     // -------------------------------------------------------------
-    console.log(`\n👥 [Step 2] Inserting 26 Tributes (24 Canon + District 13 Legends)...`);
-    const tributePayloads = [
-      ...CANON_74TH_TRIBUTES.map((t) => ({
-        game_id: activeGameId!,
-        name: t.name,
-        district: t.district,
-        gender: t.gender,
-        personality: t.personality,
-        physical_aspect: t.physicalAspect,
-        avatar_url: t.avatarUrl,
-        status: "alive" as const,
-        kill_count: 0,
-        stats: { survival: 50, sanity: 50, physical_tag: "unscathed", mental_tag: "composed" },
-        inventory: [],
-      })),
-      {
-        game_id: activeGameId!,
-        name: "Larry the Evil Cat",
-        district: 13,
-        gender: "male" as const,
-        personality: "Chaotic, sinister feline predator with razor-sharp claws, night vision, and zero remorse.",
-        physical_aspect: "Sleek midnight black fur, glowing sulfur-yellow eyes, lethal razor claws.",
-        avatar_url: null,
-        status: "alive" as const,
-        kill_count: 0,
-        stats: { survival: 50, sanity: 50, physical_tag: "unscathed", mental_tag: "composed" },
-        inventory: [],
-      },
-      {
-        game_id: activeGameId!,
-        name: "Sentient Plastic Chair",
-        district: 13,
-        gender: "non_binary" as const,
-        personality: "Unwavering stoic plastic monobloc lawn chair, impervious to intimidation, panic, or persuasion.",
-        physical_aspect: "White molded polypropylene monobloc lawn chair, pristine, weatherproof, and virtually indestructible.",
-        avatar_url: null,
-        status: "alive" as const,
-        kill_count: 0,
-        stats: { survival: 50, sanity: 50, physical_tag: "unscathed", mental_tag: "composed" },
-        inventory: [],
-      },
-    ];
+    console.log(`\n👥 [Step 2] Inserting ${CUSTOM_ROSTER.length} Custom Tributes across 6 Districts...`);
+    const tributePayloads = CUSTOM_ROSTER.map((t) => ({
+      game_id: activeGameId!,
+      name: t.name,
+      district: t.district,
+      gender: t.gender,
+      personality: t.personality,
+      physical_aspect: t.physicalAspect,
+      avatar_url: null,
+      status: "alive" as const,
+      kill_count: 0,
+      stats: { survival: 50, sanity: 50, physical_tag: "unscathed", mental_tag: "composed" },
+      inventory: [],
+    }));
 
     const { data: insertedTributes, error: tributeError } = await supabase
       .from("tributes")
       .insert(tributePayloads)
       .select();
 
-    if (tributeError || !insertedTributes || insertedTributes.length !== 26) {
+    if (tributeError || !insertedTributes || insertedTributes.length !== CUSTOM_ROSTER.length) {
       throw new Error(`Failed to insert tributes: ${tributeError?.message}`);
     }
-    console.log(`✅ 26 Tributes persisted in [public.tributes].`);
+    console.log(`✅ ${CUSTOM_ROSTER.length} Tributes persisted in [public.tributes].`);
 
     // -------------------------------------------------------------
     // Step 3: Bootstrap Starting Alliances & Transition to in_progress
@@ -406,7 +525,7 @@ async function runWholeDaySimulation(): Promise<void> {
         simulationTitle: benchmarkConfig.title,
         arenaName: benchmarkConfig.arena_name,
         arenaDescription: benchmarkConfig.arena_description,
-        narrativeVoice: "novel_cinematic",
+        narrativeVoice: benchmarkConfig.settings.narrative_voice as any,
         tributes: currentGameState.tributes,
       });
 
@@ -480,8 +599,8 @@ async function runWholeDaySimulation(): Promise<void> {
     const livingCount = Array.from(phaseResult.updatedTributes.values()).filter((t) => t.status === "alive").length;
     const deadCount = Array.from(phaseResult.updatedTributes.values()).filter((t) => t.status === "dead").length;
     assertInvariant(
-      `Living (${livingCount}) + Dead (${deadCount}) = 26 Total Roster`,
-      livingCount + deadCount === 26
+      `Living (${livingCount}) + Dead (${deadCount}) = ${benchmarkConfig.tribute_count} Total Roster`,
+      livingCount + deadCount === benchmarkConfig.tribute_count
     );
 
     // Sequential dead placements check
@@ -515,7 +634,8 @@ async function runWholeDaySimulation(): Promise<void> {
           for (const item of delta.itemsGained) {
             const itemName = typeof item === "string" ? item : item.name;
             report.itemsLooted++;
-            if (!consumedOrLost.has(itemName)) {
+            // Surviving tributes must retain gained items; fallen tributes drop inventory on death
+            if (tribute?.status === "alive" && !consumedOrLost.has(itemName)) {
               const hasItem = tribute?.inventory.some((inv) =>
                 typeof inv === "string" ? inv === itemName : inv.name === itemName
               );
@@ -527,7 +647,7 @@ async function runWholeDaySimulation(): Promise<void> {
         }
       }
     }
-    assertInvariant("Looted items are correctly registered in tribute inventory", inventoryConsistent);
+    assertInvariant("Looted items are correctly registered in living tribute inventory (or dropped on death)", inventoryConsistent);
 
     // 4.7 Phase Gating Check: Confirm system halts without auto-creating next phase
     const { data: phasesInDb } = await supabase
@@ -554,24 +674,70 @@ async function runWholeDaySimulation(): Promise<void> {
     }
 
     console.log(`\n🏆 [VERDICT]: Whole Day Granularity & AI Narrative Flow 100% Verified!`);
+
+    // -------------------------------------------------------------
+    // Step 4.8: Side-by-Side Narrative Comparison with Gamemaker Log
+    // -------------------------------------------------------------
+    const { data: prevGame } = await supabase
+      .from("games")
+      .select("id, title")
+      .eq("title", "The 74th Hunger Games: Sawmill Complex")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (prevGame) {
+      const { data: prevPhases } = await supabase
+        .from("game_phases")
+        .select("id")
+        .eq("game_id", prevGame.id)
+        .order("phase_order", { ascending: true })
+        .limit(1);
+
+      if (prevPhases && prevPhases.length > 0) {
+        const { data: prevEvents } = await supabase
+          .from("game_phase_events")
+          .select("event_order, event_category, narrative_text")
+          .eq("phase_id", prevPhases[0].id)
+          .order("event_order", { ascending: true });
+
+        console.log(`\n=======================================================`);
+        console.log(" ⚖️  SIDE-BY-SIDE NARRATIVE COMPARISON");
+        console.log("=======================================================");
+        console.log(`[Game A (Gamemaker Log): ${prevGame.id}] vs [Game B (Novel Cinematic): ${activeGameId}]\n`);
+
+        for (const newEv of dbPhaseEvents) {
+          const oldEv = prevEvents?.find((e) => e.event_order === newEv.event_order);
+          console.log(`-------------------------------------------------------`);
+          console.log(`📌 Event #${newEv.event_order} [${newEv.event_category?.toUpperCase()}]:`);
+          console.log(`📡 [GAMEMAKER LOG]:\n"${oldEv?.narrative_text ?? "(Not found)"}"\n`);
+          console.log(`📖 [NOVEL CINEMATIC]:\n"${newEv.narrative_text}"\n`);
+        }
+      }
+    }
   } catch (err) {
     console.error("\n💥 Error during Whole Day test execution:", err);
     throw err;
   } finally {
     // -------------------------------------------------------------
-    // Step 5: Unconditional Zero-Residue Cleanup (AGENTS.md Protocol)
+    // Step 5: Test Retention / Optional Zero-Residue Cleanup
     // -------------------------------------------------------------
+    const purgeGame = process.env.PURGE_TEST_GAME === "true";
     if (activeGameId && globalSupabase) {
-      console.log(`\n🧹 Purging active test match [${activeGameId}] to ensure zero database residue...`);
-      const { error: purgeErr } = await globalSupabase
-        .from("games")
-        .delete()
-        .eq("id", activeGameId);
+      if (purgeGame) {
+        console.log(`\n🧹 Purging active test match [${activeGameId}] (PURGE_TEST_GAME=true)...`);
+        const { error: purgeErr } = await globalSupabase
+          .from("games")
+          .delete()
+          .eq("id", activeGameId);
 
-      if (purgeErr) {
-        console.error(`⚠️ Failed to delete test game [${activeGameId}]:`, purgeErr.message);
+        if (purgeErr) {
+          console.error(`⚠️ Failed to delete test game [${activeGameId}]:`, purgeErr.message);
+        } else {
+          console.log(`✨ Cascade purge successful for game [${activeGameId}]. DB is clean.`);
+        }
       } else {
-        console.log(`✨ Cascade purge successful for game [${activeGameId}]. DB is clean.`);
+        console.log(`\n💾 Match data retained in Supabase DEV for testing (Game ID: ${activeGameId}).`);
       }
     }
     if (globalSupabase) {
@@ -585,4 +751,3 @@ runWholeDaySimulation().catch((err) => {
   console.error("💥 Fatal test runner failure:", err);
   process.exit(1);
 });
-

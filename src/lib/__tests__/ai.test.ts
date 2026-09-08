@@ -75,6 +75,30 @@ describe("AI Core Engine (src/lib/ai.ts)", () => {
         expect(prompt).toContain("NEVER contradict, alter, or invent");
       }
     });
+
+    it("instructs the Gamemaker log to emit one terse event-feed sentence", () => {
+      const prompt = NARRATIVE_SYSTEM_PROMPTS.gamemaker_log;
+
+      expect(prompt).toContain("exactly one short third-person sentence");
+      expect(prompt).toContain("8 to 20 words");
+      expect(prompt).toContain("Do NOT include numbering");
+      expect(prompt).toContain("Never append district");
+      expect(prompt).toContain("Make each sentence specific to its encounter");
+    });
+
+    it("forbids district-style labels in every narrative voice", () => {
+      for (const prompt of Object.values(NARRATIVE_SYSTEM_PROMPTS)) {
+        expect(prompt).toContain("(District 1)");
+        expect(prompt).toContain("(D1)");
+      }
+    });
+
+    it("grounds every narrative voice in the arena and participant details", () => {
+      for (const prompt of Object.values(NARRATIVE_SYSTEM_PROMPTS)) {
+        expect(prompt).toContain("Recreate the pre-determined event faithfully");
+        expect(prompt).toContain("use the provided environment creatively");
+      }
+    });
   });
 
   describe("buildNarrativeUserPrompt", () => {
@@ -130,6 +154,8 @@ describe("AI Core Engine (src/lib/ai.ts)", () => {
       const prompt = buildNarrativeUserPrompt(peacefulRequest);
       expect(prompt).toContain("Fatalities: None");
       expect(prompt).toContain("Discovered Item: Nightlock Berries");
+      expect(prompt).toContain("one short, plain, event-specific event-feed sentence");
+      expect(prompt).toContain("Do not add district labels");
     });
 
     it("renders Cornucopia Structure when provided in thematic context", () => {
@@ -272,6 +298,18 @@ describe("AI Core Engine (src/lib/ai.ts)", () => {
   });
 
   describe("generateBarebonesFallback", () => {
+    it("uses the concise event-feed format for Gamemaker logs", () => {
+      const fallback = generateBarebonesFallback({
+        ...sampleRequest,
+        narrativeVoice: "gamemaker_log",
+        eventCategory: "forage",
+        outcomeType: "loot",
+        stateDelta: { fatalities: [], healthChanges: {}, sanityChanges: {} },
+      });
+
+      expect(fallback).toBe("Rue and Marvel gather supplies.");
+    });
+
     it("generates fallback text for lethal events with cannon reference", () => {
       const fallback = generateBarebonesFallback(sampleRequest);
       expect(fallback).toContain("Alpine Woodlands");
